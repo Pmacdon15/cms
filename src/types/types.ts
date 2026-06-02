@@ -5,8 +5,8 @@ export interface Client {
   name: string;
   email: string;
   phone_number: string;
-  opt_in_newsletter: boolean; // Driven dynamically from AWS SES
-  opt_in_sms: boolean;        // Driven dynamically from AWS Pinpoint
+  opt_in_newsletter: boolean; // Stored locally in PostgreSQL
+  opt_in_sms: boolean; // Stored locally in PostgreSQL
   created_at: Date | string;
 }
 

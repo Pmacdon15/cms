@@ -1,19 +1,19 @@
 "use client";
 
+import { CheckCircle, Layers, Mail, Plus, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import { Plus, Mail, Search, Layers, CheckCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "../../components/ui/button";
+import { Checkbox } from "../../components/ui/checkbox";
 import { Dialog } from "../../components/ui/dialog";
 import { Input } from "../../components/ui/input";
-import { Checkbox } from "../../components/ui/checkbox";
 import {
   Table,
-  TableHeader,
-  TableRow,
-  TableHead,
   TableBody,
   TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "../../components/ui/table";
 import {
   useCreateMailingListMutation,
@@ -78,19 +78,22 @@ export function MailingListManager({
 
   const handleToggleSubscription = async (
     email: string,
-    currentStatus: "subscribed" | "unsubscribed"
+    currentStatus: "subscribed" | "unsubscribed",
   ) => {
     if (!activeList) return;
 
-    const nextStatus = currentStatus === "subscribed" ? "unsubscribed" : "subscribed";
+    const nextStatus =
+      currentStatus === "subscribed" ? "unsubscribed" : "subscribed";
 
     // Optimistic UI update
     setSubscribers((prev) =>
-      prev.map((sub) => (sub.email === email ? { ...sub, status: nextStatus } : sub))
+      prev.map((sub) =>
+        sub.email === email ? { ...sub, status: nextStatus } : sub,
+      ),
     );
 
     const result = await toggleSubscriptionMutation.mutateAsync({
-      email,
+      clientIdOrEmail: email,
       listName: activeList.name,
       status: nextStatus,
       isPublic: false,
@@ -112,7 +115,7 @@ export function MailingListManager({
     (sub) =>
       sub.name.toLowerCase().includes(search.toLowerCase()) ||
       sub.email.toLowerCase().includes(search.toLowerCase()) ||
-      sub.phone_number.includes(search)
+      sub.phone_number.includes(search),
   );
 
   return (
@@ -150,7 +153,9 @@ export function MailingListManager({
                       : "bg-zinc-900/40 border-zinc-900 text-zinc-400 hover:border-zinc-800 hover:bg-zinc-900/60"
                   }`}
                 >
-                  <span className={`text-sm font-bold ${isActive ? "text-violet-400" : "text-zinc-200"}`}>
+                  <span
+                    className={`text-sm font-bold ${isActive ? "text-violet-400" : "text-zinc-200"}`}
+                  >
                     {list.name}
                   </span>
                   {list.description && (
@@ -170,7 +175,9 @@ export function MailingListManager({
         {!activeList ? (
           <div className="py-24 text-center border border-dashed border-zinc-800 rounded-2xl text-zinc-500 flex flex-col items-center gap-3">
             <Mail className="w-8 h-8 text-zinc-600" />
-            <span className="text-sm font-semibold">Select or Create an AWS SES Contact List to Manage Subscribers</span>
+            <span className="text-sm font-semibold">
+              Select or Create an AWS SES Contact List to Manage Subscribers
+            </span>
           </div>
         ) : (
           <div className="flex flex-col gap-5">
@@ -178,15 +185,18 @@ export function MailingListManager({
             <div className="bg-zinc-950/30 p-5 rounded-2xl border border-zinc-900 flex flex-col sm:flex-row justify-between gap-4">
               <div>
                 <h3 className="text-md font-bold text-white flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-violet-400" /> {activeList.name}
+                  <CheckCircle className="w-4 h-4 text-violet-400" />{" "}
+                  {activeList.name}
                 </h3>
                 <p className="text-xs text-zinc-400 mt-1">
-                  {activeList.description || "Active contact list deployed on AWS SES."}
+                  {activeList.description ||
+                    "Active contact list deployed on AWS SES."}
                 </p>
               </div>
               <div className="flex items-center">
                 <span className="text-xs font-semibold uppercase bg-zinc-900 text-violet-400 border border-zinc-800 px-3 py-1.5 rounded-full">
-                  {subscribers.filter((s) => s.status === "subscribed").length} Active Subscribers
+                  {subscribers.filter((s) => s.status === "subscribed").length}{" "}
+                  Active Subscribers
                 </span>
               </div>
             </div>
@@ -208,7 +218,9 @@ export function MailingListManager({
             {/* Subscribers Table */}
             {filteredSubscribers.length === 0 ? (
               <div className="py-16 text-center border border-zinc-900 rounded-xl bg-zinc-950/20 text-zinc-500">
-                {search ? "No subscribers match your filter criteria." : "No subscribers on this contact list yet."}
+                {search
+                  ? "No subscribers match your filter criteria."
+                  : "No subscribers on this contact list yet."}
               </div>
             ) : (
               <Table>
@@ -216,7 +228,9 @@ export function MailingListManager({
                   <TableRow>
                     <TableHead>Subscriber Name</TableHead>
                     <TableHead>Contact Info</TableHead>
-                    <TableHead className="text-right">Mailing List Status</TableHead>
+                    <TableHead className="text-right">
+                      Mailing List Status
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -224,7 +238,9 @@ export function MailingListManager({
                     const isSubscribed = sub.status === "subscribed";
                     return (
                       <TableRow key={sub.email}>
-                        <TableCell className="font-bold text-white">{sub.name}</TableCell>
+                        <TableCell className="font-bold text-white">
+                          {sub.name}
+                        </TableCell>
                         <TableCell>
                           <div className="flex flex-col text-xs text-zinc-400">
                             <span>{sub.email}</span>
@@ -234,7 +250,9 @@ export function MailingListManager({
                         <TableCell className="text-right">
                           <Checkbox
                             checked={isSubscribed}
-                            onChange={() => handleToggleSubscription(sub.email, sub.status)}
+                            onChange={() =>
+                              handleToggleSubscription(sub.email, sub.status)
+                            }
                             label={isSubscribed ? "Subscribed" : "Opted out"}
                             className="inline-flex cursor-pointer"
                           />
@@ -283,11 +301,10 @@ export function MailingListManager({
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={createListMutation.isPending}
-            >
-              {createListMutation.isPending ? "Creating on AWS..." : "Create List"}
+            <Button type="submit" disabled={createListMutation.isPending}>
+              {createListMutation.isPending
+                ? "Creating on AWS..."
+                : "Create List"}
             </Button>
           </div>
         </form>

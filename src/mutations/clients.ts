@@ -50,7 +50,7 @@ export function useUpdateClientOptInMutation() {
       const response = await actionUpdateClientOptIn(
         variables.id,
         variables.optInNewsletter,
-        variables.optInSms
+        variables.optInSms,
       );
       return response;
     },

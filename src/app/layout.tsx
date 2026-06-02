@@ -18,7 +18,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "ApexCMS - Client & Campaign Portal",
-  description: "Next-gen premium marketing CMS with Neon Serverless, Clerk Auth, and AWS Pinpoint.",
+  description:
+    "Next-gen premium marketing CMS with Neon Serverless, Clerk Auth, and AWS Pinpoint.",
 };
 
 export default function RootLayout({

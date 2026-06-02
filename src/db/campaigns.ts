@@ -1,5 +1,5 @@
-import { sql } from "./neon";
 import type { Campaign, CampaignInput, SentMessage } from "../types/types";
+import { sql } from "./neon";
 
 let isCampaignsSchemaInitialized = false;
 
@@ -14,7 +14,10 @@ async function ensureCampaignsSchema() {
     `;
     isCampaignsSchemaInitialized = true;
   } catch (err) {
-    console.error("Failed to dynamically auto-provision campaigns schema:", err);
+    console.error(
+      "Failed to dynamically auto-provision campaigns schema:",
+      err,
+    );
   }
 }
 
@@ -36,7 +39,7 @@ export async function dbGetCampaigns(): Promise<Campaign[]> {
  */
 export async function dbCreateCampaign(
   input: CampaignInput,
-  sentCount: number
+  sentCount: number,
 ): Promise<Campaign> {
   await ensureCampaignsSchema();
   const rows = await sql`
@@ -55,7 +58,7 @@ export async function dbLogSentMessage(
   clientId: string,
   channel: "email" | "sms",
   status: "sent" | "failed",
-  awsMessageId?: string
+  awsMessageId?: string,
 ): Promise<SentMessage> {
   const rows = await sql`
     INSERT INTO sent_messages (campaign_id, client_id, channel, status, aws_message_id)
@@ -68,7 +71,9 @@ export async function dbLogSentMessage(
 /**
  * Fetch sent messages logs for a specific campaign
  */
-export async function dbGetSentMessages(campaignId: string): Promise<SentMessage[]> {
+export async function dbGetSentMessages(
+  campaignId: string,
+): Promise<SentMessage[]> {
   const rows = await sql`
     SELECT id, campaign_id, client_id, channel, status, aws_message_id, created_at
     FROM sent_messages

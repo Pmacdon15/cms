@@ -21,8 +21,10 @@ export default async function DashboardPage() {
   const emailSubscribers = clients.filter((c) => c.opt_in_newsletter).length;
   const smsSubscribers = clients.filter((c) => c.opt_in_sms).length;
 
-  const emailOptInRate = totalClients > 0 ? Math.round((emailSubscribers / totalClients) * 100) : 0;
-  const smsOptInRate = totalClients > 0 ? Math.round((smsSubscribers / totalClients) * 100) : 0;
+  const emailOptInRate =
+    totalClients > 0 ? Math.round((emailSubscribers / totalClients) * 100) : 0;
+  const smsOptInRate =
+    totalClients > 0 ? Math.round((smsSubscribers / totalClients) * 100) : 0;
 
   return (
     <div className="flex flex-col min-h-screen bg-black">
@@ -41,7 +43,8 @@ export default async function DashboardPage() {
                 Welcome to ApexCMS Dashboard
               </h1>
               <p className="text-sm text-zinc-400 max-w-lg">
-                Manage your client profiles, subscribe channels, and dispatch marketing campaigns via AWS SES and Pinpoint.
+                Manage your client profiles, subscribe channels, and dispatch
+                marketing campaigns via AWS SES and Pinpoint.
               </p>
             </div>
             <div className="flex gap-3">
@@ -68,9 +71,12 @@ export default async function DashboardPage() {
               ⚠️ Database Connection Warning (Simulated fallback active)
             </span>
             <p className="text-zinc-400 text-xs leading-relaxed">
-              Details: {dbError}. If you haven't executed the database structure yet, please copy the DDL script in{" "}
-              <code className="text-yellow-400">schema.sql</code> and run it in your Neon SQL console, then add your{" "}
-              <code className="text-yellow-400">DATABASE_URL</code> connection string to your `.env.local` file.
+              Details: {dbError}. If you haven't executed the database structure
+              yet, please copy the DDL script in{" "}
+              <code className="text-yellow-400">schema.sql</code> and run it in
+              your Neon SQL console, then add your{" "}
+              <code className="text-yellow-400">DATABASE_URL</code> connection
+              string to your `.env.local` file.
             </p>
           </div>
         )}
@@ -80,8 +86,12 @@ export default async function DashboardPage() {
           {/* Card 1 */}
           <div className="p-6 rounded-2xl border border-zinc-800 bg-zinc-950/40 backdrop-blur-md flex items-center justify-between">
             <div className="flex flex-col gap-1">
-              <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Total Clients</span>
-              <span className="text-4xl font-extrabold text-white">{totalClients}</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                Total Clients
+              </span>
+              <span className="text-4xl font-extrabold text-white">
+                {totalClients}
+              </span>
             </div>
             <div className="w-12 h-12 rounded-xl bg-violet-950/60 border border-violet-800/20 flex items-center justify-center text-violet-400">
               <Users className="w-5 h-5" />
@@ -92,15 +102,23 @@ export default async function DashboardPage() {
           <div className="p-6 rounded-2xl border border-zinc-800 bg-zinc-950/40 backdrop-blur-md flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <div className="flex flex-col gap-0.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Email Subscriptions</span>
-                <span className="text-2xl font-bold text-white">{emailSubscribers} <span className="text-xs text-zinc-400">clients</span></span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                  Email Subscriptions
+                </span>
+                <span className="text-2xl font-bold text-white">
+                  {emailSubscribers}{" "}
+                  <span className="text-xs text-zinc-400">clients</span>
+                </span>
               </div>
               <span className="text-sm font-semibold text-emerald-400 bg-emerald-950/65 px-2.5 py-1 rounded-full border border-emerald-800/20">
                 {emailOptInRate}%
               </span>
             </div>
             <div className="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-violet-600 to-indigo-600 rounded-full" style={{ width: `${emailOptInRate}%` }} />
+              <div
+                className="h-full bg-gradient-to-r from-violet-600 to-indigo-600 rounded-full"
+                style={{ width: `${emailOptInRate}%` }}
+              />
             </div>
           </div>
 
@@ -108,15 +126,23 @@ export default async function DashboardPage() {
           <div className="p-6 rounded-2xl border border-zinc-800 bg-zinc-950/40 backdrop-blur-md flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <div className="flex flex-col gap-0.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">SMS Subscriptions</span>
-                <span className="text-2xl font-bold text-white">{smsSubscribers} <span className="text-xs text-zinc-400">clients</span></span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                  SMS Subscriptions
+                </span>
+                <span className="text-2xl font-bold text-white">
+                  {smsSubscribers}{" "}
+                  <span className="text-xs text-zinc-400">clients</span>
+                </span>
               </div>
               <span className="text-sm font-semibold text-sky-400 bg-sky-950/65 px-2.5 py-1 rounded-full border border-sky-800/20">
                 {smsOptInRate}%
               </span>
             </div>
             <div className="w-full h-1.5 bg-zinc-900 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-violet-600 to-indigo-600 rounded-full" style={{ width: `${smsOptInRate}%` }} />
+              <div
+                className="h-full bg-gradient-to-r from-violet-600 to-indigo-600 rounded-full"
+                style={{ width: `${smsOptInRate}%` }}
+              />
             </div>
           </div>
         </section>
@@ -131,7 +157,8 @@ export default async function DashboardPage() {
 
           {campaigns.length === 0 ? (
             <div className="py-12 text-center text-zinc-500 text-sm">
-              No dispatches found. Complete a marketing campaign to see your logs.
+              No dispatches found. Complete a marketing campaign to see your
+              logs.
             </div>
           ) : (
             <div className="flex flex-col gap-3">
@@ -142,10 +169,14 @@ export default async function DashboardPage() {
                 >
                   <div className="flex flex-col gap-1">
                     <span className="text-sm font-bold text-zinc-200">
-                      {campaign.type === "sms" ? "SMS Campaign" : campaign.subject}
+                      {campaign.type === "sms"
+                        ? "SMS Campaign"
+                        : campaign.subject}
                     </span>
                     <span className="text-xs text-zinc-500">
-                      Sent on {new Date(campaign.created_at).toLocaleDateString()} at {new Date(campaign.created_at).toLocaleTimeString()}
+                      Sent on{" "}
+                      {new Date(campaign.created_at).toLocaleDateString()} at{" "}
+                      {new Date(campaign.created_at).toLocaleTimeString()}
                     </span>
                   </div>
                   <div className="flex items-center gap-3">

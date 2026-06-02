@@ -3,24 +3,27 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   actionCreateMailingList,
-  actionUpdateSubscriptionStatus,
   actionUpdateGlobalOptIn,
+  actionUpdateSubscriptionStatus,
 } from "../actions/mailing_lists";
 import { showToast } from "../components/ui/toast";
 
 /**
- * Mutation hook to create a new mailing list in AWS SES
+ * Mutation hook to create a new mailing list in the database
  */
 export function useCreateMailingListMutation(onSuccessCallback?: () => void) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (variables: { name: string; description?: string }) => {
-      return await actionCreateMailingList(variables.name, variables.description);
+      return await actionCreateMailingList(
+        variables.name,
+        variables.description,
+      );
     },
     onSuccess: (res) => {
       if (res.ok) {
-        showToast.success("Mailing list created successfully on AWS SES.");
+        showToast.success("Mailing list created successfully.");
         queryClient.invalidateQueries({ queryKey: ["mailing-lists"] });
         if (onSuccessCallback) onSuccessCallback();
       } else {
@@ -34,29 +37,31 @@ export function useCreateMailingListMutation(onSuccessCallback?: () => void) {
 }
 
 /**
- * Mutation hook to toggle subscriber status on a specific AWS SES Contact List
+ * Mutation hook to toggle subscriber status on a specific mailing list
  */
 export function useUpdateSubscriptionStatusMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (variables: {
-      email: string;
+      clientIdOrEmail: string;
       listName: string;
       status: "subscribed" | "unsubscribed";
       isPublic?: boolean;
     }) => {
       return await actionUpdateSubscriptionStatus(
-        variables.email,
+        variables.clientIdOrEmail,
         variables.listName,
         variables.status,
-        variables.isPublic
+        variables.isPublic,
       );
     },
     onSuccess: (res) => {
       if (res.ok) {
         showToast.success("Preferences updated successfully.");
-        queryClient.invalidateQueries({ queryKey: ["mailing-list-subscribers"] });
+        queryClient.invalidateQueries({
+          queryKey: ["mailing-list-subscribers"],
+        });
         queryClient.invalidateQueries({ queryKey: ["client-subscriptions"] });
       } else {
         showToast.error(res.error || "Failed to update preference.");
@@ -69,18 +74,24 @@ export function useUpdateSubscriptionStatusMutation() {
 }
 
 /**
- * Mutation hook to toggle global newsletter opt-in preferences in AWS SES
+ * Mutation hook to toggle global newsletter opt-in preferences
  */
 export function useUpdateGlobalOptInMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (variables: { email: string; optInNewsletter: boolean }) => {
-      return await actionUpdateGlobalOptIn(variables.email, variables.optInNewsletter);
+    mutationFn: async (variables: {
+      clientIdOrEmail: string;
+      optInNewsletter: boolean;
+    }) => {
+      return await actionUpdateGlobalOptIn(
+        variables.clientIdOrEmail,
+        variables.optInNewsletter,
+      );
     },
     onSuccess: (res) => {
       if (res.ok) {
-        showToast.success("Global AWS SES subscription updated.");
+        showToast.success("Global newsletter subscription updated.");
         queryClient.invalidateQueries({ queryKey: ["client-subscriptions"] });
         queryClient.invalidateQueries({ queryKey: ["clients"] });
       } else {

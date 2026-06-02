@@ -2,15 +2,16 @@
 
 import {
   dalCreateMailingList,
-  dalGetMailingLists,
-  dalGetMailingListSubscribers,
   dalGetClientSubscriptionsByEmail,
-  dalUpdateSubscriptionStatus,
+  dalGetClientSubscriptionsById,
+  dalGetMailingListSubscribers,
+  dalGetMailingLists,
   dalUpdateGlobalOptIn,
+  dalUpdateSubscriptionStatus,
 } from "../dal/mailing_lists";
 
 /**
- * Server action to get all mailing lists from AWS SES
+ * Server action to get all mailing lists
  */
 export async function actionGetMailingLists() {
   const res = await dalGetMailingLists();
@@ -19,16 +20,19 @@ export async function actionGetMailingLists() {
 }
 
 /**
- * Server action to create a new mailing list in AWS SES
+ * Server action to create a new mailing list
  */
-export async function actionCreateMailingList(name: string, description?: string) {
+export async function actionCreateMailingList(
+  name: string,
+  description?: string,
+) {
   const res = await dalCreateMailingList(name, description);
   if (res.isOk()) return { ok: true, value: res.value };
   return { ok: false, error: res.error.message };
 }
 
 /**
- * Server action to get subscribers of a specific AWS SES mailing list
+ * Server action to get subscribers of a specific mailing list
  */
 export async function actionGetMailingListSubscribers(listName: string) {
   const res = await dalGetMailingListSubscribers(listName);
@@ -46,24 +50,41 @@ export async function actionGetClientSubscriptionsByEmail(email: string) {
 }
 
 /**
- * Server action to toggle subscription status on a specific AWS SES list
+ * Public server action to fetch subscription preferences securely by client UUID
  */
-export async function actionUpdateSubscriptionStatus(
-  email: string,
-  listName: string,
-  status: "subscribed" | "unsubscribed",
-  isPublic = false
-) {
-  const res = await dalUpdateSubscriptionStatus(email, listName, status, isPublic);
+export async function actionGetClientSubscriptionsById(id: string) {
+  const res = await dalGetClientSubscriptionsById(id);
   if (res.isOk()) return { ok: true, value: res.value };
   return { ok: false, error: res.error.message };
 }
 
 /**
- * Server action to update global newsletter opt-in preference in AWS SES
+ * Server action to toggle subscription status on a specific list
  */
-export async function actionUpdateGlobalOptIn(email: string, optInNewsletter: boolean) {
-  const res = await dalUpdateGlobalOptIn(email, optInNewsletter);
+export async function actionUpdateSubscriptionStatus(
+  clientIdOrEmail: string,
+  listName: string,
+  status: "subscribed" | "unsubscribed",
+  isPublic = false,
+) {
+  const res = await dalUpdateSubscriptionStatus(
+    clientIdOrEmail,
+    listName,
+    status,
+    isPublic,
+  );
+  if (res.isOk()) return { ok: true, value: res.value };
+  return { ok: false, error: res.error.message };
+}
+
+/**
+ * Server action to update global newsletter opt-in preference
+ */
+export async function actionUpdateGlobalOptIn(
+  clientIdOrEmail: string,
+  optInNewsletter: boolean,
+) {
+  const res = await dalUpdateGlobalOptIn(clientIdOrEmail, optInNewsletter);
   if (res.isOk()) return { ok: true, value: res.value };
   return { ok: false, error: res.error.message };
 }

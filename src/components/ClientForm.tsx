@@ -24,8 +24,10 @@ export function ClientForm({ onSuccess }: ClientFormProps) {
       onChange({ value }) {
         if (!value.name.trim()) return { name: "Name is required" };
         if (!value.email.trim()) return { email: "Email is required" };
-        if (!value.email.includes("@")) return { email: "Invalid email address" };
-        if (!value.phone_number.trim()) return { phone_number: "Phone is required" };
+        if (!value.email.includes("@"))
+          return { email: "Invalid email address" };
+        if (!value.phone_number.trim())
+          return { phone_number: "Phone is required" };
         return undefined;
       },
     },
@@ -57,7 +59,11 @@ export function ClientForm({ onSuccess }: ClientFormProps) {
             value={field.state.value}
             onChange={(e) => field.handleChange(e.target.value)}
             onBlur={field.handleBlur}
-            error={field.state.meta.errors ? String(field.state.meta.errors) : undefined}
+            error={
+              field.state.meta.errors
+                ? String(field.state.meta.errors)
+                : undefined
+            }
           />
         )}
       />
@@ -73,7 +79,11 @@ export function ClientForm({ onSuccess }: ClientFormProps) {
             value={field.state.value}
             onChange={(e) => field.handleChange(e.target.value)}
             onBlur={field.handleBlur}
-            error={field.state.meta.errors ? String(field.state.meta.errors) : undefined}
+            error={
+              field.state.meta.errors
+                ? String(field.state.meta.errors)
+                : undefined
+            }
           />
         )}
       />
@@ -89,7 +99,11 @@ export function ClientForm({ onSuccess }: ClientFormProps) {
             value={field.state.value}
             onChange={(e) => field.handleChange(e.target.value)}
             onBlur={field.handleBlur}
-            error={field.state.meta.errors ? String(field.state.meta.errors) : undefined}
+            error={
+              field.state.meta.errors
+                ? String(field.state.meta.errors)
+                : undefined
+            }
           />
         )}
       />

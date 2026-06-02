@@ -16,7 +16,7 @@ export default function SignInPage() {
             APEX<span className="text-violet-500">CMS</span>
           </span>
         </div>
-        
+
         <SignIn
           appearance={{
             variables: {
@@ -29,8 +29,10 @@ export default function SignInPage() {
             },
             elements: {
               card: "border border-zinc-800 bg-zinc-950/40 backdrop-blur-md rounded-2xl shadow-xl",
-              socialButtonsBlockButton: "border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-zinc-100",
-              formButtonPrimary: "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white",
+              socialButtonsBlockButton:
+                "border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-zinc-100",
+              formButtonPrimary:
+                "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white",
               footerActionLink: "text-violet-400 hover:text-violet-300",
             },
           }}

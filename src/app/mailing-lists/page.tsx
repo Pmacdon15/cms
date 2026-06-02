@@ -1,6 +1,9 @@
-import { Layers, AlertCircle } from "lucide-react";
+import { AlertCircle, Layers } from "lucide-react";
 import { Navbar } from "../../components/Navbar";
-import { dalGetMailingLists, dalGetMailingListSubscribers } from "../../dal/mailing_lists";
+import {
+  dalGetMailingListSubscribers,
+  dalGetMailingLists,
+} from "../../dal/mailing_lists";
 import { MailingListManager } from "./MailingListManager";
 
 export const revalidate = 0; // Force dynamic server rendering
@@ -17,10 +20,17 @@ export default async function MailingListsPage(props: any) {
   const dbError = listsRes.isErr() ? listsRes.error.message : null;
 
   // Determine which list is currently active
-  const activeList = lists.find((l) => l.name === selectedListName) || lists[0] || null;
+  const activeList =
+    lists.find((l) => l.name === selectedListName) || lists[0] || null;
 
   // 2. Fetch subscribers directly from the active AWS SES Contact List
-  let subscribers: Array<{ id: string; name: string; email: string; phone_number: string; status: "subscribed" | "unsubscribed" }> = [];
+  let subscribers: Array<{
+    id: string;
+    name: string;
+    email: string;
+    phone_number: string;
+    status: "subscribed" | "unsubscribed";
+  }> = [];
   if (activeList) {
     const subsRes = await dalGetMailingListSubscribers(activeList.name);
     subscribers = subsRes.isOk() ? subsRes.value : [];
@@ -40,7 +50,8 @@ export default async function MailingListsPage(props: any) {
             </h1>
           </div>
           <p className="text-sm text-zinc-400">
-            Create email lists and fetch newsletter subscriber details and opt-in preferences directly from AWS SES.
+            Create email lists and fetch newsletter subscriber details and
+            opt-in preferences directly from AWS SES.
           </p>
         </div>
 
@@ -49,15 +60,16 @@ export default async function MailingListsPage(props: any) {
           <div className="p-4 rounded-xl border border-yellow-500/20 bg-yellow-950/20 text-yellow-200 text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-yellow-400 flex-shrink-0" />
             <div>
-              <span className="font-bold">⚠️ Connection Alert:</span> Failed to connect to AWS: {dbError}. Simulated fallback lists are active.
+              <span className="font-bold">⚠️ Connection Alert:</span> Failed to
+              connect to AWS: {dbError}. Simulated fallback lists are active.
             </div>
           </div>
         )}
 
         {/* Mailing List Workspace Component */}
-        <MailingListManager 
-          initialLists={lists} 
-          initialSubscribers={subscribers} 
+        <MailingListManager
+          initialLists={lists}
+          initialSubscribers={subscribers}
           activeList={activeList}
         />
       </main>

@@ -3,12 +3,15 @@ import { type NextRequest, NextResponse } from "next/server";
 
 // Detect if Clerk keys are present in the environment
 const hasClerkKeys = !!(
-  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && 
-  process.env.CLERK_SECRET_KEY
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY
 );
 
 // Match pages that require user login
-const isProtectedRoute = createRouteMatcher(["/", "/clients(.*)", "/campaigns(.*)"]);
+const isProtectedRoute = createRouteMatcher([
+  "/",
+  "/clients(.*)",
+  "/campaigns(.*)",
+]);
 
 export default function middleware(req: NextRequest, event: any) {
   if (!hasClerkKeys) {
@@ -27,7 +30,7 @@ export default function middleware(req: NextRequest, event: any) {
 export const config = {
   matcher: [
     // Skip Next.js internals and all static files
-   '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
     // Always run for API routes
     "/(api|trpc)(.*)",
   ],

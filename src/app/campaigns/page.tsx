@@ -30,15 +30,21 @@ export default async function CampaignsPage() {
             </h1>
           </div>
           <p className="text-sm text-zinc-400">
-            Write newsletters and SMS updates, select your channels, and view detailed subscriber delivery receipts.
+            Write newsletters and SMS updates, select your channels, and view
+            detailed subscriber delivery receipts.
           </p>
         </div>
 
         {/* DB Connection Alert Fallback */}
         {dbError && (
           <div className="p-4 rounded-xl border border-yellow-500/20 bg-yellow-950/20 text-yellow-200 text-xs">
-            <span className="font-bold block mb-1">⚠️ Local Fallback Active</span>
-            Failed to connect to Neon DB: {dbError}. Using simulated campaign databases. Run the DDL script in <code className="text-yellow-400">schema.sql</code> inside your Neon database to fix.
+            <span className="font-bold block mb-1">
+              ⚠️ Local Fallback Active
+            </span>
+            Failed to connect to Neon DB: {dbError}. Using simulated campaign
+            databases. Run the DDL script in{" "}
+            <code className="text-yellow-400">schema.sql</code> inside your Neon
+            database to fix.
           </div>
         )}
 

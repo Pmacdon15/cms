@@ -2,10 +2,9 @@
 
 import { useForm } from "@tanstack/react-form";
 import { useCreateCampaignMutation } from "../mutations/campaigns";
+import type { MailingList } from "../types/types";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-
-import type { MailingList } from "../types/types";
 
 interface CampaignFormProps {
   mailingLists: MailingList[];
@@ -31,7 +30,10 @@ export function CampaignForm({ mailingLists, onSuccess }: CampaignFormProps) {
         if (!value.content.trim()) {
           return { content: "Message content is required" };
         }
-        if ((value.type === "email" || value.type === "both") && !value.subject.trim()) {
+        if (
+          (value.type === "email" || value.type === "both") &&
+          !value.subject.trim()
+        ) {
           return { subject: "Subject is required for email campaigns" };
         }
         return undefined;
@@ -100,7 +102,11 @@ export function CampaignForm({ mailingLists, onSuccess }: CampaignFormProps) {
               >
                 <option value="">Broadcast to All Clients</option>
                 {mailingLists.map((list) => (
-                  <option key={list.name} value={list.name} className="bg-zinc-950 text-zinc-100">
+                  <option
+                    key={list.name}
+                    value={list.name}
+                    className="bg-zinc-950 text-zinc-100"
+                  >
                     {list.name}
                   </option>
                 ))}
@@ -125,7 +131,11 @@ export function CampaignForm({ mailingLists, onSuccess }: CampaignFormProps) {
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  error={field.state.meta.errors ? String(field.state.meta.errors) : undefined}
+                  error={
+                    field.state.meta.errors
+                      ? String(field.state.meta.errors)
+                      : undefined
+                  }
                 />
               )}
             />
@@ -167,7 +177,9 @@ export function CampaignForm({ mailingLists, onSuccess }: CampaignFormProps) {
           className="w-full sm:w-auto"
           disabled={campaignMutation.isPending}
         >
-          {campaignMutation.isPending ? "Sending Campaign..." : "Dispatch Campaign"}
+          {campaignMutation.isPending
+            ? "Sending Campaign..."
+            : "Dispatch Campaign"}
         </Button>
       </div>
     </form>

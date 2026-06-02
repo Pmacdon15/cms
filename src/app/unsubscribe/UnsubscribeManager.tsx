@@ -1,16 +1,16 @@
 "use client";
 
+import { BellOff, CheckCircle, Layers, Mail } from "lucide-react";
 import { useState } from "react";
-import { Mail, CheckCircle, Layers, BellOff } from "lucide-react";
 import { Checkbox } from "../../components/ui/checkbox";
 import {
-  useUpdateSubscriptionStatusMutation,
   useUpdateGlobalOptInMutation,
+  useUpdateSubscriptionStatusMutation,
 } from "../../mutations/mailing_lists";
 
 interface UnsubscribeManagerProps {
   initialPreferences: {
-    client: { name: string; email: string } | null;
+    client: { id: string; name: string; email: string } | null;
     globalOptIn: boolean;
     subscriptions: Array<{
       listName: string;
@@ -25,10 +25,15 @@ export function UnsubscribeManager({
   initialPreferences,
   highlightedListName,
 }: UnsubscribeManagerProps) {
-  const [globalOptIn, setGlobalOptIn] = useState(initialPreferences.globalOptIn);
-  const [subscriptions, setSubscriptions] = useState(initialPreferences.subscriptions);
+  const [globalOptIn, setGlobalOptIn] = useState(
+    initialPreferences.globalOptIn,
+  );
+  const [subscriptions, setSubscriptions] = useState(
+    initialPreferences.subscriptions,
+  );
 
   const clientEmail = initialPreferences.client?.email || "";
+  const clientId = initialPreferences.client?.id || "";
 
   // Mutations
   const updateGlobalOptIn = useUpdateGlobalOptInMutation();
@@ -38,13 +43,17 @@ export function UnsubscribeManager({
     // Optimistic UI update
     setGlobalOptIn(checked);
     if (!checked) {
-      setSubscriptions((prev) => prev.map((s) => ({ ...s, status: "unsubscribed" })));
+      setSubscriptions((prev) =>
+        prev.map((s) => ({ ...s, status: "unsubscribed" })),
+      );
     } else {
-      setSubscriptions((prev) => prev.map((s) => ({ ...s, status: "subscribed" })));
+      setSubscriptions((prev) =>
+        prev.map((s) => ({ ...s, status: "subscribed" })),
+      );
     }
 
     const result = await updateGlobalOptIn.mutateAsync({
-      email: clientEmail,
+      clientIdOrEmail: clientId || clientEmail,
       optInNewsletter: checked,
     });
 
@@ -55,18 +64,24 @@ export function UnsubscribeManager({
     }
   };
 
-  const handleListToggle = async (listName: string, currentStatus: "subscribed" | "unsubscribed") => {
+  const handleListToggle = async (
+    listName: string,
+    currentStatus: "subscribed" | "unsubscribed",
+  ) => {
     if (!globalOptIn) return; // Locked if globally opted out
 
-    const nextStatus = currentStatus === "subscribed" ? "unsubscribed" : "subscribed";
+    const nextStatus =
+      currentStatus === "subscribed" ? "unsubscribed" : "subscribed";
 
     // Optimistic UI update
     setSubscriptions((prev) =>
-      prev.map((s) => (s.listName === listName ? { ...s, status: nextStatus } : s))
+      prev.map((s) =>
+        s.listName === listName ? { ...s, status: nextStatus } : s,
+      ),
     );
 
     const result = await updateSubscription.mutateAsync({
-      email: clientEmail,
+      clientIdOrEmail: clientId || clientEmail,
       listName,
       status: nextStatus,
       isPublic: true,
@@ -100,11 +115,14 @@ export function UnsubscribeManager({
         <div className="flex items-start justify-between gap-4">
           <div className="flex flex-col gap-1.5">
             <span className="text-sm font-bold text-white flex items-center gap-2">
-              <CheckCircle className={`w-4 h-4 ${globalOptIn ? "text-emerald-400" : "text-zinc-650"}`} />
+              <CheckCircle
+                className={`w-4 h-4 ${globalOptIn ? "text-emerald-400" : "text-zinc-650"}`}
+              />
               Global Newsletter Subscription
             </span>
             <p className="text-xs text-zinc-400 max-w-sm">
-              Receive company updates, marketing promotions, and custom newsletters delivered securely via AWS SES.
+              Receive company updates, marketing promotions, and custom
+              newsletters delivered securely via AWS SES.
             </p>
           </div>
           <Checkbox
@@ -119,7 +137,8 @@ export function UnsubscribeManager({
       {/* 2. List-specific Subscriptions */}
       <div className="flex flex-col gap-4">
         <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-          <Layers className="w-3.5 h-3.5 text-zinc-550" /> Segmented Subscriptions
+          <Layers className="w-3.5 h-3.5 text-zinc-550" /> Segmented
+          Subscriptions
         </h3>
 
         {subscriptions.length === 0 ? (
@@ -127,7 +146,9 @@ export function UnsubscribeManager({
             No active mailing lists available at this time.
           </div>
         ) : (
-          <div className={`flex flex-col gap-3 transition-opacity duration-300 ${!globalOptIn ? "opacity-40" : ""}`}>
+          <div
+            className={`flex flex-col gap-3 transition-opacity duration-300 ${!globalOptIn ? "opacity-40" : ""}`}
+          >
             {subscriptions.map((sub) => {
               const isSubscribed = globalOptIn && sub.status === "subscribed";
               const isHighlighted = sub.listName === highlightedListName;
@@ -174,7 +195,9 @@ export function UnsubscribeManager({
       {!globalOptIn && (
         <div className="p-4 rounded-xl border border-zinc-900 bg-zinc-950/40 text-[11px] text-zinc-500 flex items-center gap-2">
           <BellOff className="w-4 h-4 text-violet-500/80 flex-shrink-0" />
-          <span>You have unsubscribed globally from all AWS SES campaigns.</span>
+          <span>
+            You have unsubscribed globally from all AWS SES campaigns.
+          </span>
         </div>
       )}
     </div>

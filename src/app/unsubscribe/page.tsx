@@ -1,5 +1,5 @@
-import { Sparkles, Mail, AlertCircle } from "lucide-react";
-import { dalGetClientSubscriptionsByEmail } from "../../dal/mailing_lists";
+import { AlertCircle, Mail, Sparkles } from "lucide-react";
+import { dalGetClientSubscriptionsById } from "../../dal/mailing_lists";
 import { UnsubscribeManager } from "./UnsubscribeManager";
 
 export const revalidate = 0; // Force dynamic loading
@@ -10,24 +10,25 @@ export default async function UnsubscribePage(props: {
   searchParams: Promise<any>;
 }) {
   const searchParams = await props.searchParams;
-  const emailParam = searchParams.email;
+  const idParam = searchParams.id;
   const highlightedListName = searchParams.listName;
 
-  const email = typeof emailParam === "string" ? emailParam.trim() : "";
+  const id = typeof idParam === "string" ? idParam.trim() : "";
 
-  // 1. Fetch subscriber's dynamic preferences from DB and AWS SES
+  // 1. Fetch subscriber's dynamic preferences from DB
   let preferences = null;
   let errorMsg = null;
 
-  if (email) {
-    const res = await dalGetClientSubscriptionsByEmail(email);
+  if (id) {
+    const res = await dalGetClientSubscriptionsById(id);
     if (res.isOk()) {
       preferences = res.value;
     } else {
       errorMsg = res.error.message;
     }
   } else {
-    errorMsg = "No email address was provided in the link. Please check your newsletter email.";
+    errorMsg =
+      "No subscriber reference was provided in the link. Please check your newsletter email.";
   }
 
   return (
@@ -55,20 +56,23 @@ export default async function UnsubscribePage(props: {
               <AlertCircle className="w-5 h-5 flex-shrink-0" />
               <span>Preferences Retrieval Error</span>
             </div>
-            <p className="text-zinc-400 text-xs leading-relaxed">
-              {errorMsg}
-            </p>
+            <p className="text-zinc-400 text-xs leading-relaxed">{errorMsg}</p>
             <div className="mt-2 text-zinc-500 text-[11px]">
-              If you believe this is an error, please ensure the unsubscribe link you clicked is complete and unmodified.
+              If you believe this is an error, please ensure the unsubscribe
+              link you clicked is complete and unmodified.
             </div>
           </div>
         )}
 
         {/* Interactive Preferences Manager */}
         {preferences && (
-          <UnsubscribeManager 
+          <UnsubscribeManager
             initialPreferences={preferences}
-            highlightedListName={typeof highlightedListName === "string" ? highlightedListName : undefined}
+            highlightedListName={
+              typeof highlightedListName === "string"
+                ? highlightedListName
+                : undefined
+            }
           />
         )}
       </div>
