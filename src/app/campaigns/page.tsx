@@ -3,14 +3,18 @@ import { CampaignForm } from "../../components/CampaignForm";
 import { CampaignList } from "../../components/CampaignList";
 import { Navbar } from "../../components/Navbar";
 import { dalGetCampaigns } from "../../dal/campaigns";
+import { dalGetMailingLists } from "../../dal/mailing_lists";
 
 export const revalidate = 0; // Force dynamic server rendering
 
 export default async function CampaignsPage() {
-  // Fetch campaigns from Server DAL directly
+  // Fetch campaigns and mailing lists from Server DAL directly
   const response = await dalGetCampaigns();
   const campaigns = response.isOk() ? response.value : [];
   const dbError = response.isErr() ? response.error.message : null;
+
+  const listsRes = await dalGetMailingLists();
+  const mailingLists = listsRes.isOk() ? listsRes.value : [];
 
   return (
     <div className="flex flex-col min-h-screen bg-black">
@@ -46,7 +50,7 @@ export default async function CampaignsPage() {
               Compose Marketing Message
             </h2>
             {/* The page forces dynamic refreshment upon successful mutation dispatch */}
-            <CampaignForm />
+            <CampaignForm mailingLists={mailingLists} />
           </div>
 
           {/* Campaign List logs (2/3 width) */}

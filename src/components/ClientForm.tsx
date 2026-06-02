@@ -19,8 +19,6 @@ export function ClientForm({ onSuccess }: ClientFormProps) {
       name: "",
       email: "",
       phone_number: "",
-      opt_in_newsletter: true,
-      opt_in_sms: true,
     },
     validators: {
       onChange({ value }) {
@@ -36,8 +34,6 @@ export function ClientForm({ onSuccess }: ClientFormProps) {
         name: value.name.trim(),
         email: value.email.trim(),
         phone_number: value.phone_number.trim(),
-        opt_in_newsletter: value.opt_in_newsletter,
-        opt_in_sms: value.opt_in_sms,
       });
     },
   });
@@ -97,36 +93,6 @@ export function ClientForm({ onSuccess }: ClientFormProps) {
           />
         )}
       />
-
-      {/* Subscription Preferences */}
-      <div className="flex flex-col gap-3 mt-1 border-t border-zinc-900 pt-4">
-        <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-          Subscribed Channels
-        </span>
-        <div className="flex flex-wrap gap-x-6 gap-y-2 mt-1">
-          <form.Field
-            name="opt_in_newsletter"
-            children={(field) => (
-              <Checkbox
-                label="Opt-in to Emails (Newsletter)"
-                checked={field.state.value}
-                onChange={(e) => field.handleChange(e.target.checked)}
-              />
-            )}
-          />
-
-          <form.Field
-            name="opt_in_sms"
-            children={(field) => (
-              <Checkbox
-                label="Opt-in to SMS Updates"
-                checked={field.state.value}
-                onChange={(e) => field.handleChange(e.target.checked)}
-              />
-            )}
-          />
-        </div>
-      </div>
 
       {/* Submit Button */}
       <div className="flex justify-end gap-3 mt-4 border-t border-zinc-900 pt-4">

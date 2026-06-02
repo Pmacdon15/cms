@@ -5,8 +5,8 @@ export interface Client {
   name: string;
   email: string;
   phone_number: string;
-  opt_in_newsletter: boolean;
-  opt_in_sms: boolean;
+  opt_in_newsletter: boolean; // Driven dynamically from AWS SES
+  opt_in_sms: boolean;        // Driven dynamically from AWS Pinpoint
   created_at: Date | string;
 }
 
@@ -16,6 +16,7 @@ export interface Campaign {
   subject?: string;
   content: string;
   sent_count: number;
+  mailing_list_name?: string;
   created_at: Date | string;
 }
 
@@ -29,13 +30,23 @@ export interface SentMessage {
   created_at: Date | string;
 }
 
-// Client create input structure
+export interface MailingList {
+  name: string;
+  description?: string;
+  created_at?: Date | string;
+}
+
+export interface MailingListSubscription {
+  email: string;
+  listName: string;
+  status: "subscribed" | "unsubscribed";
+}
+
+// Client create input structure (AWS handles initial subscriptions)
 export interface ClientInput {
   name: string;
   email: string;
   phone_number: string;
-  opt_in_newsletter: boolean;
-  opt_in_sms: boolean;
 }
 
 // Campaign create input structure
@@ -43,6 +54,7 @@ export interface CampaignInput {
   type: "email" | "sms" | "both";
   subject?: string;
   content: string;
+  mailing_list_name?: string;
 }
 
 // Common type for Result patterns

@@ -1,7 +1,7 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
-import { LayoutDashboard, Send, Users } from "lucide-react";
+import { LayoutDashboard, Layers, Send, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -11,6 +11,7 @@ export function Navbar() {
   const navigationItems = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
     { name: "Clients Directory", href: "/clients", icon: Users },
+    { name: "Mailing Lists", href: "/mailing-lists", icon: Layers },
     { name: "Campaigns & SMS", href: "/campaigns", icon: Send },
   ];
 
@@ -72,7 +73,6 @@ export function Navbar() {
           </div>
 
           <UserButton
-            afterSignOutUrl="/"
             appearance={{
               elements: {
                 avatarBox:

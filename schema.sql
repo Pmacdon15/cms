@@ -4,14 +4,12 @@
 -- Enable pgcrypto for gen_random_uuid() if not enabled
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
--- Clients table
+-- Clients table (AWS SES/Pinpoint-driven opt-in)
 CREATE TABLE IF NOT EXISTS clients (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     phone_number VARCHAR(50) NOT NULL,
-    opt_in_newsletter BOOLEAN DEFAULT TRUE NOT NULL,
-    opt_in_sms BOOLEAN DEFAULT TRUE NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
@@ -22,6 +20,7 @@ CREATE TABLE IF NOT EXISTS campaigns (
     subject VARCHAR(255), -- NULL for SMS only campaigns
     content TEXT NOT NULL,
     sent_count INTEGER DEFAULT 0 NOT NULL,
+    mailing_list_name VARCHAR(255), -- SES Contact List Name targeted (e.g. 'TanStackFormNewsletter')
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
