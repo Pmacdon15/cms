@@ -7,6 +7,7 @@ export interface Client {
   phone_number: string;
   opt_in_newsletter: boolean; // Stored locally in PostgreSQL
   opt_in_sms: boolean; // Stored locally in PostgreSQL
+  org_id: string;
   created_at: Date | string;
 }
 
@@ -17,6 +18,7 @@ export interface Campaign {
   content: string;
   sent_count: number;
   mailing_list_name?: string;
+  org_id: string;
   created_at: Date | string;
 }
 
@@ -33,6 +35,7 @@ export interface SentMessage {
 export interface MailingList {
   name: string;
   description?: string;
+  org_id?: string;
   created_at?: Date | string;
 }
 

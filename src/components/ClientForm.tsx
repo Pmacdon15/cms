@@ -50,9 +50,8 @@ export function ClientForm({ onSuccess }: ClientFormProps) {
       className="flex flex-col gap-5"
     >
       {/* Name Input */}
-      <form.Field
-        name="name"
-        children={(field) => (
+      <form.Field name="name">
+        {(field) => (
           <Input
             label="Full Name"
             placeholder="John Doe"
@@ -66,12 +65,11 @@ export function ClientForm({ onSuccess }: ClientFormProps) {
             }
           />
         )}
-      />
+      </form.Field>
 
       {/* Email Input */}
-      <form.Field
-        name="email"
-        children={(field) => (
+      <form.Field name="email">
+        {(field) => (
           <Input
             label="Email Address"
             type="email"
@@ -86,12 +84,11 @@ export function ClientForm({ onSuccess }: ClientFormProps) {
             }
           />
         )}
-      />
+      </form.Field>
 
       {/* Phone Number Input */}
-      <form.Field
-        name="phone_number"
-        children={(field) => (
+      <form.Field name="phone_number">
+        {(field) => (
           <Input
             label="Phone Number"
             type="tel"
@@ -106,7 +103,7 @@ export function ClientForm({ onSuccess }: ClientFormProps) {
             }
           />
         )}
-      />
+      </form.Field>
 
       {/* Submit Button */}
       <div className="flex justify-end gap-3 mt-4 border-t border-zinc-100 pt-4">

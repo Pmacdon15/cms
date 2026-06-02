@@ -16,9 +16,10 @@ import {
 
 interface CampaignListProps {
   initialCampaigns: Campaign[];
+  hasSms: boolean;
 }
 
-export function CampaignList({ initialCampaigns }: CampaignListProps) {
+export function CampaignList({ initialCampaigns, hasSms }: CampaignListProps) {
   const [campaigns] = useState<Campaign[]>(initialCampaigns);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(
     null,
@@ -39,9 +40,13 @@ export function CampaignList({ initialCampaigns }: CampaignListProps) {
     setIsLoadingLogs(false);
   };
 
+  const campaignsToShow = hasSms
+    ? campaigns
+    : campaigns.filter((c) => c.type === "email");
+
   return (
     <div className="flex flex-col gap-4">
-      {campaigns.length === 0 ? (
+      {campaignsToShow.length === 0 ? (
         <div className="py-16 text-center text-zinc-550 border border-zinc-200 rounded-xl bg-white">
           No marketing campaigns sent yet. Use the composer to dispatch your
           first message.
@@ -51,7 +56,7 @@ export function CampaignList({ initialCampaigns }: CampaignListProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Date Sent</TableHead>
-              <TableHead>Channel</TableHead>
+              {hasSms && <TableHead>Channel</TableHead>}
               <TableHead>Target Audience</TableHead>
               <TableHead>Subject / Message</TableHead>
               <TableHead>Delivery Volume</TableHead>
@@ -59,24 +64,26 @@ export function CampaignList({ initialCampaigns }: CampaignListProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {campaigns.map((camp) => (
+            {campaignsToShow.map((camp) => (
               <TableRow key={camp.id}>
                 <TableCell className="text-xs text-zinc-500">
                   {new Date(camp.created_at).toLocaleDateString()} at{" "}
                   {new Date(camp.created_at).toLocaleTimeString()}
                 </TableCell>
-                <TableCell>
-                  <span className="text-xs font-bold uppercase tracking-wider bg-zinc-100 px-2.5 py-1 rounded-full border border-zinc-200 text-zinc-650">
-                    {camp.type === "both" ? "Email + SMS" : camp.type}
-                  </span>
-                </TableCell>
+                {hasSms && (
+                  <TableCell>
+                    <span className="text-xs font-bold uppercase tracking-wider bg-zinc-100 px-2.5 py-1 rounded-full border border-zinc-200 text-zinc-650">
+                      {camp.type === "both" ? "Email + SMS" : camp.type}
+                    </span>
+                  </TableCell>
+                )}
                 <TableCell className="text-xs font-semibold text-zinc-700">
                   {camp.mailing_list_name || "Broadcast to All"}
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col max-w-sm truncate">
                     <span className="font-bold text-zinc-900 truncate">
-                      {camp.type === "sms" ? "SMS Campaign" : camp.subject}
+                      {camp.type === "sms" ? "Text Campaign" : camp.subject}
                     </span>
                     <span className="text-xs text-zinc-500 truncate mt-0.5">
                       {camp.content}
@@ -114,10 +121,14 @@ export function CampaignList({ initialCampaigns }: CampaignListProps) {
           <div className="flex flex-col gap-4">
             <div className="p-4 rounded-xl border border-zinc-200 bg-zinc-50/50 text-xs flex flex-col gap-2">
               <div className="grid grid-cols-2 gap-2 text-zinc-500">
-                <span>Campaign Channel:</span>
-                <span className="font-semibold text-zinc-900 uppercase">
-                  {selectedCampaign.type}
-                </span>
+                {hasSms && (
+                  <>
+                    <span>Campaign Channel:</span>
+                    <span className="font-semibold text-zinc-900 uppercase">
+                      {selectedCampaign.type}
+                    </span>
+                  </>
+                )}
                 <span>Target Audience:</span>
                 <span className="font-semibold text-zinc-900 font-medium">
                   {selectedCampaign.mailing_list_name || "Broadcast to All"}
@@ -144,7 +155,7 @@ export function CampaignList({ initialCampaigns }: CampaignListProps) {
                 Fetching recipient delivery statuses...
               </div>
             ) : deliveryLogs.length === 0 ? (
-              <div className="py-8 text-center text-zinc-500 text-xs border border-zinc-200 rounded-xl bg-white">
+              <div className="py-8 text-center text-zinc-550 border border-zinc-200 rounded-xl bg-white text-xs">
                 No individual recipient receipt logs recorded for this dispatch.
               </div>
             ) : (
@@ -153,7 +164,7 @@ export function CampaignList({ initialCampaigns }: CampaignListProps) {
                   <thead className="sticky top-0 bg-zinc-50 border-b border-zinc-200 text-zinc-500 uppercase font-semibold">
                     <tr>
                       <th className="p-3">Recipients</th>
-                      <th className="p-3">Channel</th>
+                      {hasSms && <th className="p-3">Channel</th>}
                       <th className="p-3">Status</th>
                       <th className="p-3">AWS Message ID</th>
                     </tr>
@@ -165,9 +176,11 @@ export function CampaignList({ initialCampaigns }: CampaignListProps) {
                           {/* Client ID fallback if joined fields are not loaded */}
                           {log.client_id.substring(0, 8)}...
                         </td>
-                        <td className="p-3 uppercase text-[10px] tracking-wide text-zinc-500">
-                          {log.channel}
-                        </td>
+                        {hasSms && (
+                          <td className="p-3 uppercase text-[10px] tracking-wide text-zinc-500">
+                            {log.channel}
+                          </td>
+                        )}
                         <td className="p-3">
                           <span
                             className={`px-2 py-0.5 rounded text-[10px] font-bold ${

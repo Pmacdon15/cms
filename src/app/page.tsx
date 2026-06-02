@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import { Send, Sparkles, Users } from "lucide-react";
 import Link from "next/link";
 import { Navbar } from "../components/Navbar";
@@ -16,6 +17,18 @@ export default async function DashboardPage() {
   const campaigns = campaignsRes.isOk() ? campaignsRes.value : [];
   const dbError = clientsRes.isErr() ? clientsRes.error.message : null;
 
+  // Check for SMS feature gate
+  const hasClerkKeys = !!(
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
+    process.env.CLERK_SECRET_KEY
+  );
+  const clerkAuth = await auth();
+  const hasSms =
+    !hasClerkKeys ||
+    (clerkAuth.has
+      ? clerkAuth.has({ permission: "send_sms" })
+      : false);
+
   // Compute metrics
   const totalClients = clients.length;
   const emailSubscribers = clients.filter((c) => c.opt_in_newsletter).length;
@@ -25,6 +38,11 @@ export default async function DashboardPage() {
     totalClients > 0 ? Math.round((emailSubscribers / totalClients) * 100) : 0;
   const smsOptInRate =
     totalClients > 0 ? Math.round((smsSubscribers / totalClients) * 100) : 0;
+
+  // Filter dispatch logs based on SMS feature
+  const campaignsToShow = hasSms
+    ? campaigns.slice(0, 5)
+    : campaigns.filter((c) => c.type === "email").slice(0, 5);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -43,7 +61,7 @@ export default async function DashboardPage() {
               </h1>
               <p className="text-sm text-zinc-500 max-w-lg">
                 Manage your client profiles, subscribe channels, and dispatch
-                marketing campaigns via AWS SES and Pinpoint.
+                marketing campaigns.
               </p>
             </div>
             <div className="flex gap-3">
@@ -85,7 +103,11 @@ export default async function DashboardPage() {
         )}
 
         {/* Analytics Grid */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <section
+          className={`grid grid-cols-1 gap-6 ${
+            hasSms ? "md:grid-cols-3" : "md:grid-cols-2"
+          }`}
+        >
           {/* Card 1 */}
           <div className="p-6 rounded-2xl border border-zinc-200 bg-white flex items-center justify-between shadow-sm shadow-zinc-100/55">
             <div className="flex flex-col gap-1">
@@ -127,31 +149,33 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Card 3 */}
-          <div className="p-6 rounded-2xl border border-zinc-200 bg-white flex flex-col gap-4 shadow-sm shadow-zinc-100/55">
-            <div className="flex items-center justify-between">
-              <div className="flex flex-col gap-0.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-                  SMS Subscriptions
-                </span>
-                <span className="text-2xl font-bold text-zinc-900">
-                  {smsSubscribers}{" "}
-                  <span className="text-xs text-zinc-500 font-medium">
-                    clients
+          {/* Card 3 (SMS Subscriptions) */}
+          {hasSms && (
+            <div className="p-6 rounded-2xl border border-zinc-200 bg-white flex flex-col gap-4 shadow-sm shadow-zinc-100/55">
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                    Text Subscriptions
                   </span>
+                  <span className="text-2xl font-bold text-zinc-900">
+                    {smsSubscribers}{" "}
+                    <span className="text-xs text-zinc-500 font-medium">
+                      clients
+                    </span>
+                  </span>
+                </div>
+                <span className="text-sm font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100">
+                  {smsOptInRate}%
                 </span>
               </div>
-              <span className="text-sm font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100">
-                {smsOptInRate}%
-              </span>
+              <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-blue-600 rounded-full"
+                  style={{ width: `${smsOptInRate}%` }}
+                />
+              </div>
             </div>
-            <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-blue-600 rounded-full"
-                style={{ width: `${smsOptInRate}%` }}
-              />
-            </div>
-          </div>
+          )}
         </section>
 
         {/* Recent Dispatch History */}
@@ -162,14 +186,14 @@ export default async function DashboardPage() {
             </h2>
           </div>
 
-          {campaigns.length === 0 ? (
+          {campaignsToShow.length === 0 ? (
             <div className="py-12 text-center text-zinc-500 text-sm">
               No dispatches found. Complete a marketing campaign to see your
               logs.
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              {campaigns.slice(0, 5).map((campaign) => (
+              {campaignsToShow.map((campaign) => (
                 <div
                   key={campaign.id}
                   className="flex items-center justify-between p-4 rounded-xl border border-zinc-100 bg-zinc-50/20 hover:border-zinc-200 transition-colors"
@@ -177,7 +201,7 @@ export default async function DashboardPage() {
                   <div className="flex flex-col gap-1">
                     <span className="text-sm font-bold text-zinc-800">
                       {campaign.type === "sms"
-                        ? "SMS Campaign"
+                        ? "Text Campaign"
                         : campaign.subject}
                     </span>
                     <span className="text-xs text-zinc-500">
@@ -191,7 +215,7 @@ export default async function DashboardPage() {
                       {campaign.mailing_list_name || "Broadcast to All"}
                     </span>
                     <span className="text-xs font-semibold uppercase tracking-wider text-zinc-600 bg-zinc-100 px-3 py-1 rounded-full border border-zinc-200">
-                      {campaign.type === "both" ? "Email + SMS" : campaign.type}
+                      {campaign.type === "both" ? "Email & Text" : campaign.type}
                     </span>
                     <span className="text-xs text-emerald-750 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full font-bold">
                       {campaign.sent_count} Sent

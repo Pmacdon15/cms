@@ -22,9 +22,10 @@ import {
 
 interface ClientListProps {
   initialClients: Client[];
+  hasSms: boolean;
 }
 
-export function ClientList({ initialClients }: ClientListProps) {
+export function ClientList({ initialClients, hasSms }: ClientListProps) {
   const router = useRouter();
   const [clients, setClients] = useState<Client[]>(initialClients);
   const [search, setSearch] = useState("");
@@ -124,7 +125,7 @@ export function ClientList({ initialClients }: ClientListProps) {
               <TableHead>Client Name</TableHead>
               <TableHead>Contact Info</TableHead>
               <TableHead>Newsletter (Email)</TableHead>
-              <TableHead>SMS (Phone)</TableHead>
+              {hasSms && <TableHead>SMS (Phone)</TableHead>}
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -151,15 +152,17 @@ export function ClientList({ initialClients }: ClientListProps) {
                     }
                   />
                 </TableCell>
-                <TableCell>
-                  <Checkbox
-                    checked={client.opt_in_sms}
-                    onChange={(e) =>
-                      handleOptInToggle(client, "sms", e.target.checked)
-                    }
-                    label={client.opt_in_sms ? "Subscribed" : "Opted out"}
-                  />
-                </TableCell>
+                {hasSms && (
+                  <TableCell>
+                    <Checkbox
+                      checked={client.opt_in_sms}
+                      onChange={(e) =>
+                        handleOptInToggle(client, "sms", e.target.checked)
+                      }
+                      label={client.opt_in_sms ? "Subscribed" : "Opted out"}
+                    />
+                  </TableCell>
+                )}
                 <TableCell className="text-right">
                   <button
                     onClick={() => handleDelete(client.id)}

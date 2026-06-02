@@ -13,6 +13,7 @@ import {
 import { sendEmailNewsletter, sendPinpointSms } from "../services/aws";
 import type { Campaign, CampaignInput, SentMessage } from "../types/types";
 import { checkAuth } from "./auth";
+import { auth } from "@clerk/nextjs/server";
 
 /**
  * Fetch campaign history
@@ -21,14 +22,18 @@ export async function dalGetCampaigns(): Promise<Result<Campaign[], Error>> {
   try {
     const authResult = await checkAuth();
     if (authResult.isErr()) return err(authResult.error);
+    const { orgId } = authResult.value;
+    if (!orgId) {
+      return err(new Error("Please select or create an organization."));
+    }
 
-    const campaigns = await dbGetCampaigns();
+    const campaigns = await dbGetCampaigns(orgId);
     return ok(campaigns);
-  } catch (error: any) {
+  } catch (error) {
     console.error("dalGetCampaigns exception:", error);
-    return err(
-      new Error(error?.message || "Failed to retrieve campaign history."),
-    );
+    const message =
+      error instanceof Error ? error.message : "Failed to retrieve campaign history.";
+    return err(new Error(message));
   }
 }
 
@@ -41,6 +46,13 @@ export async function dalCreateCampaign(
   try {
     const authResult = await checkAuth();
     if (authResult.isErr()) return err(authResult.error);
+    const { orgId, isAdmin } = authResult.value;
+    if (!orgId) {
+      return err(new Error("Please select or create an organization."));
+    }
+    if (!isAdmin) {
+      return err(new Error("Unauthorized. Only organization admins can dispatch campaigns."));
+    }
 
     if (!input.content.trim()) {
       return err(new Error("Campaign message content cannot be empty."));
@@ -55,9 +67,25 @@ export async function dalCreateCampaign(
       );
     }
 
+    // Check for send_sms feature flag via Clerk auth has()
+    const hasClerkKeys = !!(
+      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
+      process.env.CLERK_SECRET_KEY
+    );
+    const clerkAuth = await auth();
+    const hasSms =
+      !hasClerkKeys ||
+      (clerkAuth.has
+        ? clerkAuth.has({ permission: "send_sms" })
+        : false);
+
+    if ((input.type === "sms" || input.type === "both") && !hasSms) {
+      return err(new Error("SMS marketing features are not enabled for this organization."));
+    }
+
     // 1. Fetch targeted client list directly from local database
     const targetListName = input.mailing_list_name || undefined;
-    const targetedClients = await dbGetCampaignRecipients(targetListName);
+    const targetedClients = await dbGetCampaignRecipients(orgId, targetListName);
 
     if (targetedClients.length === 0) {
       return err(
@@ -131,17 +159,17 @@ export async function dalCreateCampaign(
     }
 
     // 5. Create Campaign in DB
-    const campaign = await dbCreateCampaign(input, sentCount);
+    const campaign = await dbCreateCampaign(input, sentCount, orgId);
 
     // 6. Write delivery tracking logs for each contact
     for (const log of sentLogs) {
-      let localClient = await dbGetClientByEmail(log.email);
+      let localClient = await dbGetClientByEmail(log.email, orgId);
       if (!localClient) {
         localClient = await dbCreateClient({
           name: log.name,
           email: log.email,
           phone_number: "AWS Maintained",
-        });
+        }, orgId);
       }
       await dbLogSentMessage(
         campaign.id,
@@ -153,11 +181,11 @@ export async function dalCreateCampaign(
     }
 
     return ok(campaign);
-  } catch (error: any) {
+  } catch (error) {
     console.error("dalCreateCampaign exception:", error);
-    return err(
-      new Error(error?.message || "Failed to dispatch marketing campaign."),
-    );
+    const message =
+      error instanceof Error ? error.message : "Failed to dispatch marketing campaign.";
+    return err(new Error(message));
   }
 }
 
@@ -170,13 +198,17 @@ export async function dalGetSentMessages(
   try {
     const authResult = await checkAuth();
     if (authResult.isErr()) return err(authResult.error);
+    const { orgId } = authResult.value;
+    if (!orgId) {
+      return err(new Error("Please select or create an organization."));
+    }
 
-    const logs = await dbGetSentMessages(campaignId);
+    const logs = await dbGetSentMessages(campaignId, orgId);
     return ok(logs);
-  } catch (error: any) {
+  } catch (error) {
     console.error("dalGetSentMessages exception:", error);
-    return err(
-      new Error(error?.message || "Failed to retrieve campaign delivery logs."),
-    );
+    const message =
+      error instanceof Error ? error.message : "Failed to retrieve campaign delivery logs.";
+    return err(new Error(message));
   }
 }

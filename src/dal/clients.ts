@@ -18,12 +18,18 @@ export async function dalGetClients(): Promise<Result<Client[], Error>> {
     if (authResult.isErr()) {
       return err(authResult.error);
     }
+    const { orgId } = authResult.value;
+    if (!orgId) {
+      return err(new Error("Please select or create an organization."));
+    }
 
-    const clients = await dbGetClients();
+    const clients = await dbGetClients(orgId);
     return ok(clients);
-  } catch (error: any) {
+  } catch (error) {
     console.error("dalGetClients exception caught:", error);
-    return err(new Error(error?.message || "Failed to retrieve clients list."));
+    const message =
+      error instanceof Error ? error.message : "Failed to retrieve clients list.";
+    return err(new Error(message));
   }
 }
 
@@ -37,6 +43,13 @@ export async function dalCreateClient(
     const authResult = await checkAuth();
     if (authResult.isErr()) {
       return err(authResult.error);
+    }
+    const { orgId, isAdmin } = authResult.value;
+    if (!orgId) {
+      return err(new Error("Please select or create an organization."));
+    }
+    if (!isAdmin) {
+      return err(new Error("Unauthorized. Only organization admins can add clients."));
     }
 
     // Input verification
@@ -53,19 +66,22 @@ export async function dalCreateClient(
     }
 
     // 1. Write client to DB
-    const newClient = await dbCreateClient(input);
+    const newClient = await dbCreateClient(input, orgId);
 
     // 2. Subscribe them to default local mailing list
     await dbUpdateSubscriptionStatus(
       newClient.id,
       "TanStackFormNewsletter",
       "subscribed",
+      orgId,
     );
 
     return ok(newClient);
-  } catch (error: any) {
+  } catch (error) {
     console.error("dalCreateClient exception caught:", error);
-    return err(new Error(error?.message || "Failed to create client."));
+    const message =
+      error instanceof Error ? error.message : "Failed to create client.";
+    return err(new Error(message));
   }
 }
 
@@ -82,22 +98,30 @@ export async function dalUpdateClientOptIn(
     if (authResult.isErr()) {
       return err(authResult.error);
     }
+    const { orgId, isAdmin } = authResult.value;
+    if (!orgId) {
+      return err(new Error("Please select or create an organization."));
+    }
+    if (!isAdmin) {
+      return err(new Error("Unauthorized. Only organization admins can update subscription preferences."));
+    }
 
     const updatedClient = await dbUpdateClientOptIn(
       id,
       optInNewsletter,
       optInSms,
+      orgId,
     );
     if (!updatedClient) {
       return err(new Error(`Client with ID ${id} not found.`));
     }
 
     return ok(updatedClient);
-  } catch (error: any) {
+  } catch (error) {
     console.error("dalUpdateClientOptIn exception caught:", error);
-    return err(
-      new Error(error?.message || "Failed to update channel subscriptions."),
-    );
+    const message =
+      error instanceof Error ? error.message : "Failed to update channel subscriptions.";
+    return err(new Error(message));
   }
 }
 
@@ -112,8 +136,15 @@ export async function dalDeleteClient(
     if (authResult.isErr()) {
       return err(authResult.error);
     }
+    const { orgId, isAdmin } = authResult.value;
+    if (!orgId) {
+      return err(new Error("Please select or create an organization."));
+    }
+    if (!isAdmin) {
+      return err(new Error("Unauthorized. Only organization admins can delete clients."));
+    }
 
-    const success = await dbDeleteClient(id);
+    const success = await dbDeleteClient(id, orgId);
     if (!success) {
       return err(
         new Error(`Client with ID ${id} could not be found to delete.`),
@@ -121,8 +152,10 @@ export async function dalDeleteClient(
     }
 
     return ok(true);
-  } catch (error: any) {
+  } catch (error) {
     console.error("dalDeleteClient exception caught:", error);
-    return err(new Error(error?.message || "Failed to delete client record."));
+    const message =
+      error instanceof Error ? error.message : "Failed to delete client record.";
+    return err(new Error(message));
   }
 }

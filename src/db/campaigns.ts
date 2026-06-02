@@ -24,11 +24,12 @@ async function ensureCampaignsSchema() {
 /**
  * Fetch all campaigns, sorted newest first
  */
-export async function dbGetCampaigns(): Promise<Campaign[]> {
+export async function dbGetCampaigns(orgId: string): Promise<Campaign[]> {
   await ensureCampaignsSchema();
   const rows = await sql`
     SELECT id, type, subject, content, sent_count, mailing_list_name, created_at
     FROM campaigns
+    WHERE org_id = ${orgId}
     ORDER BY created_at DESC
   `;
   return rows as Campaign[];
@@ -40,11 +41,12 @@ export async function dbGetCampaigns(): Promise<Campaign[]> {
 export async function dbCreateCampaign(
   input: CampaignInput,
   sentCount: number,
+  orgId: string,
 ): Promise<Campaign> {
   await ensureCampaignsSchema();
   const rows = await sql`
-    INSERT INTO campaigns (type, subject, content, sent_count, mailing_list_name)
-    VALUES (${input.type}, ${input.subject || null}, ${input.content}, ${sentCount}, ${input.mailing_list_name || null})
+    INSERT INTO campaigns (type, subject, content, sent_count, mailing_list_name, org_id)
+    VALUES (${input.type}, ${input.subject || null}, ${input.content}, ${sentCount}, ${input.mailing_list_name || null}, ${orgId})
     RETURNING id, type, subject, content, sent_count, mailing_list_name, created_at
   `;
   return rows[0] as Campaign;
@@ -73,12 +75,14 @@ export async function dbLogSentMessage(
  */
 export async function dbGetSentMessages(
   campaignId: string,
+  orgId: string,
 ): Promise<SentMessage[]> {
   const rows = await sql`
-    SELECT id, campaign_id, client_id, channel, status, aws_message_id, created_at
-    FROM sent_messages
-    WHERE campaign_id = ${campaignId}
-    ORDER BY created_at ASC
+    SELECT sm.id, sm.campaign_id, sm.client_id, sm.channel, sm.status, sm.aws_message_id, sm.created_at
+    FROM sent_messages sm
+    JOIN campaigns c ON c.id = sm.campaign_id
+    WHERE sm.campaign_id = ${campaignId} AND c.org_id = ${orgId}
+    ORDER BY sm.created_at ASC
   `;
   return rows as SentMessage[];
 }

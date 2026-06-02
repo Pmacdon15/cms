@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import { Users } from "lucide-react";
 import { ClientList } from "../../components/ClientList";
 import { Navbar } from "../../components/Navbar";
@@ -10,6 +11,18 @@ export default async function ClientsPage() {
   const response = await dalGetClients();
   const clients = response.isOk() ? response.value : [];
   const dbError = response.isErr() ? response.error.message : null;
+
+  // Check for SMS feature gate
+  const hasClerkKeys = !!(
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
+    process.env.CLERK_SECRET_KEY
+  );
+  const clerkAuth = await auth();
+  const hasSms =
+    !hasClerkKeys ||
+    (clerkAuth.has
+      ? clerkAuth.has({ permission: "send_sms" })
+      : false);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -46,7 +59,7 @@ export default async function ClientsPage() {
         )}
 
         {/* Dynamic client manager list */}
-        <ClientList initialClients={clients} />
+        <ClientList initialClients={clients} hasSms={hasSms} />
       </main>
     </div>
   );

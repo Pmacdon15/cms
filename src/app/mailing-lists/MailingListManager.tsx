@@ -77,7 +77,7 @@ export function MailingListManager({
   };
 
   const handleToggleSubscription = async (
-    email: string,
+    id: string,
     currentStatus: "subscribed" | "unsubscribed",
   ) => {
     if (!activeList) return;
@@ -88,12 +88,12 @@ export function MailingListManager({
     // Optimistic UI update
     setSubscribers((prev) =>
       prev.map((sub) =>
-        sub.email === email ? { ...sub, status: nextStatus } : sub,
+        sub.id === id ? { ...sub, status: nextStatus } : sub,
       ),
     );
 
     const result = await toggleSubscriptionMutation.mutateAsync({
-      clientIdOrEmail: email,
+      clientIdOrEmail: id,
       listName: activeList.name,
       status: nextStatus,
       isPublic: false,
@@ -237,7 +237,7 @@ export function MailingListManager({
                   {filteredSubscribers.map((sub) => {
                     const isSubscribed = sub.status === "subscribed";
                     return (
-                      <TableRow key={sub.email}>
+                      <TableRow key={sub.id}>
                         <TableCell className="font-bold text-zinc-900">
                           {sub.name}
                         </TableCell>
@@ -251,7 +251,7 @@ export function MailingListManager({
                           <Checkbox
                             checked={isSubscribed}
                             onChange={() =>
-                              handleToggleSubscription(sub.email, sub.status)
+                              handleToggleSubscription(sub.id, sub.status)
                             }
                             label={isSubscribed ? "Subscribed" : "Opted out"}
                             className="inline-flex cursor-pointer"

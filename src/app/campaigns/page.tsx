@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import { Send } from "lucide-react";
 import { CampaignForm } from "../../components/CampaignForm";
 import { CampaignList } from "../../components/CampaignList";
@@ -16,6 +17,18 @@ export default async function CampaignsPage() {
   const listsRes = await dalGetMailingLists();
   const mailingLists = listsRes.isOk() ? listsRes.value : [];
 
+  // Check for SMS feature gate
+  const hasClerkKeys = !!(
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
+    process.env.CLERK_SECRET_KEY
+  );
+  const clerkAuth = await auth();
+  const hasSms =
+    !hasClerkKeys ||
+    (clerkAuth.has
+      ? clerkAuth.has({ permission: "send_sms" })
+      : false);
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Navbar />
@@ -26,12 +39,13 @@ export default async function CampaignsPage() {
           <div className="flex items-center gap-2">
             <Send className="w-5 h-5 text-blue-605" />
             <h1 className="text-2xl font-extrabold text-zinc-900 tracking-tight">
-              Campaigns & SMS Compositions
+              {hasSms ? "Campaigns & SMS Compositions" : "Campaigns"}
             </h1>
           </div>
           <p className="text-sm text-zinc-500">
-            Write newsletters and SMS updates, select your channels, and view
-            detailed subscriber delivery receipts.
+            {hasSms
+              ? "Write newsletters and SMS updates, select your channels, and view detailed subscriber delivery receipts."
+              : "Write newsletters, select your target lists, and view detailed subscriber delivery receipts."}
           </p>
         </div>
 
@@ -58,7 +72,7 @@ export default async function CampaignsPage() {
               Compose Marketing Message
             </h2>
             {/* The page forces dynamic refreshment upon successful mutation dispatch */}
-            <CampaignForm mailingLists={mailingLists} />
+            <CampaignForm mailingLists={mailingLists} hasSms={hasSms} />
           </div>
 
           {/* Campaign List logs (2/3 width) */}
@@ -66,7 +80,7 @@ export default async function CampaignsPage() {
             <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-500">
               Dispatch History & Logs
             </h2>
-            <CampaignList initialCampaigns={campaigns} />
+            <CampaignList initialCampaigns={campaigns} hasSms={hasSms} />
           </div>
         </div>
       </main>
