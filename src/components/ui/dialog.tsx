@@ -37,7 +37,7 @@ export function Dialog({ isOpen, onClose, title, children }: DialogProps) {
       {/* Backdrop overlay */}
       <button
         onClick={onClose}
-        className="absolute inset-0 bg-black/60 backdrop-blur-md cursor-default border-none w-full h-full"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm cursor-default border-none w-full h-full"
         type="button"
         aria-label="Close dialog"
       />
@@ -45,18 +45,18 @@ export function Dialog({ isOpen, onClose, title, children }: DialogProps) {
       {/* Modal Box */}
       <div
         className={cn(
-          "relative w-full max-w-lg rounded-2xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl transition-all duration-300 transform scale-100 opacity-100 flex flex-col z-10 animate-fade-in-scale",
+          "relative w-full max-w-lg rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl transition-all duration-300 transform scale-100 opacity-100 flex flex-col z-10 animate-fade-in-scale",
         )}
         role="dialog"
         aria-modal="true"
       >
-        <div className="flex items-center justify-between border-b border-zinc-900 pb-4 mb-4">
-          <h2 className="text-lg font-bold text-white tracking-wide">
+        <div className="flex items-center justify-between border-b border-zinc-100 pb-4 mb-4">
+          <h2 className="text-lg font-bold text-zinc-900 tracking-tight">
             {title}
           </h2>
           <button
             onClick={onClose}
-            className="text-zinc-500 hover:text-zinc-200 transition-colors text-lg"
+            className="text-zinc-400 hover:text-zinc-600 transition-colors text-lg cursor-pointer"
             type="button"
             aria-label="Close"
           >
@@ -64,7 +64,7 @@ export function Dialog({ isOpen, onClose, title, children }: DialogProps) {
           </button>
         </div>
 
-        <div className="flex-1 text-zinc-300">{children}</div>
+        <div className="flex-1 text-zinc-600">{children}</div>
       </div>
     </div>
   );

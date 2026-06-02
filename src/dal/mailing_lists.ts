@@ -136,9 +136,7 @@ export async function dalGetClientSubscriptionsByEmail(email: string): Promise<
   } catch (error: any) {
     console.error("dalGetClientSubscriptionsByEmail exception:", error);
     return err(
-      new Error(
-        error?.message || "Failed to retrieve subscription preferences.",
-      ),
+      new Error(error?.message || "Failed to retrieve subscription preferences."),
     );
   }
 }

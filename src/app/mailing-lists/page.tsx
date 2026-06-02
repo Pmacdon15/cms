@@ -37,19 +37,19 @@ export default async function MailingListsPage(props: any) {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-black">
+    <div className="flex flex-col min-h-screen bg-background">
       <Navbar />
 
       <main className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8 flex flex-col gap-6">
         {/* Title Heading */}
-        <div className="flex flex-col gap-2 border-b border-zinc-900 pb-5">
+        <div className="flex flex-col gap-2 border-b border-zinc-100 pb-5">
           <div className="flex items-center gap-2">
-            <Layers className="w-5 h-5 text-violet-500" />
-            <h1 className="text-2xl font-extrabold text-white tracking-tight">
+            <Layers className="w-5 h-5 text-blue-600" />
+            <h1 className="text-2xl font-extrabold text-zinc-900 tracking-tight">
               Mailing Lists Directory
             </h1>
           </div>
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-zinc-500">
             Create email lists and fetch newsletter subscriber details and
             opt-in preferences directly from AWS SES.
           </p>
@@ -57,8 +57,8 @@ export default async function MailingListsPage(props: any) {
 
         {/* Database/AWS Connection Alerts */}
         {dbError && (
-          <div className="p-4 rounded-xl border border-yellow-500/20 bg-yellow-950/20 text-yellow-200 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-yellow-400 flex-shrink-0" />
+          <div className="p-4 rounded-xl border border-yellow-250 bg-yellow-50/70 text-yellow-900 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-yellow-600 flex-shrink-0" />
             <div>
               <span className="font-bold">⚠️ Connection Alert:</span> Failed to
               connect to AWS: {dbError}. Simulated fallback lists are active.

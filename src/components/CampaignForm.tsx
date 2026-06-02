@@ -56,16 +56,16 @@ export function CampaignForm({ mailingLists, onSuccess }: CampaignFormProps) {
         e.stopPropagation();
         form.handleSubmit();
       }}
-      className="flex flex-col gap-5 bg-zinc-950/40 p-6 rounded-2xl border border-zinc-800"
+      className="flex flex-col gap-5 bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm"
     >
       <div className="flex flex-col gap-2">
-        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
           Campaign Channel
         </label>
         <form.Field
           name="type"
           children={(field) => (
-            <div className="grid grid-cols-3 gap-3 bg-zinc-900/60 p-1.5 rounded-xl border border-zinc-900">
+            <div className="grid grid-cols-3 gap-2 bg-zinc-100/80 p-1 rounded-xl border border-zinc-200/50">
               {(["email", "sms", "both"] as const).map((channel) => (
                 <button
                   key={channel}
@@ -73,8 +73,8 @@ export function CampaignForm({ mailingLists, onSuccess }: CampaignFormProps) {
                   onClick={() => field.handleChange(channel)}
                   className={`py-2 px-3 text-xs font-semibold uppercase rounded-lg transition-all duration-200 cursor-pointer ${
                     field.state.value === channel
-                      ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm"
-                      : "text-zinc-400 hover:text-zinc-200"
+                      ? "bg-blue-600 text-white shadow-sm"
+                      : "text-zinc-500 hover:text-zinc-900"
                   }`}
                 >
                   {channel === "both" ? "Email + SMS" : channel}
@@ -88,7 +88,7 @@ export function CampaignForm({ mailingLists, onSuccess }: CampaignFormProps) {
       {/* Target Audience List */}
       {mailingLists.length > 0 && (
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+          <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
             Target Audience List
           </label>
           <form.Field
@@ -98,14 +98,14 @@ export function CampaignForm({ mailingLists, onSuccess }: CampaignFormProps) {
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
-                className="flex w-full rounded-xl bg-zinc-900 border border-zinc-800 px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-500 focus-visible:outline-none focus-visible:border-violet-500 focus-visible:ring-1 focus-visible:ring-violet-550 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200"
+                className="flex w-full rounded-xl bg-white border border-zinc-200 px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:outline-none focus-visible:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200"
               >
                 <option value="">Broadcast to All Clients</option>
                 {mailingLists.map((list) => (
                   <option
                     key={list.name}
                     value={list.name}
-                    className="bg-zinc-950 text-zinc-100"
+                    className="bg-white text-zinc-900"
                   >
                     {list.name}
                   </option>
@@ -148,7 +148,7 @@ export function CampaignForm({ mailingLists, onSuccess }: CampaignFormProps) {
         name="content"
         children={(field) => (
           <div className="flex flex-col gap-1.5 w-full">
-            <label className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
               Message Content
             </label>
             <textarea
@@ -157,7 +157,7 @@ export function CampaignForm({ mailingLists, onSuccess }: CampaignFormProps) {
               value={field.state.value}
               onChange={(e) => field.handleChange(e.target.value)}
               onBlur={field.handleBlur}
-              className={`flex w-full rounded-xl bg-zinc-900 border border-zinc-800 px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-500 focus-visible:outline-none focus-visible:border-violet-500 focus-visible:ring-1 focus-visible:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 ${
+              className={`flex w-full rounded-xl bg-white border border-zinc-200 px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:outline-none focus-visible:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 ${
                 field.state.meta.errors ? "border-rose-500" : ""
               }`}
             />

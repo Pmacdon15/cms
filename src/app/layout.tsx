@@ -17,7 +17,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ApexCMS - Client & Campaign Portal",
+  title: "CMS Pro - Client & Campaign Portal",
   description:
     "Next-gen premium marketing CMS with Neon Serverless, Clerk Auth, and AWS Pinpoint.",
 };
@@ -32,7 +32,7 @@ export default function RootLayout({
       lang="en"
       className={`${outfit.variable} ${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-black font-sans text-zinc-100 antialiased select-none">
+      <body className="min-h-full flex flex-col bg-background text-foreground font-sans antialiased select-none">
         <Providers>
           {children}
           <Toaster />

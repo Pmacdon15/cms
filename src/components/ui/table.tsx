@@ -6,9 +6,9 @@ export function Table({
   ...props
 }: React.HTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="relative w-full overflow-auto rounded-xl border border-zinc-800 bg-zinc-950/20">
+    <div className="relative w-full overflow-auto rounded-xl border border-zinc-200 bg-white">
       <table
-        className={cn("w-full caption-bottom text-sm text-zinc-300", className)}
+        className={cn("w-full caption-bottom text-sm text-zinc-750", className)}
         {...props}
       />
     </div>
@@ -21,7 +21,7 @@ export function TableHeader({
 }: React.HTMLAttributes<HTMLTableSectionElement>) {
   return (
     <thead
-      className={cn("border-b border-zinc-800 bg-zinc-900/50", className)}
+      className={cn("border-b border-zinc-200 bg-zinc-50/70", className)}
       {...props}
     />
   );
@@ -43,7 +43,7 @@ export function TableFooter({
   return (
     <tfoot
       className={cn(
-        "border-t border-zinc-800 bg-zinc-900/50 font-medium",
+        "border-t border-zinc-200 bg-zinc-50/70 font-medium",
         className,
       )}
       {...props}
@@ -58,7 +58,7 @@ export function TableRow({
   return (
     <tr
       className={cn(
-        "border-b border-zinc-800 transition-colors hover:bg-zinc-900/30 data-[state=selected]:bg-zinc-800",
+        "border-b border-zinc-100 transition-colors hover:bg-zinc-50/50 data-[state=selected]:bg-zinc-100",
         className,
       )}
       {...props}
@@ -73,7 +73,7 @@ export function TableHead({
   return (
     <th
       className={cn(
-        "h-12 px-4 text-left align-middle font-semibold text-zinc-400 uppercase tracking-wider text-xs [&:has([role=checkbox])]:pr-0",
+        "h-12 px-4 text-left align-middle font-semibold text-zinc-500 uppercase tracking-wider text-xs [&:has([role=checkbox])]:pr-0",
         className,
       )}
       {...props}
@@ -88,7 +88,7 @@ export function TableCell({
   return (
     <td
       className={cn(
-        "p-4 align-middle [&:has([role=checkbox])]:pr-0 text-zinc-100",
+        "p-4 align-middle [&:has([role=checkbox])]:pr-0 text-zinc-900",
         className,
       )}
       {...props}
