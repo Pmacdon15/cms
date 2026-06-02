@@ -109,7 +109,7 @@ export function ClientForm({ onSuccess }: ClientFormProps) {
       />
 
       {/* Submit Button */}
-      <div className="flex justify-end gap-3 mt-4 border-t border-zinc-900 pt-4">
+      <div className="flex justify-end gap-3 mt-4 border-t border-zinc-100 pt-4">
         <Button
           type="submit"
           className="w-full sm:w-auto"

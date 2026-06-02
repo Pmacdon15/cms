@@ -94,35 +94,35 @@ export function UnsubscribeManager({
   };
 
   return (
-    <div className="bg-zinc-950/40 border border-zinc-800 backdrop-blur-md rounded-3xl p-6 md:p-8 flex flex-col gap-6 md:gap-8 shadow-2xl">
+    <div className="bg-white border border-zinc-200 rounded-3xl p-6 md:p-8 flex flex-col gap-6 md:gap-8 shadow-xl shadow-zinc-100/50">
       {/* Profile Header Summary */}
-      <div className="flex flex-col gap-2 border-b border-zinc-900 pb-5">
-        <span className="text-xs font-semibold uppercase tracking-wider text-violet-400">
+      <div className="flex flex-col gap-2 border-b border-zinc-100 pb-5">
+        <span className="text-xs font-semibold uppercase tracking-wider text-blue-600">
           Subscriber Preferences
         </span>
-        <h2 className="text-xl font-bold text-white tracking-tight">
+        <h2 className="text-xl font-bold text-zinc-900 tracking-tight">
           Manage Your Subscriptions
         </h2>
-        <div className="flex items-center gap-1.5 mt-1 text-xs text-zinc-400">
-          <Mail className="w-3.5 h-3.5 text-zinc-550" />
+        <div className="flex items-center gap-1.5 mt-1 text-xs text-zinc-500">
+          <Mail className="w-3.5 h-3.5 text-zinc-400" />
           <span>Email Address:</span>
-          <span className="font-semibold text-zinc-200">{clientEmail}</span>
+          <span className="font-semibold text-zinc-800">{clientEmail}</span>
         </div>
       </div>
 
       {/* 1. Global Master Switch */}
-      <div className="flex flex-col gap-4 p-5 rounded-2xl border border-zinc-850 bg-zinc-900/20">
+      <div className="flex flex-col gap-4 p-5 rounded-2xl border border-zinc-200 bg-zinc-50/30">
         <div className="flex items-start justify-between gap-4">
           <div className="flex flex-col gap-1.5">
-            <span className="text-sm font-bold text-white flex items-center gap-2">
+            <span className="text-sm font-bold text-zinc-900 flex items-center gap-2">
               <CheckCircle
-                className={`w-4 h-4 ${globalOptIn ? "text-emerald-400" : "text-zinc-650"}`}
+                className={`w-4 h-4 ${globalOptIn ? "text-emerald-600" : "text-zinc-400"}`}
               />
               Global Newsletter Subscription
             </span>
-            <p className="text-xs text-zinc-400 max-w-sm">
-              Receive company updates, marketing promotions, and custom
-              newsletters delivered securely via AWS SES.
+            <p className="text-xs text-zinc-500 max-w-sm">
+              Receive company updates, marketing promotions, and newsletters
+              delivered directly.
             </p>
           </div>
           <Checkbox
@@ -136,13 +136,12 @@ export function UnsubscribeManager({
 
       {/* 2. List-specific Subscriptions */}
       <div className="flex flex-col gap-4">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-          <Layers className="w-3.5 h-3.5 text-zinc-550" /> Segmented
-          Subscriptions
+        <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-2">
+          <Layers className="w-3.5 h-3.5 text-zinc-400" /> Segmented Subscriptions
         </h3>
 
         {subscriptions.length === 0 ? (
-          <div className="py-8 text-center text-xs text-zinc-500 border border-zinc-900 rounded-2xl bg-zinc-950/20">
+          <div className="py-8 text-center text-xs text-zinc-500 border border-zinc-200 rounded-2xl bg-zinc-50/20">
             No active mailing lists available at this time.
           </div>
         ) : (
@@ -158,21 +157,21 @@ export function UnsubscribeManager({
                   key={sub.listName}
                   className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
                     isHighlighted
-                      ? "bg-violet-950/10 border-violet-800/50 shadow-md shadow-violet-500/5"
-                      : "bg-zinc-900/40 border-zinc-900 hover:border-zinc-850"
+                      ? "bg-blue-50/30 border-blue-200 shadow-sm shadow-blue-500/5"
+                      : "bg-zinc-50/20 border-zinc-150 hover:border-zinc-200"
                   }`}
                 >
                   <div className="flex flex-col gap-1 pr-4">
-                    <span className="text-xs font-bold text-zinc-200 flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-zinc-800 flex items-center gap-1.5">
                       {sub.listName}
                       {isHighlighted && (
-                        <span className="px-2 py-0.5 rounded-full bg-violet-600/20 border border-violet-500/40 text-[9px] font-semibold text-violet-400">
+                        <span className="px-2 py-0.5 rounded-full bg-blue-100 border border-blue-200 text-[9px] font-semibold text-blue-600">
                           Active Link
                         </span>
                       )}
                     </span>
                     {sub.description && (
-                      <span className="text-[11px] text-zinc-450 line-clamp-1 leading-normal">
+                      <span className="text-[11px] text-zinc-500 line-clamp-1 leading-normal">
                         {sub.description}
                       </span>
                     )}
@@ -193,10 +192,10 @@ export function UnsubscribeManager({
 
       {/* Global Opt-Out Informational block */}
       {!globalOptIn && (
-        <div className="p-4 rounded-xl border border-zinc-900 bg-zinc-950/40 text-[11px] text-zinc-500 flex items-center gap-2">
-          <BellOff className="w-4 h-4 text-violet-500/80 flex-shrink-0" />
+        <div className="p-4 rounded-xl border border-zinc-200 bg-zinc-50/50 text-[11px] text-zinc-500 flex items-center gap-2">
+          <BellOff className="w-4 h-4 text-blue-600 flex-shrink-0" />
           <span>
-            You have unsubscribed globally from all AWS SES campaigns.
+            You have unsubscribed globally from all campaigns.
           </span>
         </div>
       )}

@@ -32,31 +32,26 @@ export default async function UnsubscribePage(props: {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-black text-zinc-150 items-center justify-center p-4">
-      {/* Background glow styling */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-violet-600/10 rounded-full blur-[120px]" />
-      </div>
-
+    <div className="flex flex-col min-h-screen bg-background text-zinc-800 items-center justify-center p-4">
       <div className="relative z-10 w-full max-w-xl flex flex-col gap-6">
         {/* Brand Header */}
         <div className="flex items-center justify-center gap-2 group mb-2">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center text-white font-black text-md shadow-lg shadow-violet-500/20">
+          <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-md shadow-sm">
             Ω
           </div>
-          <span className="font-extrabold text-lg tracking-wider text-white">
-            APEX<span className="text-violet-500">CMS</span>
+          <span className="font-extrabold text-lg tracking-wider text-zinc-900">
+            CMS<span className="text-blue-600 font-semibold"> Pro</span>
           </span>
         </div>
 
         {/* Error State box */}
         {errorMsg && (
-          <div className="p-6 rounded-2xl border border-rose-500/20 bg-rose-950/20 text-rose-200 text-sm flex flex-col gap-3">
-            <div className="flex items-center gap-2 text-rose-450 font-bold">
-              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <div className="p-6 rounded-2xl border border-red-200 bg-red-50/50 text-red-950 text-sm flex flex-col gap-3">
+            <div className="flex items-center gap-2 text-red-600 font-bold">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-600" />
               <span>Preferences Retrieval Error</span>
             </div>
-            <p className="text-zinc-400 text-xs leading-relaxed">{errorMsg}</p>
+            <p className="text-red-900 text-xs leading-relaxed">{errorMsg}</p>
             <div className="mt-2 text-zinc-500 text-[11px]">
               If you believe this is an error, please ensure the unsubscribe
               link you clicked is complete and unmodified.

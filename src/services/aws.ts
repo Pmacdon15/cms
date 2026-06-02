@@ -47,7 +47,7 @@ const simulatedContactLists: MailingList[] = [
     description: "Default customer newsletter campaign list.",
   },
   {
-    name: "ApexWeeklyDigest",
+    name: "WeeklyDigestPro",
     description: "Weekly executive summaries and updates.",
   },
 ];
@@ -80,7 +80,7 @@ const simulatedContacts: Record<string, MockContact[]> = {
       optInNewsletter: false,
     },
   ],
-  ApexWeeklyDigest: [
+  WeeklyDigestPro: [
     {
       email: "john@example.com",
       name: "John Doe",
@@ -546,11 +546,11 @@ export async function sendEmailNewsletter(
 
     const emailHtmlFooter = `
       <br/><br/>
-      <hr style="border:none;border-top:1px solid #27272a;margin-top:24px;margin-bottom:12px;"/>
-      <p style="font-size:12px;color:#a1a1aa;font-family:sans-serif;line-height:1.6;">
+      <hr style="border:none;border-top:1px solid #e4e4e7;margin-top:24px;margin-bottom:12px;"/>
+      <p style="font-size:12px;color:#71717a;font-family:sans-serif;line-height:1.6;">
         You are receiving this because you subscribed to our newsletter updates. 
         To update your email preferences or opt out, please 
-        <a href="${unsubscribeLink}" style="color:#8b5cf6;text-decoration:underline;font-weight:600;">click here to unsubscribe</a>.
+        <a href="${unsubscribeLink}" style="color:#2563eb;text-decoration:underline;font-weight:600;">click here to unsubscribe</a>.
       </p>
     `;
 

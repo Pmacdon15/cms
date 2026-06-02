@@ -62,27 +62,37 @@ export function Toaster() {
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className={`flex items-start justify-between p-4 rounded-xl border backdrop-blur-xl shadow-xl transition-all duration-300 transform translate-y-0 scale-100 animate-slide-in ${
+          className={`flex items-start justify-between p-4 rounded-xl border bg-white shadow-xl transition-all duration-300 transform translate-y-0 scale-100 animate-slide-in ${
             toast.type === "success"
-              ? "bg-emerald-950/80 border-emerald-500/30 text-emerald-100"
+              ? "border-emerald-200 text-zinc-900"
               : toast.type === "error"
-                ? "bg-rose-950/80 border-rose-500/30 text-rose-100"
-                : "bg-zinc-950/80 border-zinc-700/30 text-zinc-100"
+                ? "border-red-200 text-zinc-900"
+                : "border-zinc-200 text-zinc-900"
           }`}
         >
           <div className="flex gap-3">
-            <span className="mt-0.5 text-lg">
+            <span
+              className={`mt-0.5 text-lg font-extrabold ${
+                toast.type === "success"
+                  ? "text-emerald-600"
+                  : toast.type === "error"
+                    ? "text-red-600"
+                    : "text-blue-650"
+              }`}
+            >
               {toast.type === "success" && "✓"}
               {toast.type === "error" && "✕"}
               {toast.type === "info" && "ℹ"}
             </span>
-            <p className="text-sm font-medium leading-5">{toast.message}</p>
+            <p className="text-sm font-medium leading-5 text-zinc-800">
+              {toast.message}
+            </p>
           </div>
           <button
             onClick={() =>
               setToasts((prev) => prev.filter((t) => t.id !== toast.id))
             }
-            className="ml-4 text-xs font-semibold opacity-60 hover:opacity-100 transition-opacity"
+            className="ml-4 text-xs font-semibold text-zinc-450 hover:text-zinc-800 transition-colors cursor-pointer"
             type="button"
           >
             ✕

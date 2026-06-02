@@ -12,14 +12,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="flex flex-col gap-1.5 w-full">
         {label && (
-          <label className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+          <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
             {label}
           </label>
         )}
         <input
           type={type}
           className={cn(
-            "flex w-full h-11 rounded-xl bg-zinc-900 border border-zinc-800 px-4 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus-visible:outline-none focus-visible:border-violet-500 focus-visible:ring-1 focus-visible:ring-violet-500 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200",
+            "flex w-full h-11 rounded-xl bg-white border border-zinc-200 px-4 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:outline-none focus-visible:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200",
             error &&
               "border-rose-500 focus-visible:border-rose-500 focus-visible:ring-rose-500",
             className,

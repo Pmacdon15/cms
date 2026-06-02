@@ -100,7 +100,7 @@ export function ClientList({ initialClients }: ClientListProps) {
           placeholder="Search by name, email, or phone..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 max-w-md h-11 rounded-xl bg-zinc-900 border border-zinc-800 px-4 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus-visible:outline-none focus-visible:border-violet-500 focus-visible:ring-1 focus-visible:ring-violet-500 transition-all"
+          className="flex-1 max-w-md h-11 rounded-xl bg-white border border-zinc-200 px-4 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:outline-none focus-visible:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-500 transition-all"
         />
         <Button
           onClick={() => setIsModalOpen(true)}
@@ -112,7 +112,7 @@ export function ClientList({ initialClients }: ClientListProps) {
 
       {/* Database Table */}
       {filteredClients.length === 0 ? (
-        <div className="py-16 text-center text-zinc-500 border border-zinc-900 rounded-xl bg-zinc-950/20">
+        <div className="py-16 text-center text-zinc-550 border border-zinc-200 rounded-xl bg-white">
           {search
             ? "No clients match your filter criteria."
             : "No clients registered yet."}
@@ -131,11 +131,11 @@ export function ClientList({ initialClients }: ClientListProps) {
           <TableBody>
             {filteredClients.map((client) => (
               <TableRow key={client.id}>
-                <TableCell className="font-bold text-white">
+                <TableCell className="font-bold text-zinc-900">
                   {client.name}
                 </TableCell>
                 <TableCell>
-                  <div className="flex flex-col text-xs gap-0.5 text-zinc-400">
+                  <div className="flex flex-col text-xs gap-0.5 text-zinc-500">
                     <span>{client.email}</span>
                     <span>{client.phone_number}</span>
                   </div>
