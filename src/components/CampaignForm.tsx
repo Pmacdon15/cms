@@ -2,14 +2,16 @@
 
 import { useForm } from "@tanstack/react-form";
 import { useCreateCampaignMutation } from "../mutations/campaigns";
+import type { MailingList } from "../types/types";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 
 interface CampaignFormProps {
+  mailingLists: MailingList[];
   onSuccess?: () => void;
 }
 
-export function CampaignForm({ onSuccess }: CampaignFormProps) {
+export function CampaignForm({ mailingLists, onSuccess }: CampaignFormProps) {
   const campaignMutation = useCreateCampaignMutation(() => {
     form.reset();
     if (onSuccess) onSuccess();
@@ -21,13 +23,17 @@ export function CampaignForm({ onSuccess }: CampaignFormProps) {
       type: "email" as "email" | "sms" | "both",
       subject: "",
       content: "",
+      mailing_list_name: "" as string,
     },
     validators: {
       onChange({ value }) {
         if (!value.content.trim()) {
           return { content: "Message content is required" };
         }
-        if ((value.type === "email" || value.type === "both") && !value.subject.trim()) {
+        if (
+          (value.type === "email" || value.type === "both") &&
+          !value.subject.trim()
+        ) {
           return { subject: "Subject is required for email campaigns" };
         }
         return undefined;
@@ -38,6 +44,7 @@ export function CampaignForm({ onSuccess }: CampaignFormProps) {
         type: value.type,
         subject: value.type === "sms" ? undefined : value.subject.trim(),
         content: value.content.trim(),
+        mailing_list_name: value.mailing_list_name || undefined,
       });
     },
   });
@@ -78,6 +85,37 @@ export function CampaignForm({ onSuccess }: CampaignFormProps) {
         />
       </div>
 
+      {/* Target Audience List */}
+      {mailingLists.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <label className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            Target Audience List
+          </label>
+          <form.Field
+            name="mailing_list_name"
+            children={(field) => (
+              <select
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                onBlur={field.handleBlur}
+                className="flex w-full rounded-xl bg-zinc-900 border border-zinc-800 px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-500 focus-visible:outline-none focus-visible:border-violet-500 focus-visible:ring-1 focus-visible:ring-violet-550 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200"
+              >
+                <option value="">Broadcast to All Clients</option>
+                {mailingLists.map((list) => (
+                  <option
+                    key={list.name}
+                    value={list.name}
+                    className="bg-zinc-950 text-zinc-100"
+                  >
+                    {list.name}
+                  </option>
+                ))}
+              </select>
+            )}
+          />
+        </div>
+      )}
+
       {/* Subject Line (Only shown for Email or Email + SMS) */}
       <form.Subscribe
         selector={(state) => state.values.type}
@@ -93,7 +131,11 @@ export function CampaignForm({ onSuccess }: CampaignFormProps) {
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  error={field.state.meta.errors ? String(field.state.meta.errors) : undefined}
+                  error={
+                    field.state.meta.errors
+                      ? String(field.state.meta.errors)
+                      : undefined
+                  }
                 />
               )}
             />
@@ -135,7 +177,9 @@ export function CampaignForm({ onSuccess }: CampaignFormProps) {
           className="w-full sm:w-auto"
           disabled={campaignMutation.isPending}
         >
-          {campaignMutation.isPending ? "Sending Campaign..." : "Dispatch Campaign"}
+          {campaignMutation.isPending
+            ? "Sending Campaign..."
+            : "Dispatch Campaign"}
         </Button>
       </div>
     </form>

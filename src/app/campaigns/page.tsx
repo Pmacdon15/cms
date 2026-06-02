@@ -3,14 +3,18 @@ import { CampaignForm } from "../../components/CampaignForm";
 import { CampaignList } from "../../components/CampaignList";
 import { Navbar } from "../../components/Navbar";
 import { dalGetCampaigns } from "../../dal/campaigns";
+import { dalGetMailingLists } from "../../dal/mailing_lists";
 
 export const revalidate = 0; // Force dynamic server rendering
 
 export default async function CampaignsPage() {
-  // Fetch campaigns from Server DAL directly
+  // Fetch campaigns and mailing lists from Server DAL directly
   const response = await dalGetCampaigns();
   const campaigns = response.isOk() ? response.value : [];
   const dbError = response.isErr() ? response.error.message : null;
+
+  const listsRes = await dalGetMailingLists();
+  const mailingLists = listsRes.isOk() ? listsRes.value : [];
 
   return (
     <div className="flex flex-col min-h-screen bg-black">
@@ -26,15 +30,21 @@ export default async function CampaignsPage() {
             </h1>
           </div>
           <p className="text-sm text-zinc-400">
-            Write newsletters and SMS updates, select your channels, and view detailed subscriber delivery receipts.
+            Write newsletters and SMS updates, select your channels, and view
+            detailed subscriber delivery receipts.
           </p>
         </div>
 
         {/* DB Connection Alert Fallback */}
         {dbError && (
           <div className="p-4 rounded-xl border border-yellow-500/20 bg-yellow-950/20 text-yellow-200 text-xs">
-            <span className="font-bold block mb-1">⚠️ Local Fallback Active</span>
-            Failed to connect to Neon DB: {dbError}. Using simulated campaign databases. Run the DDL script in <code className="text-yellow-400">schema.sql</code> inside your Neon database to fix.
+            <span className="font-bold block mb-1">
+              ⚠️ Local Fallback Active
+            </span>
+            Failed to connect to Neon DB: {dbError}. Using simulated campaign
+            databases. Run the DDL script in{" "}
+            <code className="text-yellow-400">schema.sql</code> inside your Neon
+            database to fix.
           </div>
         )}
 
@@ -46,7 +56,7 @@ export default async function CampaignsPage() {
               Compose Marketing Message
             </h2>
             {/* The page forces dynamic refreshment upon successful mutation dispatch */}
-            <CampaignForm />
+            <CampaignForm mailingLists={mailingLists} />
           </div>
 
           {/* Campaign List logs (2/3 width) */}

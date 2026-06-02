@@ -1,12 +1,33 @@
-import { sql } from "./neon";
 import type { Campaign, CampaignInput, SentMessage } from "../types/types";
+import { sql } from "./neon";
+
+let isCampaignsSchemaInitialized = false;
+
+/**
+ * Dynamically auto-provisions the database campaigns schema if the mailing_list_name column is missing.
+ */
+async function ensureCampaignsSchema() {
+  if (isCampaignsSchemaInitialized) return;
+  try {
+    await sql`
+      ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS mailing_list_name VARCHAR(255)
+    `;
+    isCampaignsSchemaInitialized = true;
+  } catch (err) {
+    console.error(
+      "Failed to dynamically auto-provision campaigns schema:",
+      err,
+    );
+  }
+}
 
 /**
  * Fetch all campaigns, sorted newest first
  */
 export async function dbGetCampaigns(): Promise<Campaign[]> {
+  await ensureCampaignsSchema();
   const rows = await sql`
-    SELECT id, type, subject, content, sent_count, created_at
+    SELECT id, type, subject, content, sent_count, mailing_list_name, created_at
     FROM campaigns
     ORDER BY created_at DESC
   `;
@@ -18,12 +39,13 @@ export async function dbGetCampaigns(): Promise<Campaign[]> {
  */
 export async function dbCreateCampaign(
   input: CampaignInput,
-  sentCount: number
+  sentCount: number,
 ): Promise<Campaign> {
+  await ensureCampaignsSchema();
   const rows = await sql`
-    INSERT INTO campaigns (type, subject, content, sent_count)
-    VALUES (${input.type}, ${input.subject || null}, ${input.content}, ${sentCount})
-    RETURNING id, type, subject, content, sent_count, created_at
+    INSERT INTO campaigns (type, subject, content, sent_count, mailing_list_name)
+    VALUES (${input.type}, ${input.subject || null}, ${input.content}, ${sentCount}, ${input.mailing_list_name || null})
+    RETURNING id, type, subject, content, sent_count, mailing_list_name, created_at
   `;
   return rows[0] as Campaign;
 }
@@ -36,7 +58,7 @@ export async function dbLogSentMessage(
   clientId: string,
   channel: "email" | "sms",
   status: "sent" | "failed",
-  awsMessageId?: string
+  awsMessageId?: string,
 ): Promise<SentMessage> {
   const rows = await sql`
     INSERT INTO sent_messages (campaign_id, client_id, channel, status, aws_message_id)
@@ -49,7 +71,9 @@ export async function dbLogSentMessage(
 /**
  * Fetch sent messages logs for a specific campaign
  */
-export async function dbGetSentMessages(campaignId: string): Promise<SentMessage[]> {
+export async function dbGetSentMessages(
+  campaignId: string,
+): Promise<SentMessage[]> {
   const rows = await sql`
     SELECT id, campaign_id, client_id, channel, status, aws_message_id, created_at
     FROM sent_messages

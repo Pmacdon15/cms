@@ -20,7 +20,7 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
           <div
             className={cn(
               "w-5.5 h-5.5 rounded-md border border-zinc-700 bg-zinc-900 flex items-center justify-center transition-all duration-200 group-hover:border-zinc-500 peer-checked:bg-gradient-to-r peer-checked:from-violet-600 peer-checked:to-indigo-600 peer-checked:border-transparent peer-focus-visible:ring-2 peer-focus-visible:ring-violet-500",
-              className
+              className,
             )}
           >
             <svg
@@ -47,7 +47,7 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
         )}
       </label>
     );
-  }
+  },
 );
 
 Checkbox.displayName = "Checkbox";

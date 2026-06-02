@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { actionGetSentMessages } from "../actions/campaigns";
+import type { Campaign, SentMessage } from "../types/types";
 import { Button } from "./ui/button";
 import { Dialog } from "./ui/dialog";
 import {
@@ -12,7 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from "./ui/table";
-import type { Campaign, SentMessage } from "../types/types";
 
 interface CampaignListProps {
   initialCampaigns: Campaign[];
@@ -20,7 +20,9 @@ interface CampaignListProps {
 
 export function CampaignList({ initialCampaigns }: CampaignListProps) {
   const [campaigns] = useState<Campaign[]>(initialCampaigns);
-  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(
+    null,
+  );
   const [deliveryLogs, setDeliveryLogs] = useState<SentMessage[]>([]);
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
 
@@ -41,7 +43,8 @@ export function CampaignList({ initialCampaigns }: CampaignListProps) {
     <div className="flex flex-col gap-4">
       {campaigns.length === 0 ? (
         <div className="py-16 text-center text-zinc-500 border border-zinc-900 rounded-xl bg-zinc-950/20">
-          No marketing campaigns sent yet. Use the composer to dispatch your first message.
+          No marketing campaigns sent yet. Use the composer to dispatch your
+          first message.
         </div>
       ) : (
         <Table>
@@ -108,7 +111,9 @@ export function CampaignList({ initialCampaigns }: CampaignListProps) {
             <div className="p-4 rounded-xl border border-zinc-900 bg-zinc-950/80 text-xs flex flex-col gap-2">
               <div className="grid grid-cols-2 gap-2 text-zinc-400">
                 <span>Campaign Channel:</span>
-                <span className="font-semibold text-white uppercase">{selectedCampaign.type}</span>
+                <span className="font-semibold text-white uppercase">
+                  {selectedCampaign.type}
+                </span>
                 <span>Date Dispatched:</span>
                 <span className="font-semibold text-white">
                   {new Date(selectedCampaign.created_at).toLocaleString()}
@@ -166,7 +171,10 @@ export function CampaignList({ initialCampaigns }: CampaignListProps) {
                             {log.status}
                           </span>
                         </td>
-                        <td className="p-3 font-mono text-[10px] text-zinc-500 truncate max-w-[100px]" title={log.aws_message_id}>
+                        <td
+                          className="p-3 font-mono text-[10px] text-zinc-500 truncate max-w-[100px]"
+                          title={log.aws_message_id}
+                        >
                           {log.aws_message_id || "N/A"}
                         </td>
                       </tr>

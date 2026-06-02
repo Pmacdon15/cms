@@ -11,13 +11,19 @@ export interface ToastItem {
 // Global helper to trigger toast events from anywhere (server-actions callback or client mutation)
 export const showToast = {
   success: (message: string) => {
-    dispatchEvent(new CustomEvent("app-toast", { detail: { type: "success", message } }));
+    dispatchEvent(
+      new CustomEvent("app-toast", { detail: { type: "success", message } }),
+    );
   },
   error: (message: string) => {
-    dispatchEvent(new CustomEvent("app-toast", { detail: { type: "error", message } }));
+    dispatchEvent(
+      new CustomEvent("app-toast", { detail: { type: "error", message } }),
+    );
   },
   info: (message: string) => {
-    dispatchEvent(new CustomEvent("app-toast", { detail: { type: "info", message } }));
+    dispatchEvent(
+      new CustomEvent("app-toast", { detail: { type: "info", message } }),
+    );
   },
 };
 
@@ -30,7 +36,10 @@ export function Toaster() {
 
   useEffect(() => {
     const handleToastEvent = (e: Event) => {
-      const customEvent = e as CustomEvent<{ type: ToastItem["type"]; message: string }>;
+      const customEvent = e as CustomEvent<{
+        type: ToastItem["type"];
+        message: string;
+      }>;
       const { type, message } = customEvent.detail;
       const id = Math.random().toString(36).substring(2, 9);
 
@@ -57,8 +66,8 @@ export function Toaster() {
             toast.type === "success"
               ? "bg-emerald-950/80 border-emerald-500/30 text-emerald-100"
               : toast.type === "error"
-              ? "bg-rose-950/80 border-rose-500/30 text-rose-100"
-              : "bg-zinc-950/80 border-zinc-700/30 text-zinc-100"
+                ? "bg-rose-950/80 border-rose-500/30 text-rose-100"
+                : "bg-zinc-950/80 border-zinc-700/30 text-zinc-100"
           }`}
         >
           <div className="flex gap-3">
@@ -70,7 +79,9 @@ export function Toaster() {
             <p className="text-sm font-medium leading-5">{toast.message}</p>
           </div>
           <button
-            onClick={() => setToasts((prev) => prev.filter((t) => t.id !== toast.id))}
+            onClick={() =>
+              setToasts((prev) => prev.filter((t) => t.id !== toast.id))
+            }
             className="ml-4 text-xs font-semibold opacity-60 hover:opacity-100 transition-opacity"
             type="button"
           >

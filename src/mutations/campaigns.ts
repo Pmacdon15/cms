@@ -26,7 +26,9 @@ export function useCreateCampaignMutation(onSuccessCallback?: () => void) {
       }
     },
     onError: (err: any) => {
-      showToast.error(err?.message || "An unexpected error occurred during dispatch.");
+      showToast.error(
+        err?.message || "An unexpected error occurred during dispatch.",
+      );
     },
   });
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
-import { LayoutDashboard, Send, Users } from "lucide-react";
+import { Layers, LayoutDashboard, Send, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -11,6 +11,7 @@ export function Navbar() {
   const navigationItems = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
     { name: "Clients Directory", href: "/clients", icon: Users },
+    { name: "Mailing Lists", href: "/mailing-lists", icon: Layers },
     { name: "Campaigns & SMS", href: "/campaigns", icon: Send },
   ];
 
@@ -42,7 +43,9 @@ export function Navbar() {
                     : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/50"
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? "text-violet-400" : "text-zinc-500"}`} />
+                <Icon
+                  className={`w-4 h-4 ${isActive ? "text-violet-400" : "text-zinc-500"}`}
+                />
                 {item.name}
               </Link>
             );
@@ -61,7 +64,9 @@ export function Navbar() {
                   key={item.href}
                   href={item.href}
                   className={`p-2 rounded-lg ${
-                    isActive ? "text-violet-400 bg-zinc-900" : "text-zinc-500 hover:text-zinc-300"
+                    isActive
+                      ? "text-violet-400 bg-zinc-900"
+                      : "text-zinc-500 hover:text-zinc-300"
                   }`}
                   title={item.name}
                 >
@@ -72,7 +77,6 @@ export function Navbar() {
           </div>
 
           <UserButton
-            afterSignOutUrl="/"
             appearance={{
               elements: {
                 avatarBox:

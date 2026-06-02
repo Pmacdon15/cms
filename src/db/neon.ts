@@ -9,9 +9,12 @@ const connectionString = process.env.DATABASE_URL;
  */
 export const sql = (() => {
   if (!connectionString) {
-    return async (strings: TemplateStringsArray, ...values: any[]): Promise<any> => {
+    return async (
+      strings: TemplateStringsArray,
+      ...values: any[]
+    ): Promise<any> => {
       throw new Error(
-        "DATABASE_URL environment variable is missing. Please configure it in your .env.local file to connect to Neon DB."
+        "DATABASE_URL environment variable is missing. Please configure it in your .env.local file to connect to Neon DB.",
       );
     };
   }

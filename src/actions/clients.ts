@@ -36,7 +36,7 @@ export async function actionCreateClient(input: ClientInput) {
 export async function actionUpdateClientOptIn(
   id: string,
   optInNewsletter: boolean,
-  optInSms: boolean
+  optInSms: boolean,
 ) {
   const result = await dalUpdateClientOptIn(id, optInNewsletter, optInSms);
   if (result.isOk()) {
