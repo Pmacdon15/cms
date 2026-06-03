@@ -308,3 +308,91 @@ export async function dbGetMailingListSubscribersCount(
   `;
   return rows[0]?.count || 0;
 }
+
+/**
+ * Get all distinct organization IDs with non-deleted mailing lists
+ */
+export async function dbGetDistinctOrgsWithMailingLists(): Promise<string[]> {
+  const rows = await sql`
+    SELECT DISTINCT org_id
+    FROM mailing_lists
+    WHERE org_id IS NOT NULL AND status != 'deleted'
+  `;
+  return (rows as Array<{ org_id: string }>).map((r) => r.org_id);
+}
+
+/**
+ * Rebalance mailing lists status for an organization based on the given limit
+ */
+export async function dbRebalanceListsForOrg(
+  orgId: string,
+  limit: number,
+): Promise<{ activated: string[]; disabled: string[] }> {
+  // First, ensure the oldest "limit" non-deleted lists are active
+  const activateResult = await sql`
+    UPDATE mailing_lists
+    SET status = 'active'
+    WHERE org_id = ${orgId}
+      AND status = 'disabled'
+      AND name IN (
+        SELECT name
+        FROM mailing_lists
+        WHERE org_id = ${orgId}
+          AND status != 'deleted'
+        ORDER BY created_at ASC
+        LIMIT ${limit}
+      )
+    RETURNING name
+  `;
+
+  // Then, disable any excess non-deleted lists beyond the limit
+  const disableResult = await sql`
+    UPDATE mailing_lists
+    SET status = 'disabled'
+    WHERE org_id = ${orgId}
+      AND status = 'active'
+      AND name NOT IN (
+        SELECT name
+        FROM mailing_lists
+        WHERE org_id = ${orgId}
+          AND status != 'deleted'
+        ORDER BY created_at ASC
+        LIMIT ${limit}
+      )
+    RETURNING name
+  `;
+
+  return {
+    activated: (activateResult as Array<{ name: string }>).map((r) => r.name),
+    disabled: (disableResult as Array<{ name: string }>).map((r) => r.name),
+  };
+}
+
+/**
+ * Rebalance subscribers for a given list of an organization based on the client limit
+ */
+export async function dbRebalanceSubscribersForList(
+  orgId: string,
+  listName: string,
+  limit: number,
+): Promise<string[]> {
+  const result = await sql`
+    UPDATE mailing_list_subscriptions
+    SET status = 'unsubscribed'
+    WHERE mailing_list_name = ${listName}
+      AND org_id = ${orgId}
+      AND status = 'subscribed'
+      AND client_id NOT IN (
+        SELECT client_id
+        FROM mailing_list_subscriptions
+        WHERE mailing_list_name = ${listName}
+          AND org_id = ${orgId}
+          AND status = 'subscribed'
+        ORDER BY created_at ASC
+        LIMIT ${limit}
+      )
+    RETURNING client_id
+  `;
+  return (result as Array<{ client_id: string }>).map((r) => r.client_id);
+}
+

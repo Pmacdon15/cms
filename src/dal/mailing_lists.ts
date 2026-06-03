@@ -17,6 +17,9 @@ import {
 	dbGetMailingListsCount,
 	dbUpdateSubscriptionStatus,
 	dbUpdateSubscriptionStatusByEmail,
+	dbGetDistinctOrgsWithMailingLists,
+	dbRebalanceListsForOrg,
+	dbRebalanceSubscribersForList,
 } from "../db/mailing_lists";
 import { sql } from "../db/neon";
 import type { MailingList } from "../types/types";
@@ -598,3 +601,84 @@ export async function dalEditMailingList(
 		return { ok: false, error: message };
 	}
 }
+
+/**
+ * Rebalance mailing lists for a specific organization without auth checks
+ */
+export async function dalRebalanceListsForOrg(orgId: string): Promise<{
+	limit: number;
+	activated: string[];
+	disabled: string[];
+}> {
+	const features = await getOrgFeatures(orgId);
+	let mailingListLimit = 1; // default limit
+
+	if (features.includes("15_mailing_list")) {
+		mailingListLimit = 15;
+	} else if (features.includes("10_mailing_list")) {
+		mailingListLimit = 10;
+	} else if (features.includes("5_mailing_list")) {
+		mailingListLimit = 5;
+	} else {
+		mailingListLimit = 1;
+	}
+
+	const result = await dbRebalanceListsForOrg(orgId, mailingListLimit);
+	return {
+		limit: mailingListLimit,
+		activated: result.activated,
+		disabled: result.disabled,
+	};
+}
+
+/**
+ * Rebalance subscribers across all mailing lists for a specific organization without auth checks
+ */
+export async function dalRebalanceSubscribersForOrg(orgId: string): Promise<{
+	clientLimit: number;
+	listsProcessed: Array<{ listName: string; unsubscribedCount: number }>;
+}> {
+	const features = await getOrgFeatures(orgId);
+	let clientLimit = 1; // default limit
+
+	if (
+		features.includes("100_clients_per_list") ||
+		features.includes("100_clients_pre_list")
+	) {
+		clientLimit = 100;
+	} else if (
+		features.includes("60_clients_per_list") ||
+		features.includes("60_clients_pre_list")
+	) {
+		clientLimit = 60;
+	} else if (
+		features.includes("30_clients_per_list") ||
+		features.includes("30_clients_pre_list")
+	) {
+		clientLimit = 30;
+	} else if (
+		features.includes("15_clients_per_list") ||
+		features.includes("15_clients_pre_list")
+	) {
+		clientLimit = 15;
+	} else {
+		clientLimit = 1;
+	}
+
+	const lists = await dbGetMailingLists(orgId);
+	const listsProcessed: Array<{ listName: string; unsubscribedCount: number }> = [];
+
+	for (const list of lists) {
+		const unsubscribedIds = await dbRebalanceSubscribersForList(orgId, list.name, clientLimit);
+		listsProcessed.push({
+			listName: list.name,
+			unsubscribedCount: unsubscribedIds.length,
+		});
+	}
+
+	return {
+		clientLimit,
+		listsProcessed,
+	};
+}
+

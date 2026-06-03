@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { getOrgFeatures } from "@/dal/clerk";
-import { sql } from "@/db/neon";
+import { dbGetDistinctOrgsWithMailingLists } from "@/db/mailing_lists";
+import { dalRebalanceSubscribersForOrg } from "@/dal/mailing_lists";
 
 export const revalidate = 0;
 
@@ -18,83 +18,24 @@ export async function GET(req: NextRequest) {
 		console.log("[Rebalance-Subscribers] Starting cron job...");
 
 		// 1. Fetch all distinct org_ids with active/disabled lists
-		const orgsRows = (await sql`
-      SELECT DISTINCT org_id
-      FROM mailing_lists
-      WHERE org_id IS NOT NULL AND status != 'deleted'
-    `) as Array<{ org_id: string }>;
-		const orgIds = orgsRows.map((r) => r.org_id);
+		const orgIds = await dbGetDistinctOrgsWithMailingLists();
 
 		const results: Array<{ orgId: string; listsProcessed: string[] }> = [];
 
 		// 2. Process each organization in parallel or sequence
 		for (const orgId of orgIds) {
-			const features = await getOrgFeatures(orgId);
-			let clientLimit = 1; // default limit
+			const rebalanceResult = await dalRebalanceSubscribersForOrg(orgId);
 
-			if (
-				features.includes("100_clients_per_list") ||
-				features.includes("100_clients_pre_list")
-			) {
-				clientLimit = 100;
-			} else if (
-				features.includes("60_clients_per_list") ||
-				features.includes("60_clients_pre_list")
-			) {
-				clientLimit = 60;
-			} else if (
-				features.includes("30_clients_per_list") ||
-				features.includes("30_clients_pre_list")
-			) {
-				clientLimit = 30;
-			} else if (
-				features.includes("15_clients_per_list") ||
-				features.includes("15_clients_pre_list")
-			) {
-				clientLimit = 15;
-			} else {
-				clientLimit = 1;
-			}
-
-			// Fetch all active/disabled lists for this org
-			const listsRows = (await sql`
-        SELECT name
-        FROM mailing_lists
-        WHERE org_id = ${orgId} AND status != 'deleted'
-      `) as Array<{ name: string }>;
-			const processed: string[] = [];
-
-			for (const listRow of listsRows) {
-				const listName = listRow.name as string;
-
-				// Perform single query to set excess subscribers to 'unsubscribed'
-				const result = (await sql`
-          UPDATE mailing_list_subscriptions
-          SET status = 'unsubscribed'
-          WHERE mailing_list_name = ${listName}
-            AND org_id = ${orgId}
-            AND status = 'subscribed'
-            AND client_id NOT IN (
-              SELECT client_id
-              FROM mailing_list_subscriptions
-              WHERE mailing_list_name = ${listName}
-                AND org_id = ${orgId}
-                AND status = 'subscribed'
-              ORDER BY created_at ASC
-              LIMIT ${clientLimit}
-            )
-          RETURNING client_id
-        `) as Array<{ client_id: string }>;
-
-				if (result.length > 0) {
+			const listNames = rebalanceResult.listsProcessed.map((l) => l.listName);
+			for (const list of rebalanceResult.listsProcessed) {
+				if (list.unsubscribedCount > 0) {
 					console.log(
-						`[Rebalance-Subscribers] Org ${orgId}, List "${listName}": Opted out ${result.length} excess subscribers (Limit: ${clientLimit}).`,
+						`[Rebalance-Subscribers] Org ${orgId}, List "${list.listName}": Opted out ${list.unsubscribedCount} excess subscribers (Limit: ${rebalanceResult.clientLimit}).`,
 					);
 				}
-				processed.push(listName);
 			}
 
-			results.push({ orgId, listsProcessed: processed });
+			results.push({ orgId, listsProcessed: listNames });
 		}
 
 		return NextResponse.json({ ok: true, processedOrgs: results });
