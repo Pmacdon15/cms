@@ -17,9 +17,9 @@ import { checkAuth } from "./auth";
 /**
  * Fetch campaign history
  */
-export async function dalGetCampaigns(): Promise<
-  { ok: true; value: Campaign[] } | { ok: false; error: string }
-> {
+export async function dalGetCampaigns(
+  clientId?: string,
+): Promise<{ ok: true; value: Campaign[] } | { ok: false; error: string }> {
   try {
     const authResult = await checkAuth();
     if (authResult.isErr())
@@ -29,7 +29,7 @@ export async function dalGetCampaigns(): Promise<
       return { ok: false, error: "Please select or create an organization." };
     }
 
-    const campaigns = await dbGetCampaigns(orgId);
+    const campaigns = await dbGetCampaigns(orgId, clientId);
     return { ok: true, value: campaigns };
   } catch (error) {
     console.error("dalGetCampaigns exception:", error);

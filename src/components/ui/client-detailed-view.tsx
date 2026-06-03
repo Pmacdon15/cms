@@ -90,7 +90,7 @@ export function ClientDetailView({
         <div className="relative h-24 bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600" />
         <div className="px-6 pb-6">
           <div className="-mt-10 mb-5 flex items-end justify-between">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-extrabold text-2xl border-4 border-white shadow-lg">
+            <div className="relative z-10 w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-extrabold text-2xl border-4 border-white shadow-lg">
               {initials}
             </div>
             <button

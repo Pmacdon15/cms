@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { actionGetSentMessages } from "../actions/campaigns";
 import type { Campaign, SentMessage } from "../types/types";
@@ -20,6 +21,7 @@ interface CampaignListProps {
 }
 
 export function CampaignList({ initialCampaigns, hasSms }: CampaignListProps) {
+  const router = useRouter();
   const [campaigns] = useState<Campaign[]>(initialCampaigns);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(
     null,
@@ -172,22 +174,24 @@ export function CampaignList({ initialCampaigns, hasSms }: CampaignListProps) {
                   <tbody className="divide-y divide-zinc-100 bg-white">
                     {deliveryLogs.map((log) => (
                       <tr key={log.id} className="hover:bg-zinc-50/50">
-                        <td className="p-3 font-semibold text-zinc-800 truncate max-w-[120px]">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const params = new URLSearchParams(
-                                window.location.search,
-                              );
-                              params.set("client", log.client_id);
-                              params.delete("search");
-                              window.location.href = `/campaigns?${params.toString()}`;
-                            }}
-                            className="text-zinc-800 hover:text-blue-600 hover:underline transition-colors cursor-pointer text-left"
-                            title={`View client ${log.client_id}`}
-                          >
-                            {log.client_id.substring(0, 8)}...
-                          </button>
+                        <td className="p-3 font-semibold text-zinc-800 truncate max-w-[200px]">
+                          <div className="flex flex-col">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                router.push(`/clients?client=${log.client_id}`);
+                              }}
+                              className="font-bold text-zinc-800 hover:text-blue-600 hover:underline transition-colors cursor-pointer text-left truncate"
+                              title="View client profile"
+                            >
+                              {log.client_name || `${log.client_id.substring(0, 8)}...`}
+                            </button>
+                            {log.client_email && (
+                              <span className="text-[10px] text-zinc-400 truncate mt-0.5">
+                                {log.client_email}
+                              </span>
+                            )}
+                          </div>
                         </td>
                         {hasSms && (
                           <td className="p-3 uppercase text-[10px] tracking-wide text-zinc-500">

@@ -24,8 +24,21 @@ async function ensureCampaignsSchema() {
 /**
  * Fetch all campaigns, sorted newest first
  */
-export async function dbGetCampaigns(orgId: string): Promise<Campaign[]> {
+export async function dbGetCampaigns(
+  orgId: string,
+  clientId?: string,
+): Promise<Campaign[]> {
   await ensureCampaignsSchema();
+  if (clientId) {
+    const rows = await sql`
+      SELECT DISTINCT c.id, c.type, c.subject, c.content, c.sent_count, c.mailing_list_name, c.created_at
+      FROM campaigns c
+      JOIN sent_messages sm ON sm.campaign_id = c.id
+      WHERE c.org_id = ${orgId} AND sm.client_id = ${clientId}
+      ORDER BY c.created_at DESC
+    `;
+    return rows as Campaign[];
+  }
   const rows = await sql`
     SELECT id, type, subject, content, sent_count, mailing_list_name, created_at
     FROM campaigns
@@ -78,9 +91,11 @@ export async function dbGetSentMessages(
   orgId: string,
 ): Promise<SentMessage[]> {
   const rows = await sql`
-    SELECT sm.id, sm.campaign_id, sm.client_id, sm.channel, sm.status, sm.aws_message_id, sm.created_at
+    SELECT sm.id, sm.campaign_id, sm.client_id, sm.channel, sm.status, sm.aws_message_id, sm.created_at,
+           cl.email AS client_email, cl.name AS client_name
     FROM sent_messages sm
     JOIN campaigns c ON c.id = sm.campaign_id
+    LEFT JOIN clients cl ON cl.id = sm.client_id
     WHERE sm.campaign_id = ${campaignId} AND c.org_id = ${orgId}
     ORDER BY sm.created_at ASC
   `;

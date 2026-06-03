@@ -30,6 +30,8 @@ export interface SentMessage {
   status: "sent" | "failed";
   aws_message_id?: string;
   created_at: Date | string;
+  client_name?: string;
+  client_email?: string;
 }
 
 export interface MailingList {
