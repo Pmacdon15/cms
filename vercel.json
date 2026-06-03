@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/rebalance-list",
+      "schedule": "0 */4 * * *"
+    },
+    {
+      "path": "/api/cron/rebalance-subcribers",
+      "schedule": "0 1-23/4 * * *"
+    }
+  ]
+}
