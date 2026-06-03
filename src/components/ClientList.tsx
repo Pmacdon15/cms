@@ -15,6 +15,7 @@ const ClientSearchBarComponent = ClientSearchBar as ComponentType<{
 	onSelectClient: (client: Client) => void;
 	onClear: () => void;
 	buildUrl: (overrides: Record<string, string>) => string;
+	selectedClientName?: string;
 }>;
 
 interface ClientListProps {
@@ -81,6 +82,7 @@ export default function ClientList({
 					onSelectClient={handleSelectClient}
 					onClear={handleClear}
 					buildUrl={buildUrl}
+					selectedClientName={selectedClient?.name}
 				/>
 				<Button
 					onClick={() => setIsModalOpen(true)}

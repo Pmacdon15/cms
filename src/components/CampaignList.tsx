@@ -173,8 +173,19 @@ export function CampaignList({ initialCampaigns, hasSms }: CampaignListProps) {
                     {deliveryLogs.map((log) => (
                       <tr key={log.id} className="hover:bg-zinc-50/50">
                         <td className="p-3 font-semibold text-zinc-800 truncate max-w-[120px]">
-                          {/* Client ID fallback if joined fields are not loaded */}
-                          {log.client_id.substring(0, 8)}...
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const params = new URLSearchParams(window.location.search);
+                              params.set("client", log.client_id);
+                              params.delete("search");
+                              window.location.href = `/campaigns?${params.toString()}`;
+                            }}
+                            className="text-zinc-800 hover:text-blue-600 hover:underline transition-colors cursor-pointer text-left"
+                            title={`View client ${log.client_id}`}
+                          >
+                            {log.client_id.substring(0, 8)}...
+                          </button>
                         </td>
                         {hasSms && (
                           <td className="p-3 uppercase text-[10px] tracking-wide text-zinc-500">

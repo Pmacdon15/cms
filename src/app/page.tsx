@@ -13,9 +13,9 @@ export default async function DashboardPage() {
   const campaignsRes = await dalGetCampaigns();
 
   // Gracefully handle db pending configuration
-  const clients = clientsRes.isOk() ? clientsRes.value : [];
-  const campaigns = campaignsRes.isOk() ? campaignsRes.value : [];
-  const dbError = clientsRes.isErr() ? clientsRes.error.message : null;
+  const clients = clientsRes.ok ? clientsRes.value : [];
+  const campaigns = campaignsRes.ok ? campaignsRes.value : [];
+  const dbError = !clientsRes.ok ? clientsRes.error : null;
 
   // Check for SMS feature gate
   const hasClerkKeys = !!(

@@ -1,4 +1,4 @@
-import { err, ok, type Result } from "neverthrow";
+
 import {
   dbCreateCampaign,
   dbGetCampaigns,
@@ -18,22 +18,22 @@ import { auth } from "@clerk/nextjs/server";
 /**
  * Fetch campaign history
  */
-export async function dalGetCampaigns(): Promise<Result<Campaign[], Error>> {
+export async function dalGetCampaigns(): Promise<{ ok: true; value: Campaign[] } | { ok: false; error: string }> {
   try {
     const authResult = await checkAuth();
-    if (authResult.isErr()) return err(authResult.error);
+    if (authResult.isErr()) return { ok: false, error: authResult.error.message };
     const { orgId } = authResult.value;
     if (!orgId) {
-      return err(new Error("Please select or create an organization."));
+      return { ok: false, error: "Please select or create an organization." };
     }
 
     const campaigns = await dbGetCampaigns(orgId);
-    return ok(campaigns);
+    return { ok: true, value: campaigns };
   } catch (error) {
     console.error("dalGetCampaigns exception:", error);
     const message =
       error instanceof Error ? error.message : "Failed to retrieve campaign history.";
-    return err(new Error(message));
+    return { ok: false, error: message };
   }
 }
 
@@ -42,29 +42,27 @@ export async function dalGetCampaigns(): Promise<Result<Campaign[], Error>> {
  */
 export async function dalCreateCampaign(
   input: CampaignInput,
-): Promise<Result<Campaign, Error>> {
+): Promise<{ ok: true; value: Campaign } | { ok: false; error: string }> {
   try {
     const authResult = await checkAuth();
-    if (authResult.isErr()) return err(authResult.error);
+    if (authResult.isErr()) return { ok: false, error: authResult.error.message };
     const { orgId, isAdmin } = authResult.value;
     if (!orgId) {
-      return err(new Error("Please select or create an organization."));
+      return { ok: false, error: "Please select or create an organization." };
     }
     if (!isAdmin) {
-      return err(new Error("Unauthorized. Only organization admins can dispatch campaigns."));
+      return { ok: false, error: "Unauthorized. Only organization admins can dispatch campaigns." };
     }
 
     if (!input.content.trim()) {
-      return err(new Error("Campaign message content cannot be empty."));
+      return { ok: false, error: "Campaign message content cannot be empty." };
     }
 
     if (
       (input.type === "email" || input.type === "both") &&
       !input.subject?.trim()
     ) {
-      return err(
-        new Error("Email and double campaigns require a Subject line."),
-      );
+      return { ok: false, error: "Email and double campaigns require a Subject line." };
     }
 
     // Check for send_sms feature flag via Clerk auth has()
@@ -80,7 +78,7 @@ export async function dalCreateCampaign(
         : false);
 
     if ((input.type === "sms" || input.type === "both") && !hasSms) {
-      return err(new Error("SMS marketing features are not enabled for this organization."));
+      return { ok: false, error: "SMS marketing features are not enabled for this organization." };
     }
 
     // 1. Fetch targeted client list directly from local database
@@ -88,13 +86,7 @@ export async function dalCreateCampaign(
     const targetedClients = await dbGetCampaignRecipients(orgId, targetListName);
 
     if (targetedClients.length === 0) {
-      return err(
-        new Error(
-          `No active subscribers found in the targeted list: ${
-            input.mailing_list_name || "Broadcast to All"
-          }`,
-        ),
-      );
+      return { ok: false, error: `No active subscribers found in the targeted list: ${input.mailing_list_name || "Broadcast to All"}` };
     }
 
     // 2. Filter recipients using database opt-in flags (instead of AWS SES preference querying)
@@ -180,12 +172,12 @@ export async function dalCreateCampaign(
       );
     }
 
-    return ok(campaign);
+    return { ok: true, value: campaign };
   } catch (error) {
     console.error("dalCreateCampaign exception:", error);
     const message =
       error instanceof Error ? error.message : "Failed to dispatch marketing campaign.";
-    return err(new Error(message));
+    return { ok: false, error: message };
   }
 }
 
@@ -194,21 +186,21 @@ export async function dalCreateCampaign(
  */
 export async function dalGetSentMessages(
   campaignId: string,
-): Promise<Result<SentMessage[], Error>> {
+): Promise<{ ok: true; value: SentMessage[] } | { ok: false; error: string }> {
   try {
     const authResult = await checkAuth();
-    if (authResult.isErr()) return err(authResult.error);
+    if (authResult.isErr()) return { ok: false, error: authResult.error.message };
     const { orgId } = authResult.value;
     if (!orgId) {
-      return err(new Error("Please select or create an organization."));
+      return { ok: false, error: "Please select or create an organization." };
     }
 
     const logs = await dbGetSentMessages(campaignId, orgId);
-    return ok(logs);
+    return { ok: true, value: logs };
   } catch (error) {
     console.error("dalGetSentMessages exception:", error);
     const message =
       error instanceof Error ? error.message : "Failed to retrieve campaign delivery logs.";
-    return err(new Error(message));
+    return { ok: false, error: message };
   }
 }

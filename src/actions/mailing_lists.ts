@@ -14,9 +14,7 @@ import {
  * Server action to get all mailing lists
  */
 export async function actionGetMailingLists() {
-  const res = await dalGetMailingLists();
-  if (res.isOk()) return { ok: true, value: res.value };
-  return { ok: false, error: res.error.message };
+  return await dalGetMailingLists();
 }
 
 /**
@@ -26,36 +24,28 @@ export async function actionCreateMailingList(
   name: string,
   description?: string,
 ) {
-  const res = await dalCreateMailingList(name, description);
-  if (res.isOk()) return { ok: true, value: res.value };
-  return { ok: false, error: res.error.message };
+  return await dalCreateMailingList(name, description);
 }
 
 /**
  * Server action to get subscribers of a specific mailing list
  */
 export async function actionGetMailingListSubscribers(listName: string) {
-  const res = await dalGetMailingListSubscribers(listName);
-  if (res.isOk()) return { ok: true, value: res.value };
-  return { ok: false, error: res.error.message };
+  return await dalGetMailingListSubscribers(listName);
 }
 
 /**
  * Public server action to fetch subscription preferences by subscriber email
  */
 export async function actionGetClientSubscriptionsByEmail(email: string) {
-  const res = await dalGetClientSubscriptionsByEmail(email);
-  if (res.isOk()) return { ok: true, value: res.value };
-  return { ok: false, error: res.error.message };
+  return await dalGetClientSubscriptionsByEmail(email);
 }
 
 /**
  * Public server action to fetch subscription preferences securely by client UUID
  */
 export async function actionGetClientSubscriptionsById(id: string) {
-  const res = await dalGetClientSubscriptionsById(id);
-  if (res.isOk()) return { ok: true, value: res.value };
-  return { ok: false, error: res.error.message };
+  return await dalGetClientSubscriptionsById(id);
 }
 
 /**
@@ -67,14 +57,12 @@ export async function actionUpdateSubscriptionStatus(
   status: "subscribed" | "unsubscribed",
   isPublic = false,
 ) {
-  const res = await dalUpdateSubscriptionStatus(
+  return await dalUpdateSubscriptionStatus(
     clientIdOrEmail,
     listName,
     status,
     isPublic,
   );
-  if (res.isOk()) return { ok: true, value: res.value };
-  return { ok: false, error: res.error.message };
 }
 
 /**
@@ -84,7 +72,5 @@ export async function actionUpdateGlobalOptIn(
   clientIdOrEmail: string,
   optInNewsletter: boolean,
 ) {
-  const res = await dalUpdateGlobalOptIn(clientIdOrEmail, optInNewsletter);
-  if (res.isOk()) return { ok: true, value: res.value };
-  return { ok: false, error: res.error.message };
+  return await dalUpdateGlobalOptIn(clientIdOrEmail, optInNewsletter);
 }

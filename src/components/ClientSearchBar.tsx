@@ -14,7 +14,7 @@ import { useDebounce } from "../utils/useDebounce";
  * - Clicking a suggestion navigates to /clients?client=ID (optimistic detail view).
  * - Pressing Enter navigates to /clients?search=TERM (full table search).
  */
-export function ClientSearchBar() {
+export function ClientSearchBar({ selectedClientName }: { selectedClientName?: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [inputValue, setInputValue] = useState(
@@ -31,11 +31,12 @@ export function ClientSearchBar() {
   useEffect(() => {
     const s = searchParams.get("search") || "";
     const c = searchParams.get("client");
-    // Only sync if there's no client selected (client mode shows name, not search term)
-    if (!c) {
+    if (c && selectedClientName) {
+      setInputValue(selectedClientName);
+    } else if (!c) {
       setInputValue(s);
     }
-  }, [searchParams]);
+  }, [searchParams, selectedClientName]);
 
   // Autocomplete suggestions
   const { data: suggestions = [], isFetching: isSearching } = useQuery({
@@ -89,6 +90,7 @@ export function ClientSearchBar() {
     setShowDropdown(false);
     setActiveIndex(-1);
     inputRef.current?.focus();
+    router.push("/clients");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
