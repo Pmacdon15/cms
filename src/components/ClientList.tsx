@@ -42,16 +42,15 @@ export default function ClientList({
 
   const activeClientId = searchParams.get("client");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [localClients, setLocalClients] = useState<Client[]>([]);
 
   useEffect(() => {
-    if (activeClientId) {
-      const match = clients.find((c) => c.id === activeClientId);
-      if (match) setSelectedClient(match);
-    } else {
-      setSelectedClient(null);
-    }
-  }, [activeClientId, clients]);
+    setLocalClients(clients);
+  }, [clients]);
+
+  const selectedClient = activeClientId
+    ? localClients.find((c) => c.id === activeClientId) || null
+    : null;
 
   const buildUrl = (overrides: Record<string, string>) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -65,13 +64,24 @@ export default function ClientList({
   };
 
   const handleSelectClient = (client: Client) => {
-    setSelectedClient(client);
     router.push(buildUrl({ client: client.id }));
   };
 
   const handleClear = () => {
-    setSelectedClient(null);
     router.push(buildUrl({}));
+  };
+
+  const handleOptimisticUpdate = (action: 
+    | { type: "update"; client: Client }
+    | { type: "delete"; id: string }
+  ) => {
+    if (action.type === "update") {
+      setLocalClients((prev) =>
+        prev.map((c) => (c.id === action.client.id ? action.client : c))
+      );
+    } else if (action.type === "delete") {
+      setLocalClients((prev) => prev.filter((c) => c.id !== action.id));
+    }
   };
 
   return (
@@ -115,10 +125,11 @@ export default function ClientList({
           client={selectedClient}
           hasSms={hasSms}
           onBack={handleClear}
+          onOptimisticUpdate={handleOptimisticUpdate}
         />
       ) : (
         <ClientTable
-          clients={clients}
+          clients={localClients}
           hasSms={hasSms}
           currentSearch={currentSearch}
           onSelectClient={handleSelectClient}

@@ -5,6 +5,7 @@ import {
   dalDeleteClient,
   dalGetClients,
   dalSearchClients,
+  dalUpdateClient,
   dalUpdateClientOptIn,
 } from "../dal/clients";
 import type { ClientInput } from "../types/types";
@@ -54,6 +55,17 @@ export async function actionUpdateClientOptIn(
   optInSms: boolean,
 ) {
   const result = await dalUpdateClientOptIn(id, optInNewsletter, optInSms);
+  if (result.isOk()) {
+    return { ok: true, value: result.value };
+  }
+  return { ok: false, error: result.error.message };
+}
+
+/**
+ * Server action to update a client's profile details safely
+ */
+export async function actionUpdateClient(id: string, input: ClientInput) {
+  const result = await dalUpdateClient(id, input);
   if (result.isOk()) {
     return { ok: true, value: result.value };
   }

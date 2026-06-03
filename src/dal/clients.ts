@@ -5,6 +5,7 @@ import {
   dbGetClientById,
   dbGetClients,
   dbSearchClients,
+  dbUpdateClient,
   dbUpdateClientOptIn,
 } from "../db/clients";
 import { dbUpdateSubscriptionStatus } from "../db/mailing_lists";
@@ -179,6 +180,56 @@ export async function dalUpdateClientOptIn(
     return err(new Error(message));
   }
 }
+
+/**
+ * Update a client's main profile details (name, email, phone)
+ */
+export async function dalUpdateClient(
+  id: string,
+  input: ClientInput,
+): Promise<Result<Client, Error>> {
+  try {
+    const authResult = await checkAuth();
+    if (authResult.isErr()) {
+      return err(authResult.error);
+    }
+    const { orgId, isAdmin } = authResult.value;
+    if (!orgId) {
+      return err(new Error("Please select or create an organization."));
+    }
+    if (!isAdmin) {
+      return err(
+        new Error("Unauthorized. Only organization admins can update client details."),
+      );
+    }
+
+    // Input verification
+    if (
+      !input.name.trim() ||
+      !input.email.trim() ||
+      !input.phone_number.trim()
+    ) {
+      return err(
+        new Error(
+          "Missing required client fields (Name, Email, and Phone are mandatory).",
+        ),
+      );
+    }
+
+    const updatedClient = await dbUpdateClient(id, input, orgId);
+    if (!updatedClient) {
+      return err(new Error(`Client with ID ${id} not found.`));
+    }
+
+    return ok(updatedClient);
+  } catch (error) {
+    console.error("dalUpdateClient exception caught:", error);
+    const message =
+      error instanceof Error ? error.message : "Failed to update client details.";
+    return err(new Error(message));
+  }
+}
+
 
 /**
  * Delete a client

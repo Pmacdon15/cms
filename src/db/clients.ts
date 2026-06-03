@@ -122,6 +122,25 @@ export async function dbUpdateClientOptIn(
 }
 
 /**
+ * Update client details in the database
+ */
+export async function dbUpdateClient(
+  id: string,
+  input: ClientInput,
+  orgId: string,
+): Promise<Client | null> {
+  const rows = await sql`
+    UPDATE clients
+    SET name = ${input.name}, email = ${input.email}, phone_number = ${input.phone_number}
+    WHERE id = ${id} AND org_id = ${orgId}
+    RETURNING id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at
+  `;
+  if (rows.length === 0) return null;
+  return rows[0] as Client;
+}
+
+
+/**
  * Get recipients for a campaign target mailing list or broadcast to all
  */
 export async function dbGetCampaignRecipients(
