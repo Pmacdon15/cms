@@ -2,13 +2,10 @@ import { auth } from "@clerk/nextjs/server";
 import { Users } from "lucide-react";
 import { Suspense } from "react";
 import ClientList from "@/components/ClientList";
+import { parseParams } from "@/utils/params";
 import { dalGetClients } from "../../dal/clients";
 
 export const revalidate = 0; // Force dynamic server rendering
-
-function parseParams(p: string | string[] | undefined): string {
-	return Array.isArray(p) ? (p[0] ?? "") : (p ?? "");
-}
 
 export default async function ClientsPage(props: PageProps<"/clients">) {
 	const clientsPromise = props.searchParams.then((p) =>
@@ -17,10 +14,8 @@ export default async function ClientsPage(props: PageProps<"/clients">) {
 			client: parseParams(p.client),
 		}),
 	);
-
 	const clientPromise = props.searchParams.then((p) => parseParams(p.client));
 	const searchPromise = props.searchParams.then((p) => parseParams(p.search));
-
 	const hasSmsPromise = auth
 		.protect()
 		.then((auth) => auth.has({ permission: "send_sms" }));
