@@ -17,7 +17,10 @@ export async function dbGetClients(orgId: string): Promise<Client[]> {
 /**
  * Search clients by name, email, or phone number matching query
  */
-export async function dbSearchClients(orgId: string, query: string): Promise<Client[]> {
+export async function dbSearchClients(
+  orgId: string,
+  query: string,
+): Promise<Client[]> {
   const pattern = `%${query}%`;
   const rows = await sql`
     SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at 
@@ -36,7 +39,10 @@ export async function dbSearchClients(orgId: string, query: string): Promise<Cli
 /**
  * Fetch a single client by ID
  */
-export async function dbGetClientById(id: string, orgId?: string): Promise<Client | null> {
+export async function dbGetClientById(
+  id: string,
+  orgId?: string,
+): Promise<Client | null> {
   const rows = orgId
     ? await sql`
         SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at 
@@ -141,7 +147,10 @@ export async function dbGetCampaignRecipients(
 /**
  * Delete a client by ID
  */
-export async function dbDeleteClient(id: string, orgId: string): Promise<boolean> {
+export async function dbDeleteClient(
+  id: string,
+  orgId: string,
+): Promise<boolean> {
   const result = await sql`
     DELETE FROM clients 
     WHERE id = ${id} AND org_id = ${orgId}

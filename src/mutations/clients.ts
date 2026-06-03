@@ -29,7 +29,7 @@ export function useCreateClientMutation(onSuccessCallback?: () => void) {
         showToast.error(res.error || "Failed to create client.");
       }
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       showToast.error(err?.message || "An unexpected error occurred.");
     },
   });
@@ -62,7 +62,7 @@ export function useUpdateClientOptInMutation() {
         showToast.error(res.error || "Failed to update subscriptions.");
       }
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       showToast.error(err?.message || "An unexpected error occurred.");
     },
   });
@@ -87,7 +87,7 @@ export function useDeleteClientMutation() {
         showToast.error(res.error || "Failed to remove client.");
       }
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       showToast.error(err?.message || "An unexpected error occurred.");
     },
   });

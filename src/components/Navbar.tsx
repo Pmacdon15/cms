@@ -5,7 +5,6 @@ import { Layers, LayoutDashboard, Send, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 
-
 export function Navbar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -25,9 +24,7 @@ export function Navbar() {
   const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   const hasSms =
     !hasClerkKeys ||
-    (isLoaded && has
-      ? has({ permission: "send_sms" })
-      : false);
+    (isLoaded && has ? has({ permission: "send_sms" }) : false);
 
   const navigationItems = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },

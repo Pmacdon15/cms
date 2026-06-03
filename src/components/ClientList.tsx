@@ -11,132 +11,132 @@ import { ClientTable } from "./ui/client-table";
 import { Dialog } from "./ui/dialog";
 
 const ClientSearchBarComponent = ClientSearchBar as ComponentType<{
-	currentSearch: string;
-	onSelectClient: (client: Client) => void;
-	onClear: () => void;
-	buildUrl: (overrides: Record<string, string>) => string;
-	selectedClientName?: string;
+  currentSearch: string;
+  onSelectClient: (client: Client) => void;
+  onClear: () => void;
+  buildUrl: (overrides: Record<string, string>) => string;
+  selectedClientName?: string;
 }>;
 
 interface ClientListProps {
-	initialClientsPromise: Promise<
-		{ ok: true; value: Client[] } | { ok: false; error: any }
-	>;
-	hasSmsPromise: Promise<boolean>;
-	currentSearchPromise: Promise<string>;
-	currentClientPromise: Promise<string>;
+  initialClientsPromise: Promise<
+    { ok: true; value: Client[] } | { ok: false; error: unknown }
+  >;
+  hasSmsPromise: Promise<boolean>;
+  currentSearchPromise: Promise<string>;
+  currentClientPromise: Promise<string>;
 }
 
 export default function ClientList({
-	initialClientsPromise,
-	hasSmsPromise,
-	currentSearchPromise,
+  initialClientsPromise,
+  hasSmsPromise,
+  currentSearchPromise,
 }: ClientListProps) {
-	const router = useRouter();
-	const searchParams = useSearchParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-	const clientsResult = use(initialClientsPromise);
-	const clients = clientsResult.ok ? clientsResult.value : [];
-	const currentSearch = use(currentSearchPromise);
-	const hasSms = use(hasSmsPromise);
+  const clientsResult = use(initialClientsPromise);
+  const clients = clientsResult.ok ? clientsResult.value : [];
+  const currentSearch = use(currentSearchPromise);
+  const hasSms = use(hasSmsPromise);
 
-	const activeClientId = searchParams.get("client");
-	const [isModalOpen, setIsModalOpen] = useState(false);
-	const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const activeClientId = searchParams.get("client");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
-	useEffect(() => {
-		if (activeClientId) {
-			const match = clients.find((c) => c.id === activeClientId);
-			if (match) setSelectedClient(match);
-		} else {
-			setSelectedClient(null);
-		}
-	}, [activeClientId, clients]);
+  useEffect(() => {
+    if (activeClientId) {
+      const match = clients.find((c) => c.id === activeClientId);
+      if (match) setSelectedClient(match);
+    } else {
+      setSelectedClient(null);
+    }
+  }, [activeClientId, clients]);
 
-	const buildUrl = (overrides: Record<string, string>) => {
-		const params = new URLSearchParams(searchParams.toString());
-		params.delete("search");
-		params.delete("client");
-		for (const [key, val] of Object.entries(overrides)) {
-			if (val) params.set(key, val);
-		}
-		const qs = params.toString();
-		return qs ? `/clients?${qs}` : "/clients";
-	};
+  const buildUrl = (overrides: Record<string, string>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("search");
+    params.delete("client");
+    for (const [key, val] of Object.entries(overrides)) {
+      if (val) params.set(key, val);
+    }
+    const qs = params.toString();
+    return qs ? `/clients?${qs}` : "/clients";
+  };
 
-	const handleSelectClient = (client: Client) => {
-		setSelectedClient(client);
-		router.push(buildUrl({ client: client.id }));
-	};
+  const handleSelectClient = (client: Client) => {
+    setSelectedClient(client);
+    router.push(buildUrl({ client: client.id }));
+  };
 
-	const handleClear = () => {
-		setSelectedClient(null);
-		router.push(buildUrl({}));
-	};
+  const handleClear = () => {
+    setSelectedClient(null);
+    router.push(buildUrl({}));
+  };
 
-	return (
-		<div className="flex flex-col gap-6">
-			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-				<ClientSearchBarComponent
-					currentSearch={currentSearch}
-					onSelectClient={handleSelectClient}
-					onClear={handleClear}
-					buildUrl={buildUrl}
-					selectedClientName={selectedClient?.name}
-				/>
-				<Button
-					onClick={() => setIsModalOpen(true)}
-					className="w-full sm:w-auto"
-				>
-					Add New Client
-				</Button>
-			</div>
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <ClientSearchBarComponent
+          currentSearch={currentSearch}
+          onSelectClient={handleSelectClient}
+          onClear={handleClear}
+          buildUrl={buildUrl}
+          selectedClientName={selectedClient?.name}
+        />
+        <Button
+          onClick={() => setIsModalOpen(true)}
+          className="w-full sm:w-auto"
+        >
+          Add New Client
+        </Button>
+      </div>
 
-			{currentSearch && !selectedClient && (
-				<div className="flex items-center gap-2 text-sm">
-					<span className="text-zinc-500">
-						Showing results for{" "}
-						<span className="font-semibold text-zinc-800">
-							&ldquo;{currentSearch}&rdquo;
-						</span>
-					</span>
-					<button
-						type="button"
-						onClick={handleClear}
-						className="text-xs text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
-					>
-						Clear
-					</button>
-				</div>
-			)}
+      {currentSearch && !selectedClient && (
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-zinc-500">
+            Showing results for{" "}
+            <span className="font-semibold text-zinc-800">
+              &ldquo;{currentSearch}&rdquo;
+            </span>
+          </span>
+          <button
+            type="button"
+            onClick={handleClear}
+            className="text-xs text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
+          >
+            Clear
+          </button>
+        </div>
+      )}
 
-			{selectedClient ? (
-				<ClientDetailView
-					client={selectedClient}
-					hasSms={hasSms}
-					onBack={handleClear}
-				/>
-			) : (
-				<ClientTable
-					clients={clients}
-					hasSms={hasSms}
-					currentSearch={currentSearch}
-					onSelectClient={handleSelectClient}
-				/>
-			)}
+      {selectedClient ? (
+        <ClientDetailView
+          client={selectedClient}
+          hasSms={hasSms}
+          onBack={handleClear}
+        />
+      ) : (
+        <ClientTable
+          clients={clients}
+          hasSms={hasSms}
+          currentSearch={currentSearch}
+          onSelectClient={handleSelectClient}
+        />
+      )}
 
-			<Dialog
-				isOpen={isModalOpen}
-				onClose={() => setIsModalOpen(false)}
-				title="Register Client Profile"
-			>
-				<ClientForm
-					onSuccess={() => {
-						setIsModalOpen(false);
-						router.refresh();
-					}}
-				/>
-			</Dialog>
-		</div>
-	);
+      <Dialog
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Register Client Profile"
+      >
+        <ClientForm
+          onSuccess={() => {
+            setIsModalOpen(false);
+            router.refresh();
+          }}
+        />
+      </Dialog>
+    </div>
+  );
 }

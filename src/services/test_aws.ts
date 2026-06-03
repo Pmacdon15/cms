@@ -6,7 +6,10 @@ async function main() {
     const listBefore = await awsGetMailingLists();
     console.log("Mailing lists before:", listBefore);
 
-    const newList = await awsCreateMailingList("TestMailingList", "A testing list");
+    const newList = await awsCreateMailingList(
+      "TestMailingList",
+      "A testing list",
+    );
     console.log("Created list:", newList);
 
     const listAfter = await awsGetMailingLists();

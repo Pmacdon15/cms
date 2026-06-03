@@ -13,7 +13,11 @@ export async function ensureDefaultMailingLists(orgId: string): Promise<void> {
       ON CONFLICT (name, org_id) DO NOTHING
     `;
   } catch (error) {
-    console.error("Failed to seed default mailing lists for org:", orgId, error);
+    console.error(
+      "Failed to seed default mailing lists for org:",
+      orgId,
+      error,
+    );
   }
 }
 
@@ -95,7 +99,8 @@ export async function dbUpdateSubscriptionStatus(
 ): Promise<boolean> {
   let resolvedOrgId = orgId;
   if (!resolvedOrgId) {
-    const clientRows = await sql`SELECT org_id FROM clients WHERE id = ${clientId}`;
+    const clientRows =
+      await sql`SELECT org_id FROM clients WHERE id = ${clientId}`;
     if (clientRows.length === 0) return false;
     resolvedOrgId = clientRows[0].org_id;
   }
@@ -127,7 +132,12 @@ export async function dbUpdateSubscriptionStatusByEmail(
     : await sql`SELECT id, org_id FROM clients WHERE email = ${email}`;
   if (rows.length === 0) return false;
 
-  await dbUpdateSubscriptionStatus(rows[0].id, listName, status, rows[0].org_id);
+  await dbUpdateSubscriptionStatus(
+    rows[0].id,
+    listName,
+    status,
+    rows[0].org_id,
+  );
   return true;
 }
 

@@ -30,7 +30,7 @@ export function useCreateMailingListMutation(onSuccessCallback?: () => void) {
         showToast.error(res.error || "Failed to create mailing list.");
       }
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       showToast.error(err?.message || "An unexpected error occurred.");
     },
   });
@@ -67,7 +67,7 @@ export function useUpdateSubscriptionStatusMutation() {
         showToast.error(res.error || "Failed to update preference.");
       }
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       showToast.error(err?.message || "An unexpected error occurred.");
     },
   });
@@ -98,7 +98,7 @@ export function useUpdateGlobalOptInMutation() {
         showToast.error(res.error || "Failed to update global preference.");
       }
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       showToast.error(err?.message || "An unexpected error occurred.");
     },
   });

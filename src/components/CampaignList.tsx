@@ -176,7 +176,9 @@ export function CampaignList({ initialCampaigns, hasSms }: CampaignListProps) {
                           <button
                             type="button"
                             onClick={() => {
-                              const params = new URLSearchParams(window.location.search);
+                              const params = new URLSearchParams(
+                                window.location.search,
+                              );
                               params.set("client", log.client_id);
                               params.delete("search");
                               window.location.href = `/campaigns?${params.toString()}`;

@@ -137,7 +137,8 @@ export function UnsubscribeManager({
       {/* 2. List-specific Subscriptions */}
       <div className="flex flex-col gap-4">
         <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-2">
-          <Layers className="w-3.5 h-3.5 text-zinc-400" /> Segmented Subscriptions
+          <Layers className="w-3.5 h-3.5 text-zinc-400" /> Segmented
+          Subscriptions
         </h3>
 
         {subscriptions.length === 0 ? (
@@ -194,9 +195,7 @@ export function UnsubscribeManager({
       {!globalOptIn && (
         <div className="p-4 rounded-xl border border-zinc-200 bg-zinc-50/50 text-[11px] text-zinc-500 flex items-center gap-2">
           <BellOff className="w-4 h-4 text-blue-600 flex-shrink-0" />
-          <span>
-            You have unsubscribed globally from all campaigns.
-          </span>
+          <span>You have unsubscribed globally from all campaigns.</span>
         </div>
       )}
     </div>

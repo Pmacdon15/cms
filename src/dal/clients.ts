@@ -2,8 +2,8 @@ import { err, ok, type Result } from "neverthrow";
 import {
   dbCreateClient,
   dbDeleteClient,
-  dbGetClients,
   dbGetClientById,
+  dbGetClients,
   dbSearchClients,
   dbUpdateClientOptIn,
 } from "../db/clients";
@@ -43,7 +43,9 @@ export async function dalGetClients(params?: {
   } catch (error) {
     console.error("dalGetClients exception caught:", error);
     const message =
-      error instanceof Error ? error.message : "Failed to retrieve clients list.";
+      error instanceof Error
+        ? error.message
+        : "Failed to retrieve clients list.";
     return { ok: false, error: message };
   }
 }
@@ -51,7 +53,9 @@ export async function dalGetClients(params?: {
 /**
  * Search clients for autocomplete suggestions
  */
-export async function dalSearchClients(query: string): Promise<Result<Client[], Error>> {
+export async function dalSearchClients(
+  query: string,
+): Promise<Result<Client[], Error>> {
   try {
     const authResult = await checkAuth();
     if (authResult.isErr()) {
@@ -92,7 +96,9 @@ export async function dalCreateClient(
       return err(new Error("Please select or create an organization."));
     }
     if (!isAdmin) {
-      return err(new Error("Unauthorized. Only organization admins can add clients."));
+      return err(
+        new Error("Unauthorized. Only organization admins can add clients."),
+      );
     }
 
     // Input verification
@@ -146,7 +152,11 @@ export async function dalUpdateClientOptIn(
       return err(new Error("Please select or create an organization."));
     }
     if (!isAdmin) {
-      return err(new Error("Unauthorized. Only organization admins can update subscription preferences."));
+      return err(
+        new Error(
+          "Unauthorized. Only organization admins can update subscription preferences.",
+        ),
+      );
     }
 
     const updatedClient = await dbUpdateClientOptIn(
@@ -163,7 +173,9 @@ export async function dalUpdateClientOptIn(
   } catch (error) {
     console.error("dalUpdateClientOptIn exception caught:", error);
     const message =
-      error instanceof Error ? error.message : "Failed to update channel subscriptions.";
+      error instanceof Error
+        ? error.message
+        : "Failed to update channel subscriptions.";
     return err(new Error(message));
   }
 }
@@ -184,7 +196,9 @@ export async function dalDeleteClient(
       return err(new Error("Please select or create an organization."));
     }
     if (!isAdmin) {
-      return err(new Error("Unauthorized. Only organization admins can delete clients."));
+      return err(
+        new Error("Unauthorized. Only organization admins can delete clients."),
+      );
     }
 
     const success = await dbDeleteClient(id, orgId);
@@ -198,7 +212,9 @@ export async function dalDeleteClient(
   } catch (error) {
     console.error("dalDeleteClient exception caught:", error);
     const message =
-      error instanceof Error ? error.message : "Failed to delete client record.";
+      error instanceof Error
+        ? error.message
+        : "Failed to delete client record.";
     return err(new Error(message));
   }
 }

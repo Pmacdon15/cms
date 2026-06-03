@@ -1,28 +1,36 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { Mail, Phone, Search, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { actionSearchClients } from "../actions/clients";
-import type { Client } from "../types/types";
-import { useDebounce } from "../utils/useDebounce";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useDebounce } from "../../utils/useDebounce";
 
-/**
- * Global client autocomplete search bar for the Navbar.
- * - Typing triggers debounced autocomplete suggestions via TanStack Query.
- * - Clicking a suggestion navigates to /clients?client=ID (optimistic detail view).
- * - Pressing Enter navigates to /clients?search=TERM (full table search).
- */
-export function ClientSearchBar({
-  selectedClientName,
+export function MailingListSearchBar({
+  initialSearch,
+  subscribers,
 }: {
-  selectedClientName?: string;
+  initialSearch: string;
+  subscribers: Array<{
+    id: string;
+    name: string;
+    email: string;
+    phone_number: string;
+  }>;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [inputValue, setInputValue] = useState(
-    searchParams.get("search") || "",
+
+  const getNameForSearch = useCallback(
+    (s: string) => {
+      if (!s) return "";
+      const match = subscribers.find((sub) => sub.id === s);
+      return match ? match.name : s;
+    },
+    [subscribers],
+  );
+
+  const [inputValue, setInputValue] = useState(() =>
+    getNameForSearch(initialSearch),
   );
   const [showDropdown, setShowDropdown] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -31,29 +39,11 @@ export function ClientSearchBar({
 
   const debouncedSearch = useDebounce(inputValue, 300);
 
-  // Sync input value with URL search param changes (e.g. back/forward navigation)
+  // Sync when URL changes externally
   useEffect(() => {
-    const s = searchParams.get("search") || "";
-    const c = searchParams.get("client");
-    if (c && selectedClientName) {
-      setInputValue(selectedClientName);
-    } else if (!c) {
-      setInputValue(s);
-    }
-  }, [searchParams, selectedClientName]);
-
-  // Autocomplete suggestions
-  const { data: suggestions = [], isFetching: isSearching } = useQuery({
-    queryKey: ["client-search-nav", debouncedSearch],
-    queryFn: async () => {
-      if (!debouncedSearch.trim()) return [];
-      const res = await actionSearchClients(debouncedSearch.trim());
-      if (res.ok) return res.value as Client[];
-      return [];
-    },
-    enabled: debouncedSearch.trim().length > 0 && showDropdown,
-    staleTime: 1000 * 30,
-  });
+    const s = searchParams.get("client") || searchParams.get("search") || "";
+    setInputValue(getNameForSearch(s));
+  }, [searchParams, getNameForSearch]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -72,20 +62,41 @@ export function ClientSearchBar({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSelectClient = (client: Client) => {
-    setInputValue(client.name);
+  const suggestions = debouncedSearch.trim()
+    ? subscribers.filter(
+        (sub) =>
+          sub.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          sub.email.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          sub.phone_number.includes(debouncedSearch),
+      )
+    : [];
+
+  const handleSelectSubscriber = (subscriber: { id: string; name: string }) => {
+    setInputValue(subscriber.name);
     setShowDropdown(false);
     setActiveIndex(-1);
-    router.push(`/clients?client=${client.id}`);
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("client", subscriber.id);
+    params.delete("search");
+    router.replace(`/mailing-lists?${params.toString()}`, { scroll: false });
   };
 
   const handleSearchSubmit = () => {
     setShowDropdown(false);
     setActiveIndex(-1);
+
+    const params = new URLSearchParams(searchParams.toString());
     if (inputValue.trim()) {
-      router.push(`/clients?search=${encodeURIComponent(inputValue.trim())}`);
+      params.set("search", inputValue.trim());
+      params.delete("client");
     } else {
-      router.push("/clients");
+      params.delete("search");
+      params.delete("client");
+    }
+
+    if (params.toString() !== searchParams.toString()) {
+      router.replace(`/mailing-lists?${params.toString()}`, { scroll: false });
     }
   };
 
@@ -94,7 +105,11 @@ export function ClientSearchBar({
     setShowDropdown(false);
     setActiveIndex(-1);
     inputRef.current?.focus();
-    router.push("/clients");
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("search");
+    params.delete("client");
+    router.replace(`/mailing-lists?${params.toString()}`, { scroll: false });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -122,7 +137,7 @@ export function ClientSearchBar({
       case "Enter":
         e.preventDefault();
         if (activeIndex >= 0 && activeIndex < suggestions.length) {
-          handleSelectClient(suggestions[activeIndex]);
+          handleSelectSubscriber(suggestions[activeIndex]);
         } else {
           handleSearchSubmit();
         }
@@ -150,21 +165,13 @@ export function ClientSearchBar({
   };
 
   return (
-    <div className="relative hidden md:block">
-      {/* Compact Search Input */}
+    <div className="relative w-full max-w-sm hidden sm:block">
       <div className="relative">
-        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none">
-          {isSearching ? (
-            <div className="w-3.5 h-3.5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <Search className="w-3.5 h-3.5" />
-          )}
-        </div>
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
         <input
           ref={inputRef}
-          id="global-client-search"
           type="text"
-          placeholder="Search clients..."
+          placeholder="Search subscribers..."
           value={inputValue}
           onChange={(e) => {
             setInputValue(e.target.value);
@@ -176,15 +183,15 @@ export function ClientSearchBar({
           }}
           onKeyDown={handleKeyDown}
           autoComplete="off"
-          className="w-56 lg:w-72 h-9 rounded-lg bg-zinc-50 border border-zinc-200 pl-9 pr-8 py-1.5 text-xs text-zinc-900 placeholder:text-zinc-400 focus-visible:outline-none focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:bg-white transition-all"
+          className="w-full h-11 rounded-xl bg-white border border-zinc-200 pl-10 pr-10 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:outline-none focus-visible:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-500 transition-all"
         />
         {inputValue && (
           <button
             type="button"
             onClick={handleClear}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors cursor-pointer"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors cursor-pointer"
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="w-4 h-4" />
           </button>
         )}
       </div>
@@ -195,23 +202,18 @@ export function ClientSearchBar({
           ref={dropdownRef}
           className="absolute z-[60] top-full left-0 mt-1.5 w-80 bg-white border border-zinc-200 rounded-xl shadow-xl shadow-zinc-200/60 overflow-hidden animate-fade-in-scale"
         >
-          {suggestions.length === 0 && !isSearching && (
+          {suggestions.length === 0 && (
             <div className="px-4 py-5 text-center text-xs text-zinc-400">
-              No clients found matching &ldquo;{debouncedSearch}&rdquo;
-            </div>
-          )}
-          {suggestions.length === 0 && isSearching && (
-            <div className="px-4 py-5 text-center text-xs text-zinc-400">
-              Searching...
+              No subscribers found matching &ldquo;{debouncedSearch}&rdquo;
             </div>
           )}
           {suggestions.length > 0 && (
             <ul className="max-h-64 overflow-y-auto py-1">
-              {suggestions.map((client, index) => (
-                <li key={client.id}>
+              {suggestions.map((sub, index) => (
+                <li key={sub.id}>
                   <button
                     type="button"
-                    onClick={() => handleSelectClient(client)}
+                    onClick={() => handleSelectSubscriber(sub)}
                     onMouseEnter={() => setActiveIndex(index)}
                     className={`w-full text-left px-3.5 py-2.5 flex items-start gap-2.5 transition-colors cursor-pointer ${
                       activeIndex === index
@@ -221,7 +223,7 @@ export function ClientSearchBar({
                   >
                     {/* Avatar */}
                     <div className="w-8 h-8 mt-0.5 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0 shadow-sm">
-                      {client.name
+                      {sub.name
                         .split(" ")
                         .map((w) => w[0])
                         .join("")
@@ -231,36 +233,35 @@ export function ClientSearchBar({
                     {/* Info */}
                     <div className="flex flex-col gap-0.5 min-w-0 flex-1">
                       <span className="text-xs font-semibold text-zinc-900 truncate">
-                        {highlightMatch(client.name, debouncedSearch)}
+                        {highlightMatch(sub.name, debouncedSearch)}
                       </span>
                       <div className="flex items-center gap-2.5 text-[11px] text-zinc-500">
                         <span className="flex items-center gap-1 truncate">
                           <Mail className="w-2.5 h-2.5 flex-shrink-0" />
-                          {highlightMatch(client.email, debouncedSearch)}
+                          {highlightMatch(sub.email, debouncedSearch)}
                         </span>
                         <span className="flex items-center gap-1 truncate">
                           <Phone className="w-2.5 h-2.5 flex-shrink-0" />
-                          {highlightMatch(client.phone_number, debouncedSearch)}
+                          {highlightMatch(sub.phone_number, debouncedSearch)}
                         </span>
                       </div>
                     </div>
                   </button>
                 </li>
               ))}
-              {/* Footer hint */}
               <li className="px-3.5 py-2 border-t border-zinc-100 flex items-center justify-between">
                 <span className="text-[10px] text-zinc-400">
                   {suggestions.length} result
                   {suggestions.length !== 1 ? "s" : ""}
                 </span>
                 <span className="text-[10px] text-zinc-400">
-                  <kbd className="px-1 py-0.5 bg-zinc-100 border border-zinc-200 rounded text-[9px] font-mono">
+                  <div className="px-1 py-0.5 bg-zinc-100 border border-zinc-200 rounded text-[9px] font-mono">
                     ↵
-                  </kbd>{" "}
+                  </div>{" "}
                   search all ·{" "}
-                  <kbd className="px-1 py-0.5 bg-zinc-100 border border-zinc-200 rounded text-[9px] font-mono">
+                  <div className="px-1 py-0.5 bg-zinc-100 border border-zinc-200 rounded text-[9px] font-mono">
                     ↑↓
-                  </kbd>{" "}
+                  </div>{" "}
                   navigate
                 </span>
               </li>
@@ -271,4 +272,3 @@ export function ClientSearchBar({
     </div>
   );
 }
-export default ClientSearchBar;

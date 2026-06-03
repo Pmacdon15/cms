@@ -12,12 +12,15 @@ import type { ClientInput } from "../types/types";
 /**
  * Server action to fetch all clients safely with optional filters
  */
-export async function actionGetClients(params?: { search?: string; client?: string }) {
+export async function actionGetClients(params?: {
+  search?: string;
+  client?: string;
+}) {
   const result = await dalGetClients(params);
-  if (result.isOk()) {
+  if (result.ok) {
     return { ok: true, value: result.value };
   }
-  return { ok: false, error: result.error.message };
+  return { ok: false, error: String(result.error) };
 }
 
 /**

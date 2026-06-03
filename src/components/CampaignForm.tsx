@@ -12,7 +12,11 @@ interface CampaignFormProps {
   hasSms: boolean;
 }
 
-export function CampaignForm({ mailingLists, onSuccess, hasSms }: CampaignFormProps) {
+export function CampaignForm({
+  mailingLists,
+  onSuccess,
+  hasSms,
+}: CampaignFormProps) {
   const campaignMutation = useCreateCampaignMutation(() => {
     form.reset();
     if (onSuccess) onSuccess();
@@ -43,7 +47,8 @@ export function CampaignForm({ mailingLists, onSuccess, hasSms }: CampaignFormPr
     onSubmit: async ({ value }) => {
       await campaignMutation.mutateAsync({
         type: hasSms ? value.type : "email",
-        subject: !hasSms || value.type !== "sms" ? value.subject.trim() : undefined,
+        subject:
+          !hasSms || value.type !== "sms" ? value.subject.trim() : undefined,
         content: value.content.trim(),
         mailing_list_name: value.mailing_list_name || undefined,
       });

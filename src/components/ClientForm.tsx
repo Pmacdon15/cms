@@ -3,7 +3,6 @@
 import { useForm } from "@tanstack/react-form";
 import { useCreateClientMutation } from "../mutations/clients";
 import { Button } from "./ui/button";
-import { Checkbox } from "./ui/checkbox";
 import { Input } from "./ui/input";
 
 interface ClientFormProps {

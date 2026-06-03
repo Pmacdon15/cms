@@ -1,4 +1,3 @@
-
 import {
   dbGetClientByEmail,
   dbGetClientById,
@@ -28,10 +27,13 @@ function isUuidString(str: string): boolean {
 /**
  * Fetch all mailing lists from the database (Admin authenticated)
  */
-export async function dalGetMailingLists(): Promise<{ ok: true; value: MailingList[] } | { ok: false; error: string }> {
+export async function dalGetMailingLists(): Promise<
+  { ok: true; value: MailingList[] } | { ok: false; error: string }
+> {
   try {
     const authResult = await checkAuth();
-    if (authResult.isErr()) return { ok: false, error: authResult.error.message };
+    if (authResult.isErr())
+      return { ok: false, error: authResult.error.message };
     const { orgId } = authResult.value;
     if (!orgId) {
       return { ok: false, error: "Please select or create an organization." };
@@ -42,7 +44,9 @@ export async function dalGetMailingLists(): Promise<{ ok: true; value: MailingLi
   } catch (error) {
     console.error("dalGetMailingLists exception:", error);
     const message =
-      error instanceof Error ? error.message : "Failed to retrieve mailing lists from database.";
+      error instanceof Error
+        ? error.message
+        : "Failed to retrieve mailing lists from database.";
     return { ok: false, error: message };
   }
 }
@@ -56,13 +60,18 @@ export async function dalCreateMailingList(
 ): Promise<{ ok: true; value: MailingList } | { ok: false; error: string }> {
   try {
     const authResult = await checkAuth();
-    if (authResult.isErr()) return { ok: false, error: authResult.error.message };
+    if (authResult.isErr())
+      return { ok: false, error: authResult.error.message };
     const { orgId, isAdmin } = authResult.value;
     if (!orgId) {
       return { ok: false, error: "Please select or create an organization." };
     }
     if (!isAdmin) {
-      return { ok: false, error: "Unauthorized. Only organization admins can create mailing lists." };
+      return {
+        ok: false,
+        error:
+          "Unauthorized. Only organization admins can create mailing lists.",
+      };
     }
 
     if (!name.trim()) {
@@ -70,12 +79,18 @@ export async function dalCreateMailingList(
     }
 
     const cleanName = name.trim().replace(/\s+/g, "_"); // Keep list name clean
-    const list = await dbCreateMailingList(cleanName, description?.trim(), orgId);
+    const list = await dbCreateMailingList(
+      cleanName,
+      description?.trim(),
+      orgId,
+    );
     return { ok: true, value: list };
   } catch (error) {
     console.error("dalCreateMailingList exception:", error);
     const message =
-      error instanceof Error ? error.message : "Failed to create mailing list in database.";
+      error instanceof Error
+        ? error.message
+        : "Failed to create mailing list in database.";
     return { ok: false, error: message };
   }
 }
@@ -83,10 +98,23 @@ export async function dalCreateMailingList(
 /**
  * Fetch all subscribers on a mailing list (Admin authenticated)
  */
-export async function dalGetMailingListSubscribers(listName: string): Promise<{ ok: true; value: Array<{ id: string; name: string; email: string; phone_number: string; status: "subscribed" | "unsubscribed" }> } | { ok: false; error: string }> {
+export async function dalGetMailingListSubscribers(listName: string): Promise<
+  | {
+      ok: true;
+      value: Array<{
+        id: string;
+        name: string;
+        email: string;
+        phone_number: string;
+        status: "subscribed" | "unsubscribed";
+      }>;
+    }
+  | { ok: false; error: string }
+> {
   try {
     const authResult = await checkAuth();
-    if (authResult.isErr()) return { ok: false, error: authResult.error.message };
+    if (authResult.isErr())
+      return { ok: false, error: authResult.error.message };
     const { orgId } = authResult.value;
     if (!orgId) {
       return { ok: false, error: "Please select or create an organization." };
@@ -97,7 +125,9 @@ export async function dalGetMailingListSubscribers(listName: string): Promise<{ 
   } catch (error) {
     console.error("dalGetMailingListSubscribers exception:", error);
     const message =
-      error instanceof Error ? error.message : "Failed to retrieve subscribers from database.";
+      error instanceof Error
+        ? error.message
+        : "Failed to retrieve subscribers from database.";
     return { ok: false, error: message };
   }
 }
@@ -105,7 +135,21 @@ export async function dalGetMailingListSubscribers(listName: string): Promise<{ 
 /**
  * Public resolver to retrieve dynamic mailing list preferences by email
  */
-export async function dalGetClientSubscriptionsByEmail(email: string): Promise<{ ok: true; value: { client: { id: string; name: string; email: string } | null; globalOptIn: boolean; subscriptions: Array<{ listName: string; description: string; status: "subscribed" | "unsubscribed" }> } } | { ok: false; error: string }> {
+export async function dalGetClientSubscriptionsByEmail(email: string): Promise<
+  | {
+      ok: true;
+      value: {
+        client: { id: string; name: string; email: string } | null;
+        globalOptIn: boolean;
+        subscriptions: Array<{
+          listName: string;
+          description: string;
+          status: "subscribed" | "unsubscribed";
+        }>;
+      };
+    }
+  | { ok: false; error: string }
+> {
   try {
     const cleanEmail = email.trim().toLowerCase();
     if (!cleanEmail) {
@@ -114,14 +158,19 @@ export async function dalGetClientSubscriptionsByEmail(email: string): Promise<{
 
     const res = await dbGetClientSubscriptionsByEmail(cleanEmail);
     if (!res) {
-      return { ok: false, error: `Subscriber with email ${cleanEmail} not found.` };
+      return {
+        ok: false,
+        error: `Subscriber with email ${cleanEmail} not found.`,
+      };
     }
 
     return { ok: true, value: res };
   } catch (error) {
     console.error("dalGetClientSubscriptionsByEmail exception:", error);
     const message =
-      error instanceof Error ? error.message : "Failed to retrieve subscription preferences.";
+      error instanceof Error
+        ? error.message
+        : "Failed to retrieve subscription preferences.";
     return { ok: false, error: message };
   }
 }
@@ -129,11 +178,28 @@ export async function dalGetClientSubscriptionsByEmail(email: string): Promise<{
 /**
  * Public resolver to retrieve dynamic mailing list preferences securely by client UUID
  */
-export async function dalGetClientSubscriptionsById(id: string): Promise<{ ok: true; value: { client: { id: string; name: string; email: string } | null; globalOptIn: boolean; subscriptions: Array<{ listName: string; description: string; status: "subscribed" | "unsubscribed" }> } } | { ok: false; error: string }> {
+export async function dalGetClientSubscriptionsById(id: string): Promise<
+  | {
+      ok: true;
+      value: {
+        client: { id: string; name: string; email: string } | null;
+        globalOptIn: boolean;
+        subscriptions: Array<{
+          listName: string;
+          description: string;
+          status: "subscribed" | "unsubscribed";
+        }>;
+      };
+    }
+  | { ok: false; error: string }
+> {
   try {
     const cleanId = id.trim();
     if (!cleanId || !isUuidString(cleanId)) {
-      return { ok: false, error: "Valid subscriber reference (UUID) is required." };
+      return {
+        ok: false,
+        error: "Valid subscriber reference (UUID) is required.",
+      };
     }
 
     const res = await dbGetClientSubscriptionsById(cleanId);
@@ -145,7 +211,9 @@ export async function dalGetClientSubscriptionsById(id: string): Promise<{ ok: t
   } catch (error) {
     console.error("dalGetClientSubscriptionsById exception:", error);
     const message =
-      error instanceof Error ? error.message : "Failed to retrieve subscriber preferences by ID.";
+      error instanceof Error
+        ? error.message
+        : "Failed to retrieve subscriber preferences by ID.";
     return { ok: false, error: message };
   }
 }
@@ -165,13 +233,18 @@ export async function dalUpdateSubscriptionStatus(
     // Authenticate if this is not a public unsubscribe form submission
     if (!isPublic) {
       const authResult = await checkAuth();
-      if (authResult.isErr()) return { ok: false, error: authResult.error.message };
+      if (authResult.isErr())
+        return { ok: false, error: authResult.error.message };
       const session = authResult.value;
       if (!session.orgId) {
         return { ok: false, error: "Please select or create an organization." };
       }
       if (!session.isAdmin) {
-        return { ok: false, error: "Unauthorized. Only organization admins can update subscription statuses." };
+        return {
+          ok: false,
+          error:
+            "Unauthorized. Only organization admins can update subscription statuses.",
+        };
       }
       orgId = session.orgId;
     }
@@ -191,7 +264,10 @@ export async function dalUpdateSubscriptionStatus(
         orgId,
       );
       if (!success) {
-        return { ok: false, error: `Subscriber with email ${cleanInput} not found.` };
+        return {
+          ok: false,
+          error: `Subscriber with email ${cleanInput} not found.`,
+        };
       }
     }
 
@@ -199,7 +275,9 @@ export async function dalUpdateSubscriptionStatus(
   } catch (error) {
     console.error("dalUpdateSubscriptionStatus exception:", error);
     const message =
-      error instanceof Error ? error.message : "Failed to update subscription preference.";
+      error instanceof Error
+        ? error.message
+        : "Failed to update subscription preference.";
     return { ok: false, error: message };
   }
 }
@@ -234,14 +312,21 @@ export async function dalUpdateGlobalOptIn(
     const targetStatus = optInNewsletter ? "subscribed" : "unsubscribed";
 
     for (const list of lists) {
-      await dbUpdateSubscriptionStatus(client.id, list.name, targetStatus, client.org_id);
+      await dbUpdateSubscriptionStatus(
+        client.id,
+        list.name,
+        targetStatus,
+        client.org_id,
+      );
     }
 
     return { ok: true, value: true };
   } catch (error) {
     console.error("dalUpdateGlobalOptIn exception:", error);
     const message =
-      error instanceof Error ? error.message : "Failed to update global preferences.";
+      error instanceof Error
+        ? error.message
+        : "Failed to update global preferences.";
     return { ok: false, error: message };
   }
 }

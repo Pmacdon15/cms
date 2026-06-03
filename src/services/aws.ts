@@ -114,7 +114,7 @@ export async function awsGetMailingLists(): Promise<MailingList[]> {
       description: "SES Contact List",
       created_at: cl.LastUpdatedTimestamp,
     }));
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Error listing contact lists from AWS SES:", err);
     // Graceful fallback to development mock
     return simulatedContactLists;
@@ -139,8 +139,8 @@ export async function awsCreateMailingList(
       }),
     );
     return { name: cleanName, description };
-  } catch (err: any) {
-    if (err.name === "AlreadyExistsException") {
+  } catch (err: unknown) {
+    if ((err as Error).name === "AlreadyExistsException") {
       return { name: cleanName, description };
     }
     console.error(`Error creating AWS contact list ${cleanName}:`, err);
@@ -198,7 +198,7 @@ export async function awsGetMailingListSubscribers(listName: string): Promise<
         status: c.UnsubscribeAll ? "unsubscribed" : "subscribed",
       };
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error(`Error listing contacts from AWS SES list ${listName}:`, err);
     // Dev mock fallback
     const mockList = simulatedContacts[listName] || [];
@@ -255,8 +255,8 @@ export async function awsGetClientSubscriptionsByEmail(email: string): Promise<{
         description: list.description || "",
         status,
       });
-    } catch (err: any) {
-      if (err.name === "NotFoundException") {
+    } catch (err: unknown) {
+      if ((err as Error).name === "NotFoundException") {
         subscriptions.push({
           listName: list.name,
           description: list.description || "",
@@ -328,8 +328,8 @@ export async function awsUpdateSubscriptionStatus(
       }),
     );
     return true;
-  } catch (err: any) {
-    if (err.name === "NotFoundException") {
+  } catch (err: unknown) {
+    if ((err as Error).name === "NotFoundException") {
       try {
         await client.send(
           new CreateContactCommand({
@@ -391,8 +391,8 @@ export async function awsAddContactToList(
       }),
     );
     return true;
-  } catch (err: any) {
-    if (err.name === "AlreadyExistsException") {
+  } catch (err: unknown) {
+    if ((err as Error).name === "AlreadyExistsException") {
       return true;
     }
     console.error(
@@ -409,7 +409,7 @@ export async function awsAddContactToList(
 export async function updateAwsSubscriptionStatus(
   email: string,
   optInNewsletter: boolean,
-  optInSms: boolean,
+  _optInSms: boolean,
 ): Promise<boolean> {
   // Map general preference changes to the default Contact List
   return await awsUpdateSubscriptionStatus(
@@ -514,7 +514,7 @@ export async function getAwsSubscriptionStatuses(
         optInNewsletter: !contact.UnsubscribeAll,
         optInSms,
       };
-    } catch (err: any) {
+    } catch (_err: unknown) {
       results[email] = { optInNewsletter: true, optInSms: true };
     }
   }
@@ -631,7 +631,11 @@ export async function sendPinpointSms(
 
     const response = await pinpoint.send(command);
     const resultId = response.MessageResponse?.Result
-      ? (Object.values(response.MessageResponse.Result)[0] as any)?.MessageId
+      ? (
+          Object.values(response.MessageResponse.Result)[0] as {
+            MessageId?: string;
+          }
+        )?.MessageId
       : `pinpoint-sms-${Date.now()}`;
 
     return { success: true, messageId: resultId };
