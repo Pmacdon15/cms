@@ -2,6 +2,8 @@
 
 import {
   dalCreateMailingList,
+  dalDeleteMailingList,
+  dalEditMailingList,
   dalGetClientSubscriptionsByEmail,
   dalGetClientSubscriptionsById,
   dalGetMailingListSubscribers,
@@ -73,4 +75,22 @@ export async function actionUpdateGlobalOptIn(
   optInNewsletter: boolean,
 ) {
   return await dalUpdateGlobalOptIn(clientIdOrEmail, optInNewsletter);
+}
+
+/**
+ * Server action to delete a mailing list
+ */
+export async function actionDeleteMailingList(name: string) {
+  return await dalDeleteMailingList(name);
+}
+
+/**
+ * Server action to edit/rename a mailing list
+ */
+export async function actionEditMailingList(
+  oldName: string,
+  newName: string,
+  description?: string,
+) {
+  return await dalEditMailingList(oldName, newName, description);
 }

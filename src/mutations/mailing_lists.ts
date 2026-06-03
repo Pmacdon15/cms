@@ -3,6 +3,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   actionCreateMailingList,
+  actionDeleteMailingList,
+  actionEditMailingList,
   actionUpdateGlobalOptIn,
   actionUpdateSubscriptionStatus,
 } from "../actions/mailing_lists";
@@ -96,6 +98,64 @@ export function useUpdateGlobalOptInMutation() {
         queryClient.invalidateQueries({ queryKey: ["clients"] });
       } else {
         showToast.error(res.error || "Failed to update global preference.");
+      }
+    },
+    onError: (err: Error) => {
+      showToast.error(err?.message || "An unexpected error occurred.");
+    },
+  });
+}
+
+/**
+ * Mutation hook to delete a mailing list
+ */
+export function useDeleteMailingListMutation(onSuccessCallback?: () => void) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (variables: { name: string }) => {
+      return await actionDeleteMailingList(variables.name);
+    },
+    onSuccess: (res) => {
+      if (res.ok) {
+        showToast.success("Mailing list deleted successfully.");
+        queryClient.invalidateQueries({ queryKey: ["mailing-lists"] });
+        if (onSuccessCallback) onSuccessCallback();
+      } else {
+        showToast.error(res.error || "Failed to delete mailing list.");
+      }
+    },
+    onError: (err: Error) => {
+      showToast.error(err?.message || "An unexpected error occurred.");
+    },
+  });
+}
+
+/**
+ * Mutation hook to edit/rename a mailing list
+ */
+export function useEditMailingListMutation(onSuccessCallback?: () => void) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (variables: {
+      oldName: string;
+      newName: string;
+      description?: string;
+    }) => {
+      return await actionEditMailingList(
+        variables.oldName,
+        variables.newName,
+        variables.description,
+      );
+    },
+    onSuccess: (res) => {
+      if (res.ok) {
+        showToast.success("Mailing list updated successfully.");
+        queryClient.invalidateQueries({ queryKey: ["mailing-lists"] });
+        if (onSuccessCallback) onSuccessCallback();
+      } else {
+        showToast.error(res.error || "Failed to update mailing list.");
       }
     },
     onError: (err: Error) => {

@@ -184,7 +184,8 @@ export function CampaignList({ initialCampaigns, hasSms }: CampaignListProps) {
                               className="font-bold text-zinc-800 hover:text-blue-600 hover:underline transition-colors cursor-pointer text-left truncate"
                               title="View client profile"
                             >
-                              {log.client_name || `${log.client_id.substring(0, 8)}...`}
+                              {log.client_name ||
+                                `${log.client_id.substring(0, 8)}...`}
                             </button>
                             {log.client_email && (
                               <span className="text-[10px] text-zinc-400 truncate mt-0.5">

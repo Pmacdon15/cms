@@ -1,7 +1,6 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import {
   actionCreateClient,
   actionDeleteClient,
@@ -41,7 +40,7 @@ export function useCreateClientMutation(onSuccessCallback?: () => void) {
  * Hook for updating an existing client's details with reactive toast feedback
  */
 export function useUpdateClientMutation(onSuccessCallback?: () => void) {
-  const queryClient = useQueryClient();  
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (variables: { id: string; input: ClientInput }) => {
@@ -55,12 +54,10 @@ export function useUpdateClientMutation(onSuccessCallback?: () => void) {
         if (onSuccessCallback) onSuccessCallback();
       } else {
         showToast.error(res.error || "Failed to update client.");
-       
       }
     },
     onError: (err: Error) => {
       showToast.error(err?.message || "An unexpected error occurred.");
-     
     },
   });
 }

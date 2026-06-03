@@ -21,15 +21,12 @@ export async function ensureDefaultMailingLists(orgId: string): Promise<void> {
   }
 }
 
-/**
- * Fetch all mailing lists, sorted by name/created_at
- */
 export async function dbGetMailingLists(orgId: string): Promise<MailingList[]> {
   await ensureDefaultMailingLists(orgId);
   const rows = await sql`
-    SELECT name, description, created_at
+    SELECT name, description, status, created_at
     FROM mailing_lists
-    WHERE org_id = ${orgId}
+    WHERE org_id = ${orgId} AND status != 'deleted'
     ORDER BY created_at DESC
   `;
   return rows as MailingList[];
@@ -44,10 +41,10 @@ export async function dbCreateMailingList(
   orgId: string,
 ): Promise<MailingList> {
   const rows = await sql`
-    INSERT INTO mailing_lists (name, description, org_id)
-    VALUES (${name}, ${description || null}, ${orgId})
-    ON CONFLICT (name, org_id) DO UPDATE SET description = EXCLUDED.description
-    RETURNING name, description, created_at
+    INSERT INTO mailing_lists (name, description, org_id, status)
+    VALUES (${name}, ${description || null}, ${orgId}, 'active')
+    ON CONFLICT (name, org_id) DO UPDATE SET description = EXCLUDED.description, status = 'active'
+    RETURNING name, description, status, created_at
   `;
   return rows[0] as MailingList;
 }
@@ -162,7 +159,7 @@ export async function dbGetClientSubscriptionsById(id: string) {
       COALESCE(mls.status, 'unsubscribed') as status
     FROM mailing_lists ml
     LEFT JOIN mailing_list_subscriptions mls ON mls.mailing_list_name = ml.name AND mls.client_id = ${client.id} AND mls.org_id = ${client.org_id}
-    WHERE ml.org_id = ${client.org_id}
+    WHERE ml.org_id = ${client.org_id} AND ml.status = 'active'
     ORDER BY ml.name ASC
   `;
 
@@ -198,7 +195,7 @@ export async function dbGetClientSubscriptionsByEmail(email: string) {
       COALESCE(mls.status, 'unsubscribed') as status
     FROM mailing_lists ml
     LEFT JOIN mailing_list_subscriptions mls ON mls.mailing_list_name = ml.name AND mls.client_id = ${client.id} AND mls.org_id = ${client.org_id}
-    WHERE ml.org_id = ${client.org_id}
+    WHERE ml.org_id = ${client.org_id} AND ml.status = 'active'
     ORDER BY ml.name ASC
   `;
 
@@ -211,4 +208,103 @@ export async function dbGetClientSubscriptionsByEmail(email: string) {
       status: "subscribed" | "unsubscribed";
     }>,
   };
+}
+
+/**
+ * Get the total count of mailing lists for an organization
+ */
+export async function dbGetMailingListsCount(orgId: string): Promise<number> {
+  await ensureDefaultMailingLists(orgId);
+  const rows = await sql`
+    SELECT COUNT(*)::integer as count
+    FROM mailing_lists
+    WHERE org_id = ${orgId} AND status != 'deleted'
+  `;
+  return rows[0]?.count || 0;
+}
+
+/**
+ * Delete a mailing list by updating its status to 'deleted'
+ */
+export async function dbDeleteMailingList(
+  name: string,
+  orgId: string,
+): Promise<boolean> {
+  const result = await sql`
+    UPDATE mailing_lists
+    SET status = 'deleted'
+    WHERE name = ${name} AND org_id = ${orgId}
+    RETURNING name
+  `;
+  return result.length > 0;
+}
+
+/**
+ * Edit/rename a mailing list in a safe database transaction.
+ * Since name is a primary key, it copies the records to a new name,
+ * updates foreign references, and deletes the old name.
+ */
+export async function dbEditMailingList(
+  oldName: string,
+  newName: string,
+  description: string | undefined,
+  orgId: string,
+): Promise<MailingList> {
+
+  if (oldName === newName) {
+    const rows = await sql`
+      UPDATE mailing_lists
+      SET description = ${description || null}
+      WHERE name = ${oldName} AND org_id = ${orgId}
+      RETURNING name, description, status, created_at
+    `;
+    return rows[0] as MailingList;
+  }
+
+  // 1. Insert new mailing list entry
+  const rows = await sql`
+    INSERT INTO mailing_lists (name, description, org_id, status)
+    VALUES (${newName}, ${description || null}, ${orgId}, 'active')
+    ON CONFLICT (name, org_id) DO UPDATE SET description = EXCLUDED.description, status = 'active'
+    RETURNING name, description, status, created_at
+  `;
+
+  // 2. Update mailing_list_subscriptions referencing oldName
+  await sql`
+    UPDATE mailing_list_subscriptions
+    SET mailing_list_name = ${newName}
+    WHERE mailing_list_name = ${oldName} AND org_id = ${orgId}
+  `;
+
+  // 3. Update campaigns referencing oldName
+  await sql`
+    UPDATE campaigns
+    SET mailing_list_name = ${newName}
+    WHERE mailing_list_name = ${oldName} AND org_id = ${orgId}
+  `;
+
+  // 4. Delete old mailing list
+  await sql`
+    DELETE FROM mailing_lists
+    WHERE name = ${oldName} AND org_id = ${orgId}
+  `;
+
+  return rows[0] as MailingList;
+}
+
+/**
+ * Get count of active subscribers on a specific mailing list
+ */
+export async function dbGetMailingListSubscribersCount(
+  listName: string,
+  orgId: string,
+): Promise<number> {
+  const rows = await sql`
+    SELECT COUNT(*)::integer as count
+    FROM mailing_list_subscriptions
+    WHERE mailing_list_name = ${listName}
+      AND org_id = ${orgId}
+      AND status = 'subscribed'
+  `;
+  return rows[0]?.count || 0;
 }

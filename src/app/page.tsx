@@ -24,7 +24,7 @@ export default async function DashboardPage() {
   const clerkAuth = await auth();
   const hasSms =
     !hasClerkKeys ||
-    (clerkAuth.has ? clerkAuth.has({ permission: "send_sms" }) : false);
+    (clerkAuth.has ? clerkAuth.has({ feature: "send_sms" }) : false);
 
   // Compute metrics
   const totalClients = clients.length;

@@ -18,7 +18,7 @@ export default async function ClientsPage(props: PageProps<"/clients">) {
   const searchPromise = props.searchParams.then((p) => parseParams(p.search));
   const hasSmsPromise = auth
     .protect()
-    .then((auth) => auth.has({ permission: "send_sms" }));
+    .then((auth) => auth.has({ feature: "send_sms" }));
 
   return (
     <main className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8 flex flex-col gap-6">

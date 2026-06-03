@@ -199,7 +199,9 @@ export async function dalUpdateClient(
     }
     if (!isAdmin) {
       return err(
-        new Error("Unauthorized. Only organization admins can update client details."),
+        new Error(
+          "Unauthorized. Only organization admins can update client details.",
+        ),
       );
     }
 
@@ -225,11 +227,12 @@ export async function dalUpdateClient(
   } catch (error) {
     console.error("dalUpdateClient exception caught:", error);
     const message =
-      error instanceof Error ? error.message : "Failed to update client details.";
+      error instanceof Error
+        ? error.message
+        : "Failed to update client details.";
     return err(new Error(message));
   }
 }
-
 
 /**
  * Delete a client

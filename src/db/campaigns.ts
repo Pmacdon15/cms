@@ -101,3 +101,45 @@ export async function dbGetSentMessages(
   `;
   return rows as SentMessage[];
 }
+
+/**
+ * Get the count of campaigns dispatched by an organization this week (starting Monday) for a specific mailing list
+ */
+export async function dbGetCampaignsCountThisWeek(
+  orgId: string,
+  mailingListName?: string,
+): Promise<number> {
+  await ensureCampaignsSchema();
+  const rows = mailingListName
+    ? await sql`
+        SELECT COUNT(*)::integer as count
+        FROM campaigns
+        WHERE org_id = ${orgId}
+          AND mailing_list_name = ${mailingListName}
+          AND created_at >= date_trunc('week', now())
+      `
+    : await sql`
+        SELECT COUNT(*)::integer as count
+        FROM campaigns
+        WHERE org_id = ${orgId}
+          AND mailing_list_name IS NULL
+          AND created_at >= date_trunc('week', now())
+      `;
+  return rows[0]?.count || 0;
+}
+
+/**
+ * Get the total count of campaigns dispatched by an organization this week (starting Monday) across all lists (including deleted/disabled lists)
+ */
+export async function dbGetCampaignsCountAllListsThisWeek(
+  orgId: string,
+): Promise<number> {
+  await ensureCampaignsSchema();
+  const rows = await sql`
+    SELECT COUNT(*)::integer as count
+    FROM campaigns
+    WHERE org_id = ${orgId}
+      AND created_at >= date_trunc('week', now())
+  `;
+  return rows[0]?.count || 0;
+}

@@ -1,6 +1,12 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Check, Edit2, Plus, Trash2, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import {
+  useDeleteMailingListMutation,
+  useEditMailingListMutation,
+} from "../../mutations/mailing_lists";
 import type { MailingList } from "../../types/types";
 
 export function MailingListSidebar({
@@ -14,6 +20,53 @@ export function MailingListSidebar({
   setIsModalOpen: (open: boolean) => void;
   selectList: (listName: string) => void;
 }) {
+  const router = useRouter();
+  const [editingListName, setEditingListName] = useState<string | null>(null);
+  const [editNameValue, setEditNameValue] = useState("");
+  const [editDescValue, setEditDescValue] = useState("");
+
+  const deleteMutation = useDeleteMailingListMutation(() => {
+    router.refresh();
+  });
+
+  const editMutation = useEditMailingListMutation(() => {
+    setEditingListName(null);
+    router.refresh();
+  });
+
+  const handleDelete = async (e: React.MouseEvent, name: string) => {
+    e.stopPropagation();
+    if (
+      window.confirm(
+        `Are you sure you want to delete the mailing list "${name}"?`,
+      )
+    ) {
+      await deleteMutation.mutateAsync({ name });
+    }
+  };
+
+  const handleStartEdit = (e: React.MouseEvent, list: MailingList) => {
+    e.stopPropagation();
+    setEditingListName(list.name);
+    setEditNameValue(list.name);
+    setEditDescValue(list.description || "");
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent, oldName: string) => {
+    e.preventDefault();
+    if (!editNameValue.trim()) return;
+    await editMutation.mutateAsync({
+      oldName,
+      newName: editNameValue,
+      description: editDescValue,
+    });
+  };
+
+  const handleCancelEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingListName(null);
+  };
+
   return (
     <div className="lg:col-span-1 flex flex-col gap-4 bg-white p-5 rounded-2xl border border-zinc-200 shadow-sm">
       <div className="flex items-center justify-between">
@@ -38,28 +91,135 @@ export function MailingListSidebar({
         <div className="flex flex-col gap-1.5 max-h-[400px] overflow-y-auto pr-1">
           {lists.map((list) => {
             const isActive = activeList?.name === list.name;
+            const sent = list.campaignsSentThisWeek ?? 0;
+            const limit = list.campaignLimit;
+            const hasLimit = typeof limit === "number";
+            const left = hasLimit ? Math.max(0, limit - sent) : Infinity;
+            const percent =
+              hasLimit && limit > 0 ? Math.min(100, (sent / limit) * 100) : 0;
+
+            let barColor = "bg-blue-600";
+            if (percent >= 90) {
+              barColor = "bg-rose-500";
+            } else if (percent >= 70) {
+              barColor = "bg-amber-500";
+            }
+
             return (
-              <button
-                type="button"
-                key={list.name}
-                onClick={() => selectList(list.name)}
-                className={`flex flex-col text-left p-3.5 rounded-xl border transition-all cursor-pointer ${
-                  isActive
-                    ? "bg-blue-50/50 border-blue-200 text-blue-750 font-semibold"
-                    : "bg-white border-zinc-200 text-zinc-600 hover:border-zinc-350 hover:bg-zinc-50/50"
-                }`}
-              >
-                <span
-                  className={`text-sm font-bold ${isActive ? "text-blue-600" : "text-zinc-800"}`}
-                >
-                  {list.name}
-                </span>
-                {list.description && (
-                  <span className="text-xs text-zinc-500 mt-1 line-clamp-1">
-                    {list.description}
-                  </span>
+              <div key={list.name} className="relative group w-full">
+                {editingListName === list.name ? (
+                  <form
+                    onSubmit={(e) => handleSaveEdit(e, list.name)}
+                    className="flex flex-col gap-2 p-3 bg-zinc-50 border border-zinc-200 rounded-xl"
+                  >
+                    <input
+                      type="text"
+                      value={editNameValue}
+                      onChange={(e) => setEditNameValue(e.target.value)}
+                      className="w-full bg-white border border-zinc-250 rounded-lg px-2.5 py-1.5 text-xs font-semibold focus-visible:outline-none focus-visible:border-blue-500 text-zinc-900"
+                      placeholder="List name..."
+                      required
+                    />
+                    <input
+                      type="text"
+                      value={editDescValue}
+                      onChange={(e) => setEditDescValue(e.target.value)}
+                      className="w-full bg-white border border-zinc-250 rounded-lg px-2.5 py-1.5 text-[11px] focus-visible:outline-none focus-visible:border-blue-500 text-zinc-500"
+                      placeholder="Description..."
+                    />
+                    <div className="flex justify-end gap-1.5 mt-1">
+                      <button
+                        type="button"
+                        onClick={handleCancelEdit}
+                        className="p-1 rounded bg-zinc-200 hover:bg-zinc-300 text-zinc-650 cursor-pointer"
+                        title="Cancel"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={editMutation.isPending}
+                        className="p-1 rounded bg-blue-600 hover:bg-blue-750 text-white cursor-pointer"
+                        title="Save"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => selectList(list.name)}
+                      className={`flex flex-col text-left w-full p-3.5 rounded-xl border transition-all cursor-pointer ${
+                        isActive
+                          ? "bg-blue-50/50 border-blue-200 text-blue-750 font-semibold"
+                          : list.status === "disabled"
+                            ? "bg-zinc-50/60 border-zinc-200 text-zinc-500 hover:border-zinc-300 opacity-80"
+                            : "bg-white border-zinc-200 text-zinc-600 hover:border-zinc-350 hover:bg-zinc-50/50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 pr-12 flex-wrap">
+                        <span
+                          className={`text-sm font-bold ${isActive ? "text-blue-600" : list.status === "disabled" ? "text-zinc-500" : "text-zinc-800"}`}
+                        >
+                          {list.name}
+                        </span>
+                        {list.status === "disabled" && (
+                          <span className="text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded-md">
+                            Disabled
+                          </span>
+                        )}
+                      </div>
+                      {list.description && (
+                        <span className="text-xs text-zinc-500 mt-1 line-clamp-1 pr-12">
+                          {list.description}
+                        </span>
+                      )}
+
+                      {/* Campaign limits progress bar */}
+                      <div className="w-full mt-3 pt-2.5 border-t border-zinc-100 flex flex-col gap-1.5">
+                        <div className="flex justify-between items-center text-[10px] font-semibold text-zinc-400">
+                          <span>Campaigns This Week</span>
+                          <span>
+                            {hasLimit
+                              ? `${sent}/${limit} sent (${left} left)`
+                              : `${sent} sent`}
+                          </span>
+                        </div>
+                        {hasLimit && limit > 0 && (
+                          <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full ${barColor} transition-all duration-500 rounded-full`}
+                              style={{ width: `${percent}%` }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </button>
+
+                    {/* Options overlay visible on hover */}
+                    <div className="absolute top-3.5 right-3.5 hidden group-hover:flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={(e) => handleStartEdit(e, list)}
+                        className="p-1 rounded bg-zinc-50 border border-zinc-200 hover:bg-zinc-100 hover:text-zinc-900 text-zinc-500 transition-colors cursor-pointer"
+                        title="Edit List"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => handleDelete(e, list.name)}
+                        className="p-1 rounded bg-zinc-50 border border-zinc-200 hover:bg-zinc-100 hover:text-rose-600 text-zinc-500 transition-colors cursor-pointer"
+                        title="Delete List"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
                 )}
-              </button>
+              </div>
             );
           })}
         </div>

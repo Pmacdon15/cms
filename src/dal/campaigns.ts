@@ -2,6 +2,8 @@ import { auth } from "@clerk/nextjs/server";
 import {
   dbCreateCampaign,
   dbGetCampaigns,
+  dbGetCampaignsCountAllListsThisWeek,
+  dbGetCampaignsCountThisWeek,
   dbGetSentMessages,
   dbLogSentMessage,
 } from "../db/campaigns";
@@ -10,9 +12,11 @@ import {
   dbGetCampaignRecipients,
   dbGetClientByEmail,
 } from "../db/clients";
+import { dbGetMailingListsCount } from "../db/mailing_lists";
 import { sendEmailNewsletter, sendPinpointSms } from "../services/aws";
 import type { Campaign, CampaignInput, SentMessage } from "../types/types";
 import { checkAuth } from "./auth";
+import { getOrgFeatures } from "./clerk";
 
 /**
  * Fetch campaign history
@@ -84,7 +88,7 @@ export async function dalCreateCampaign(
     const clerkAuth = await auth();
     const hasSms =
       !hasClerkKeys ||
-      (clerkAuth.has ? clerkAuth.has({ permission: "send_sms" }) : false);
+      (clerkAuth.has ? clerkAuth.has({ feature: "send_sms" }) : false);
 
     if ((input.type === "sms" || input.type === "both") && !hasSms) {
       return {
@@ -93,8 +97,64 @@ export async function dalCreateCampaign(
       };
     }
 
-    // 1. Fetch targeted client list directly from local database
+    // Check weekly campaign limits based on Clerk permissions & DB weekly campaign count
+    let campaignLimit = 1;
+    if (hasClerkKeys) {
+      const has15 = clerkAuth.has
+        ? clerkAuth.has({ feature: "15_campaigns_a_week" }) ||
+          clerkAuth.has({ feature: "15_campinges_a_week" })
+        : false;
+      const has10 = clerkAuth.has
+        ? clerkAuth.has({ feature: "10_campaigns_a_week" }) ||
+          clerkAuth.has({ feature: "10_campinges_a_week" })
+        : false;
+      const has5 = clerkAuth.has
+        ? clerkAuth.has({ feature: "5_campaigns_a_week" }) ||
+          clerkAuth.has({ feature: "5_campinges_a_week" })
+        : false;
+
+      if (has15) {
+        campaignLimit = 15;
+      } else if (has10) {
+        campaignLimit = 10;
+      } else if (has5) {
+        campaignLimit = 5;
+      } else {
+        campaignLimit = 1;
+      }
+    }
+
     const targetListName = input.mailing_list_name || undefined;
+
+    // 1. Check limit for the target list specifically
+    const currentWeekCount = await dbGetCampaignsCountThisWeek(
+      orgId,
+      targetListName,
+    );
+    if (currentWeekCount >= campaignLimit) {
+      const listLabel = targetListName
+        ? `for the "${targetListName}" mailing list`
+        : "for broadcast campaigns";
+      return {
+        ok: false,
+        error: `Campaign limit reached. This organization is limited to ${campaignLimit} campaign(s) per week ${listLabel}.`,
+      };
+    }
+
+    // 2. Check global weekly limit across all lists (active + disabled lists)
+    const activeListsCount = await dbGetMailingListsCount(orgId);
+    const globalLimit = activeListsCount * campaignLimit;
+    const totalCampaignsCount =
+      await dbGetCampaignsCountAllListsThisWeek(orgId);
+
+    if (totalCampaignsCount >= globalLimit) {
+      return {
+        ok: false,
+        error: `Global campaign limit reached. This organization is limited to ${globalLimit} campaign(s) per week total across all lists (based on ${activeListsCount} mailing list(s) allowed).`,
+      };
+    }
+
+    // 1. Fetch targeted client list directly from local database
     const targetedClients = await dbGetCampaignRecipients(
       orgId,
       targetListName,

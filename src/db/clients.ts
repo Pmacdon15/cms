@@ -139,7 +139,6 @@ export async function dbUpdateClient(
   return rows[0] as Client;
 }
 
-
 /**
  * Get recipients for a campaign target mailing list or broadcast to all
  */

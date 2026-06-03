@@ -24,7 +24,7 @@ export function Navbar() {
   const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   const hasSms =
     !hasClerkKeys ||
-    (isLoaded && has ? has({ permission: "send_sms" }) : false);
+    (isLoaded && has ? has({ feature: "send_sms" }) : false);
 
   const navigationItems = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },

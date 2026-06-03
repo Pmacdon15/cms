@@ -71,13 +71,12 @@ export default function ClientList({
     router.push(buildUrl({}));
   };
 
-  const handleOptimisticUpdate = (action: 
-    | { type: "update"; client: Client }
-    | { type: "delete"; id: string }
+  const handleOptimisticUpdate = (
+    action: { type: "update"; client: Client } | { type: "delete"; id: string },
   ) => {
     if (action.type === "update") {
       setLocalClients((prev) =>
-        prev.map((c) => (c.id === action.client.id ? action.client : c))
+        prev.map((c) => (c.id === action.client.id ? action.client : c)),
       );
     } else if (action.type === "delete") {
       setLocalClients((prev) => prev.filter((c) => c.id !== action.id));

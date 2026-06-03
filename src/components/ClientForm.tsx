@@ -12,13 +12,16 @@ import { Input } from "./ui/input";
 interface ClientFormProps {
   client?: Client;
   onSuccess: () => void;
-  onOptimisticUpdate?: (action: 
-    | { type: "update"; client: Client }
-    | { type: "delete"; id: string }
+  onOptimisticUpdate?: (
+    action: { type: "update"; client: Client } | { type: "delete"; id: string },
   ) => void;
 }
 
-export function ClientForm({ client, onSuccess, onOptimisticUpdate }: ClientFormProps) {
+export function ClientForm({
+  client,
+  onSuccess,
+  onOptimisticUpdate,
+}: ClientFormProps) {
   const createMutation = useCreateClientMutation(onSuccess);
   const updateMutation = useUpdateClientMutation(onSuccess);
 
@@ -144,7 +147,9 @@ export function ClientForm({ client, onSuccess, onOptimisticUpdate }: ClientForm
         <Button
           type="submit"
           className="w-full sm:w-auto"
-          disabled={isEditMode ? updateMutation.isPending : createMutation.isPending}
+          disabled={
+            isEditMode ? updateMutation.isPending : createMutation.isPending
+          }
         >
           {isEditMode
             ? updateMutation.isPending
