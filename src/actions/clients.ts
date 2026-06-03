@@ -4,15 +4,27 @@ import {
   dalCreateClient,
   dalDeleteClient,
   dalGetClients,
+  dalSearchClients,
   dalUpdateClientOptIn,
 } from "../dal/clients";
 import type { ClientInput } from "../types/types";
 
 /**
- * Server action to fetch all clients safely
+ * Server action to fetch all clients safely with optional filters
  */
-export async function actionGetClients() {
-  const result = await dalGetClients();
+export async function actionGetClients(params?: { search?: string; client?: string }) {
+  const result = await dalGetClients(params);
+  if (result.isOk()) {
+    return { ok: true, value: result.value };
+  }
+  return { ok: false, error: result.error.message };
+}
+
+/**
+ * Server action to search clients safely for autocomplete
+ */
+export async function actionSearchClients(query: string) {
+  const result = await dalSearchClients(query);
   if (result.isOk()) {
     return { ok: true, value: result.value };
   }

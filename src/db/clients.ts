@@ -15,6 +15,25 @@ export async function dbGetClients(orgId: string): Promise<Client[]> {
 }
 
 /**
+ * Search clients by name, email, or phone number matching query
+ */
+export async function dbSearchClients(orgId: string, query: string): Promise<Client[]> {
+  const pattern = `%${query}%`;
+  const rows = await sql`
+    SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at 
+    FROM clients 
+    WHERE org_id = ${orgId}
+      AND (
+        name ILIKE ${pattern} OR 
+        email ILIKE ${pattern} OR 
+        phone_number ILIKE ${pattern}
+      )
+    ORDER BY created_at DESC
+  `;
+  return rows as Client[];
+}
+
+/**
  * Fetch a single client by ID
  */
 export async function dbGetClientById(id: string, orgId?: string): Promise<Client | null> {

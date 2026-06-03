@@ -3,11 +3,24 @@
 import { OrganizationSwitcher, UserButton, useAuth } from "@clerk/nextjs";
 import { Layers, LayoutDashboard, Send, Users } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+
 
 export function Navbar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { has, isLoaded } = useAuth();
+
+  // Preserve client search params across page navigation
+  const buildHref = (basePath: string) => {
+    const preserved = new URLSearchParams();
+    const search = searchParams.get("search");
+    const client = searchParams.get("client");
+    if (search) preserved.set("search", search);
+    if (client) preserved.set("client", client);
+    const qs = preserved.toString();
+    return qs ? `${basePath}?${qs}` : basePath;
+  };
 
   const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   const hasSms =
@@ -48,7 +61,7 @@ export function Navbar() {
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={buildHref(item.href)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
                   isActive
                     ? "bg-zinc-100 text-blue-600 border border-zinc-200/50"
@@ -74,7 +87,7 @@ export function Navbar() {
               return (
                 <Link
                   key={item.href}
-                  href={item.href}
+                  href={buildHref(item.href)}
                   className={`p-2 rounded-lg ${
                     isActive
                       ? "text-blue-600 bg-zinc-100"

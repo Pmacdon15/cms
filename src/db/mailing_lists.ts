@@ -100,6 +100,8 @@ export async function dbUpdateSubscriptionStatus(
     resolvedOrgId = clientRows[0].org_id;
   }
 
+  if (!resolvedOrgId) return false;
+
   await ensureDefaultMailingLists(resolvedOrgId);
 
   await sql`

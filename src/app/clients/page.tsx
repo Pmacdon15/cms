@@ -1,66 +1,55 @@
 import { auth } from "@clerk/nextjs/server";
 import { Users } from "lucide-react";
-import { ClientList } from "../../components/ClientList";
-import { Navbar } from "../../components/Navbar";
+import { Suspense } from "react";
+import ClientList from "@/components/ClientList";
 import { dalGetClients } from "../../dal/clients";
 
 export const revalidate = 0; // Force dynamic server rendering
 
-export default async function ClientsPage() {
-  // Fetch initial clients server-side from DAL
-  const response = await dalGetClients();
-  const clients = response.isOk() ? response.value : [];
-  const dbError = response.isErr() ? response.error.message : null;
+function parseParams(p: string | string[] | undefined): string {
+	return Array.isArray(p) ? (p[0] ?? "") : (p ?? "");
+}
 
-  // Check for SMS feature gate
-  const hasClerkKeys = !!(
-    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
-    process.env.CLERK_SECRET_KEY
-  );
-  const clerkAuth = await auth();
-  const hasSms =
-    !hasClerkKeys ||
-    (clerkAuth.has
-      ? clerkAuth.has({ permission: "send_sms" })
-      : false);
+export default async function ClientsPage(props: PageProps<"/clients">) {
+	const clientsPromise = props.searchParams.then((p) =>
+		dalGetClients({
+			search: parseParams(p.search),
+			client: parseParams(p.client),
+		}),
+	);
 
-  return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <Navbar />
+	const clientPromise = props.searchParams.then((p) => parseParams(p.client));
+	const searchPromise = props.searchParams.then((p) => parseParams(p.search));
 
-      <main className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8 flex flex-col gap-6">
-        {/* Title Heading */}
-        <div className="flex flex-col gap-2 border-b border-zinc-100 pb-5">
-          <div className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-blue-605" />
-            <h1 className="text-2xl font-extrabold text-zinc-900 tracking-tight">
-              Clients Directory
-            </h1>
-          </div>
-          <p className="text-sm text-zinc-500">
-            View customer details, opt-in/opt-out status for each communication
-            channel, and register new contacts.
-          </p>
-        </div>
+	const hasSmsPromise = auth
+		.protect()
+		.then((auth) => auth.has({ permission: "send_sms" }));
 
-        {/* DB Connection Alert Fallback */}
-        {dbError && (
-          <div className="p-4 rounded-xl border border-yellow-250 bg-yellow-50/70 text-yellow-900 text-xs">
-            <span className="font-bold block mb-1">
-              ⚠️ Local Fallback Active
-            </span>
-            Failed to connect to Neon DB: {dbError}. Using simulated contact
-            lists. Run the DDL script in{" "}
-            <code className="text-yellow-850 bg-yellow-100/55 px-1 py-0.5 rounded">
-              schema.sql
-            </code>{" "}
-            inside your Neon database to fix.
-          </div>
-        )}
+	return (
+		<main className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8 flex flex-col gap-6">
+			{/* Title Heading */}
+			<div className="flex flex-col gap-2 border-b border-zinc-100 pb-5">
+				<div className="flex items-center gap-2">
+					<Users className="w-5 h-5 text-blue-605" />
+					<h1 className="text-2xl font-extrabold text-zinc-900 tracking-tight">
+						Clients Directory
+					</h1>
+				</div>
+				<p className="text-sm text-zinc-500">
+					View customer details, opt-in/opt-out status for each communication
+					channel, and register new contacts.
+				</p>
+			</div>
 
-        {/* Dynamic client manager list */}
-        <ClientList initialClients={clients} hasSms={hasSms} />
-      </main>
-    </div>
-  );
+			{/* Dynamic client manager list */}
+			<Suspense>
+				<ClientList
+					initialClientsPromise={clientsPromise}
+					hasSmsPromise={hasSmsPromise}
+					currentSearchPromise={searchPromise}
+					currentClientPromise={clientPromise}
+				/>
+			</Suspense>
+		</main>
+	);
 }

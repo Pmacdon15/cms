@@ -3,6 +3,8 @@ import {
   dbCreateClient,
   dbDeleteClient,
   dbGetClients,
+  dbGetClientById,
+  dbSearchClients,
   dbUpdateClientOptIn,
 } from "../db/clients";
 import { dbUpdateSubscriptionStatus } from "../db/mailing_lists";
@@ -10,9 +12,46 @@ import type { Client, ClientInput } from "../types/types";
 import { checkAuth } from "./auth";
 
 /**
- * Fetch all clients with auth protection
+ * Fetch clients with auth protection and filter parameters (search term or specific client)
  */
-export async function dalGetClients(): Promise<Result<Client[], Error>> {
+export async function dalGetClients(params?: {
+  search?: string;
+  client?: string;
+}): Promise<{ ok: true; value: Client[] } | { ok: false; error: string }> {
+  try {
+    const authResult = await checkAuth();
+    if (authResult.isErr()) {
+      return { ok: false, error: authResult.error.message };
+    }
+    const { orgId } = authResult.value;
+    if (!orgId) {
+      return { ok: false, error: "Please select or create an organization." };
+    }
+
+    if (params?.client) {
+      const client = await dbGetClientById(params.client, orgId);
+      return { ok: true, value: client ? [client] : [] };
+    }
+
+    if (params?.search) {
+      const clients = await dbSearchClients(orgId, params.search);
+      return { ok: true, value: clients };
+    }
+
+    const clients = await dbGetClients(orgId);
+    return { ok: true, value: clients };
+  } catch (error) {
+    console.error("dalGetClients exception caught:", error);
+    const message =
+      error instanceof Error ? error.message : "Failed to retrieve clients list.";
+    return { ok: false, error: message };
+  }
+}
+
+/**
+ * Search clients for autocomplete suggestions
+ */
+export async function dalSearchClients(query: string): Promise<Result<Client[], Error>> {
   try {
     const authResult = await checkAuth();
     if (authResult.isErr()) {
@@ -23,12 +62,16 @@ export async function dalGetClients(): Promise<Result<Client[], Error>> {
       return err(new Error("Please select or create an organization."));
     }
 
-    const clients = await dbGetClients(orgId);
+    if (!query.trim()) {
+      return ok([]);
+    }
+
+    const clients = await dbSearchClients(orgId, query.trim());
     return ok(clients);
   } catch (error) {
-    console.error("dalGetClients exception caught:", error);
+    console.error("dalSearchClients exception caught:", error);
     const message =
-      error instanceof Error ? error.message : "Failed to retrieve clients list.";
+      error instanceof Error ? error.message : "Failed to search clients.";
     return err(new Error(message));
   }
 }
