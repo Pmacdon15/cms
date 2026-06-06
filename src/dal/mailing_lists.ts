@@ -232,7 +232,14 @@ export async function dalGetClientSubscriptionsByEmail(email: string): Promise<
       };
     }
 
-    return { ok: true, value: res };
+    const normalized = {
+      ...res,
+      client: res.client
+        ? { ...res.client, id: String(res.client.id) }
+        : null,
+    };
+
+    return { ok: true, value: normalized };
   } catch (error) {
     console.error("dalGetClientSubscriptionsByEmail exception:", error);
     const message =
@@ -275,7 +282,12 @@ export async function dalGetClientSubscriptionsById(id: string): Promise<
       return { ok: false, error: "Subscriber not found." };
     }
 
-    return { ok: true, value: res };
+    const normalized = {
+      ...res,
+      client: res.client ? { ...res.client, id: String(res.client.id) } : null,
+    };
+
+    return { ok: true, value: normalized };
   } catch (error) {
     console.error("dalGetClientSubscriptionsById exception:", error);
     const message =
