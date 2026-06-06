@@ -4,6 +4,7 @@ import { Providers } from "../components/Providers";
 import { Toaster } from "../components/ui/toast";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import { Footer } from "@/components/ui/footer";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -38,7 +39,9 @@ export default function RootLayout({
           <div className="flex flex-col min-h-screen bg-background">
             <Navbar />
             {children}
+            <Footer />
           </div>
+          
           <Toaster />
         </Providers>
       </body>
