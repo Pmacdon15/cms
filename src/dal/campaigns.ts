@@ -1,22 +1,19 @@
 import { auth } from "@clerk/nextjs/server";
+import { isOverMemberShipLimit } from "@/db/clerk";
+import { dispatchCampaignChannels } from "@/utils/clerk";
 import {
   dbCreateCampaign,
   dbGetCampaigns,
   dbGetCampaignsCountAllListsThisWeek,
   dbGetCampaignsCountThisWeek,
   dbGetSentMessages,
-  dbLogSentMessage,
 } from "../db/campaigns";
-import {
-  dbCreateClient,
-  dbGetCampaignRecipients,
-  dbGetClientByEmail,
-} from "../db/clients";
+import { start } from "workflow/api";
+import { logCampaignWorkflow } from "@/workflows/log-campaign";
+import { dbGetCampaignRecipients } from "../db/clients";
 import { dbGetMailingListsCount } from "../db/mailing_lists";
-import { sendEmailNewsletter, sendPinpointSms } from "../services/aws";
 import type { Campaign, CampaignInput, SentMessage } from "../types/types";
 import { checkAuth } from "./auth";
-import { getOrgFeatures } from "./clerk";
 
 /**
  * Fetch campaign history
@@ -45,24 +42,18 @@ export async function dalGetCampaigns(
   }
 }
 
-/**
- * Build, execute and log a newsletter or SMS campaign using database target lists
- */
 export async function dalCreateCampaign(
   input: CampaignInput,
 ): Promise<{ ok: true; value: Campaign } | { ok: false; error: string }> {
   try {
-    const authResult = await checkAuth();
-    if (authResult.isErr())
-      return { ok: false, error: authResult.error.message };
-    const { orgId, isAdmin } = authResult.value;
-    if (!orgId) {
-      return { ok: false, error: "Please select or create an organization." };
-    }
-    if (!isAdmin) {
+    const { orgId, has } = await auth.protect();
+    const isAdmin = has({ role: "org:admin" });
+    const hasSms = has({ feature: "send_sms" });
+
+    if (!isAdmin || !orgId) {
       return {
         ok: false,
-        error: "Unauthorized. Only organization admins can dispatch campaigns.",
+        error: "Unauthorized.",
       };
     }
 
@@ -80,16 +71,6 @@ export async function dalCreateCampaign(
       };
     }
 
-    // Check for send_sms feature flag via Clerk auth has()
-    const hasClerkKeys = !!(
-      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
-      process.env.CLERK_SECRET_KEY
-    );
-    const clerkAuth = await auth();
-    const hasSms =
-      !hasClerkKeys ||
-      (clerkAuth.has ? clerkAuth.has({ feature: "send_sms" }) : false);
-
     if ((input.type === "sms" || input.type === "both") && !hasSms) {
       return {
         ok: false,
@@ -97,40 +78,26 @@ export async function dalCreateCampaign(
       };
     }
 
-    // Check weekly campaign limits based on Clerk permissions & DB weekly campaign count
-    let campaignLimit = 1;
-    if (hasClerkKeys) {
-      const has15 = clerkAuth.has
-        ? clerkAuth.has({ feature: "15_campaigns_a_week" }) ||
-          clerkAuth.has({ feature: "15_campinges_a_week" })
-        : false;
-      const has10 = clerkAuth.has
-        ? clerkAuth.has({ feature: "10_campaigns_a_week" }) ||
-          clerkAuth.has({ feature: "10_campinges_a_week" })
-        : false;
-      const has5 = clerkAuth.has
-        ? clerkAuth.has({ feature: "5_campaigns_a_week" }) ||
-          clerkAuth.has({ feature: "5_campinges_a_week" })
-        : false;
-
-      if (has15) {
-        campaignLimit = 15;
-      } else if (has10) {
-        campaignLimit = 10;
-      } else if (has5) {
-        campaignLimit = 5;
-      } else {
-        campaignLimit = 1;
-      }
-    }
+    const campaignLimit =
+      [15, 10, 5].find((num) => has({ feature: `${num}_campaigns_a_week` })) ||
+      1;
 
     const targetListName = input.mailing_list_name || undefined;
 
-    // 1. Check limit for the target list specifically
-    const currentWeekCount = await dbGetCampaignsCountThisWeek(
-      orgId,
-      targetListName,
-    );
+    const [
+      activeListsCount,
+      totalCampaignsCount,
+      targetedClients,
+      currentWeekCount,
+      isOverMemberShipLimitValue,
+    ] = await Promise.all([
+      dbGetMailingListsCount(orgId),
+      dbGetCampaignsCountAllListsThisWeek(orgId),
+      dbGetCampaignRecipients(orgId, targetListName),
+      dbGetCampaignsCountThisWeek(orgId, targetListName),
+      isOverMemberShipLimit(orgId),
+    ]);
+
     if (currentWeekCount >= campaignLimit) {
       const listLabel = targetListName
         ? `for the "${targetListName}" mailing list`
@@ -141,24 +108,14 @@ export async function dalCreateCampaign(
       };
     }
 
-    // 2. Check global weekly limit across all lists (active + disabled lists)
-    const activeListsCount = await dbGetMailingListsCount(orgId);
+    
     const globalLimit = activeListsCount * campaignLimit;
-    const totalCampaignsCount =
-      await dbGetCampaignsCountAllListsThisWeek(orgId);
-
     if (totalCampaignsCount >= globalLimit) {
       return {
         ok: false,
         error: `Global campaign limit reached. This organization is limited to ${globalLimit} campaign(s) per week total across all lists (based on ${activeListsCount} mailing list(s) allowed).`,
       };
     }
-
-    // 1. Fetch targeted client list directly from local database
-    const targetedClients = await dbGetCampaignRecipients(
-      orgId,
-      targetListName,
-    );
 
     if (targetedClients.length === 0) {
       return {
@@ -167,10 +124,16 @@ export async function dalCreateCampaign(
       };
     }
 
-    // 2. Filter recipients using database opt-in flags (instead of AWS SES preference querying)
-    const emailRecipients = targetedClients.filter((c) => {
-      return c.opt_in_newsletter && c.email;
-    });
+    if (isOverMemberShipLimitValue) {
+      return {
+        ok: false,
+        error: `Over organization membership limit.`,
+      };
+    }
+
+    const emailRecipients = targetedClients.filter(
+      (c) => c.opt_in_newsletter && c.email,
+    );
 
     const smsRecipients = targetedClients.filter((c) => {
       return (
@@ -181,77 +144,29 @@ export async function dalCreateCampaign(
       );
     });
 
-    let sentCount = 0;
-    const sentLogs: Array<{
-      email: string;
-      name: string;
-      channel: "email" | "sms";
-      status: "sent" | "failed";
-      msgId?: string;
-    }> = [];
+    const dispatch = await dispatchCampaignChannels(
+      input,
+      emailRecipients,
+      smsRecipients,
+    );
 
-    // 3. Dispatch Email channel if required
-    if (input.type === "email" || input.type === "both") {
-      const emailResult = await sendEmailNewsletter(
-        input.subject || "CMS Newsletter Update",
-        input.content,
-        emailRecipients, // Pass objects containing client ID and email
-        input.mailing_list_name,
-      );
+    
+    const campaign = await dbCreateCampaign(
+      {
+        ...input,
+        mailing_list_name: input.mailing_list_name ?? "",
+      },
+      dispatch.successCount,
+      orgId,
+    );
 
-      for (const client of emailRecipients) {
-        sentLogs.push({
-          email: client.email,
-          name: client.name,
-          channel: "email",
-          status: emailResult.success ? "sent" : "failed",
-          msgId: emailResult.messageId,
-        });
-        if (emailResult.success) sentCount++;
-      }
-    }
 
-    // 4. Dispatch SMS channel if required
-    if (input.type === "sms" || input.type === "both") {
-      const phonesList = smsRecipients.map((r) => r.phone_number);
-      const smsResult = await sendPinpointSms(input.content, phonesList);
+    const finalLogs = dispatch.logs.map((log) => ({
+      ...log,
+      campaignId: campaign.id,
+    }));
 
-      for (const client of smsRecipients) {
-        sentLogs.push({
-          email: client.email,
-          name: client.name,
-          channel: "sms",
-          status: smsResult.success ? "sent" : "failed",
-          msgId: smsResult.messageId,
-        });
-        if (smsResult.success) sentCount++;
-      }
-    }
-
-    // 5. Create Campaign in DB
-    const campaign = await dbCreateCampaign(input, sentCount, orgId);
-
-    // 6. Write delivery tracking logs for each contact
-    for (const log of sentLogs) {
-      let localClient = await dbGetClientByEmail(log.email, orgId);
-      if (!localClient) {
-        localClient = await dbCreateClient(
-          {
-            name: log.name,
-            email: log.email,
-            phone_number: "AWS Maintained",
-          },
-          orgId,
-        );
-      }
-      await dbLogSentMessage(
-        campaign.id,
-        localClient.id,
-        log.channel,
-        log.status,
-        log.msgId,
-      );
-    }
+    await start(logCampaignWorkflow, [finalLogs]);
 
     return { ok: true, value: campaign };
   } catch (error) {

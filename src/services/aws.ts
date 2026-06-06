@@ -536,60 +536,69 @@ export async function sendEmailNewsletter(
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  let lastMessageId = `mock-ses-msg-${Date.now()}`;
+  const baseHtml = content.replace(/\n/g, "<br/>");
 
-  for (const client of recipients) {
-    const email = client.email;
-    const unsubscribeLink = `${appUrl}/unsubscribe?id=${client.id}${
-      mailingListName ? `&listName=${encodeURIComponent(mailingListName)}` : ""
-    }`;
-
-    const emailHtmlFooter = `
-      <br/><br/>
-      <hr style="border:none;border-top:1px solid #e4e4e7;margin-top:24px;margin-bottom:12px;"/>
-      <p style="font-size:12px;color:#71717a;font-family:sans-serif;line-height:1.6;">
-        You are receiving this because you subscribed to our newsletter updates. 
-        To update your email preferences or opt out, please 
-        <a href="${unsubscribeLink}" style="color:#2563eb;text-decoration:underline;font-weight:600;">click here to unsubscribe</a>.
-      </p>
-    `;
-
-    const emailTextFooter = `\n\n----------------\nTo manage your preferences or unsubscribe, visit: ${unsubscribeLink}`;
-
-    const fullHtml = content.replace(/\n/g, "<br/>") + emailHtmlFooter;
-    const fullText = content + emailTextFooter;
-
-    if (useAwsSimulation) {
+  if (useAwsSimulation) {
+    recipients.forEach((client) => {
+      const unsubscribeLink = `${appUrl}/unsubscribe?id=${client.id}${
+        mailingListName
+          ? `&listName=${encodeURIComponent(mailingListName)}`
+          : ""
+      }`;
       console.info(
-        `[AWS SIMULATION] Sending SES Email "${subject}" to: ${email}\nFoot link: ${unsubscribeLink}`,
+        `[AWS SIMULATION] Sending SES Email "${subject}" to: ${client.email}\nFoot link: ${unsubscribeLink}`,
       );
-      continue;
-    }
+    });
+    return { success: true, messageId: `mock-ses-msg-${Date.now()}` };
+  }
 
-    try {
+  try {
+    const sendPromises = recipients.map(async (client) => {
+      const unsubscribeLink = `${appUrl}/unsubscribe?id=${client.id}${
+        mailingListName
+          ? `&listName=${encodeURIComponent(mailingListName)}`
+          : ""
+      }`;
+
+      const emailHtmlFooter = `
+        <br/><br/>
+        <hr style="border:none;border-top:1px solid #e4e4e7;margin-top:24px;margin-bottom:12px;"/>
+        <p style="font-size:12px;color:#71717a;font-family:sans-serif;line-height:1.6;">
+          You are receiving this because you subscribed to our newsletter updates. 
+          To update your email preferences or opt out, please 
+          <a href="${unsubscribeLink}" style="color:#2563eb;text-decoration:underline;font-weight:600;">click here to unsubscribe</a>.
+        </p>
+      `;
+
+      const emailTextFooter = `\n\n----------------\nTo manage your preferences or unsubscribe, visit: ${unsubscribeLink}`;
+
       const command = new SendEmailCommand({
         Source: sesSender,
         Destination: {
-          ToAddresses: [email],
+          ToAddresses: [client.email],
         },
         Message: {
           Subject: { Data: subject },
           Body: {
-            Html: { Data: fullHtml },
-            Text: { Data: fullText },
+            Html: { Data: baseHtml + emailHtmlFooter },
+            Text: { Data: content + emailTextFooter },
           },
         },
       });
 
       const response = await ses.send(command);
-      lastMessageId = response.MessageId || lastMessageId;
-    } catch (error) {
-      console.error(`AWS SES send error for ${email}:`, error);
-      return { success: false };
-    }
-  }
+      return response.MessageId;
+    });
 
-  return { success: true, messageId: lastMessageId };
+    const results = await Promise.all(sendPromises);
+    const lastMessageId =
+      results[results.length - 1] || `mock-ses-msg-${Date.now()}`;
+
+    return { success: true, messageId: lastMessageId };
+  } catch (error) {
+    console.error("AWS SES bulk send error:", error);
+    return { success: false };
+  }
 }
 
 /**
