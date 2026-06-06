@@ -1,6 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
+import { start } from "workflow/api";
 import { isOverMemberShipLimit } from "@/db/clerk";
 import { dispatchCampaignChannels } from "@/utils/clerk";
+import { logCampaignWorkflow } from "@/workflows/log-campaign";
 import {
   dbCreateCampaign,
   dbGetCampaigns,
@@ -8,8 +10,6 @@ import {
   dbGetCampaignsCountThisWeek,
   dbGetSentMessages,
 } from "../db/campaigns";
-import { start } from "workflow/api";
-import { logCampaignWorkflow } from "@/workflows/log-campaign";
 import { dbGetCampaignRecipients } from "../db/clients";
 import { dbGetMailingListsCount } from "../db/mailing_lists";
 import type { Campaign, CampaignInput, SentMessage } from "../types/types";
@@ -108,7 +108,6 @@ export async function dalCreateCampaign(
       };
     }
 
-    
     const globalLimit = activeListsCount * campaignLimit;
     if (totalCampaignsCount >= globalLimit) {
       return {
@@ -150,7 +149,6 @@ export async function dalCreateCampaign(
       smsRecipients,
     );
 
-    
     const campaign = await dbCreateCampaign(
       {
         ...input,
@@ -159,7 +157,6 @@ export async function dalCreateCampaign(
       dispatch.successCount,
       orgId,
     );
-
 
     const finalLogs = dispatch.logs.map((log) => ({
       ...log,

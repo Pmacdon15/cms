@@ -1,7 +1,9 @@
 import { verifyWebhook, type WebhookEvent } from "@clerk/nextjs/webhooks";
 import type { NextRequest } from "next/server";
-import { dalRebalanceListsForOrg, dalRebalanceSubscribersForOrg } from "@/dal/mailing_lists";
-
+import {
+  dalRebalanceListsForOrg,
+  dalRebalanceSubscribersForOrg,
+} from "@/dal/mailing_lists";
 
 export async function POST(req: NextRequest) {
   try {

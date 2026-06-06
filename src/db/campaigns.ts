@@ -33,10 +33,11 @@ export async function dbCreateCampaign(
     content: string;
     mailing_list_name: string;
   },
-  sentCount: number, 
-  orgId: string,    
+  sentCount: number,
+  orgId: string,
 ): Promise<Campaign> {
-  const subjectValue = campaign.type === "sms" ? null : campaign.subject || null;
+  const subjectValue =
+    campaign.type === "sms" ? null : campaign.subject || null;
 
   const rows = (await sql`
     INSERT INTO campaigns (org_id, type, subject, content, sent_count, mailing_list_name)

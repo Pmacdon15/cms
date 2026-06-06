@@ -1,28 +1,8 @@
 import type { MailingList } from "../types/types";
 import { sql } from "./neon";
 
-/**
- * Ensure default mailing lists exist for the organization
- */
-export async function ensureDefaultMailingLists(orgId: string): Promise<void> {
-  try {
-    await sql`
-      INSERT INTO mailing_lists (name, description, org_id) VALUES
-      ('TanStackFormNewsletter', 'Default customer newsletter campaign list.', ${orgId}),
-      ('ApexWeeklyDigest', 'Weekly executive summaries and updates.', ${orgId})
-      ON CONFLICT (name, org_id) DO NOTHING
-    `;
-  } catch (error) {
-    console.error(
-      "Failed to seed default mailing lists for org:",
-      orgId,
-      error,
-    );
-  }
-}
 
 export async function dbGetMailingLists(orgId: string): Promise<MailingList[]> {
-  await ensureDefaultMailingLists(orgId);
   const rows = await sql`
     SELECT name, description, status, created_at
     FROM mailing_lists
@@ -45,8 +25,8 @@ export async function dbCreateMailingList(
     VALUES (${name}, ${description || null}, ${orgId}, 'active')
     ON CONFLICT (name, org_id) DO UPDATE SET description = EXCLUDED.description, status = 'active'
     RETURNING name, description, status, created_at
-  `;
-  return rows[0] as MailingList;
+  ` as MailingList[];
+  return rows[0];
 }
 
 /**
@@ -94,17 +74,23 @@ export async function dbUpdateSubscriptionStatus(
   status: "subscribed" | "unsubscribed",
   orgId?: string,
 ): Promise<boolean> {
-  let resolvedOrgId = orgId;
+  const resolvedOrgId = orgId;
   if (!resolvedOrgId) {
-    const clientRows =
-      await sql`SELECT org_id FROM clients WHERE id = ${clientId}`;
-    if (clientRows.length === 0) return false;
-    resolvedOrgId = clientRows[0].org_id;
+    (await sql`
+      SELECT id, name, email, opt_in_newsletter, org_id
+      FROM clients
+      WHERE id = ${clientId}
+    `) as {
+      id: number;
+      name: string;
+      email: string;
+      opt_in_newsletter: boolean;
+      org_id: number;
+    }[];
   }
 
   if (!resolvedOrgId) return false;
-
-  await ensureDefaultMailingLists(resolvedOrgId);
+  
 
   await sql`
     INSERT INTO mailing_list_subscriptions (client_id, mailing_list_name, status, org_id)
@@ -124,9 +110,11 @@ export async function dbUpdateSubscriptionStatusByEmail(
   status: "subscribed" | "unsubscribed",
   orgId?: string,
 ): Promise<boolean> {
-  const rows = orgId
-    ? await sql`SELECT id, org_id FROM clients WHERE email = ${email} AND org_id = ${orgId}`
-    : await sql`SELECT id, org_id FROM clients WHERE email = ${email}`;
+  const rows = (
+    orgId
+      ? await sql`SELECT id, org_id FROM clients WHERE email = ${email} AND org_id = ${orgId}`
+      : await sql`SELECT id, org_id FROM clients WHERE email = ${email}`
+  ) as Array<{ id: string; org_id: string }>;
   if (rows.length === 0) return false;
 
   await dbUpdateSubscriptionStatus(
@@ -142,11 +130,17 @@ export async function dbUpdateSubscriptionStatusByEmail(
  * Fetch a subscriber's list preferences using their client ID (UUID)
  */
 export async function dbGetClientSubscriptionsById(id: string) {
-  const clientRows = await sql`
+  const clientRows = (await sql`
     SELECT id, name, email, opt_in_newsletter, org_id
     FROM clients
     WHERE id = ${id}
-  `;
+  `) as Array<{
+    id: string;
+    name: string;
+    email: string;
+    opt_in_newsletter: boolean;
+    org_id: string;
+  }>;
   if (clientRows.length === 0) {
     return null;
   }
@@ -178,11 +172,17 @@ export async function dbGetClientSubscriptionsById(id: string) {
  * Fetch a subscriber's list preferences using their email
  */
 export async function dbGetClientSubscriptionsByEmail(email: string) {
-  const clientRows = await sql`
+  const clientRows = (await sql`
     SELECT id, name, email, opt_in_newsletter, org_id
     FROM clients
     WHERE email = ${email}
-  `;
+  `) as {
+    id: number;
+    name: string;
+    email: string;
+    opt_in_newsletter: boolean;
+    org_id: number;
+  }[];
   if (clientRows.length === 0) {
     return null;
   }
@@ -214,13 +214,12 @@ export async function dbGetClientSubscriptionsByEmail(email: string) {
  * Get the total count of mailing lists for an organization
  */
 export async function dbGetMailingListsCount(orgId: string): Promise<number> {
-  await ensureDefaultMailingLists(orgId);
-  const rows = await sql`
+  const rows = (await sql`
     SELECT COUNT(*)::integer as count
     FROM mailing_lists
     WHERE org_id = ${orgId} AND status != 'deleted'
-  `;
-  return rows[0]?.count || 0;
+  `) as { count: number };
+  return rows?.count || 0;
 }
 
 /**
@@ -230,13 +229,13 @@ export async function dbDeleteMailingList(
   name: string,
   orgId: string,
 ): Promise<boolean> {
-  const result = await sql`
+  const rows = await sql`
     UPDATE mailing_lists
     SET status = 'deleted'
     WHERE name = ${name} AND org_id = ${orgId}
     RETURNING name
   `;
-  return result.length > 0;
+  return Array.isArray(rows) && rows.length > 0;
 }
 
 /**
@@ -250,24 +249,23 @@ export async function dbEditMailingList(
   description: string | undefined,
   orgId: string,
 ): Promise<MailingList> {
-
   if (oldName === newName) {
-    const rows = await sql`
+    const rows = (await sql`
       UPDATE mailing_lists
       SET description = ${description || null}
       WHERE name = ${oldName} AND org_id = ${orgId}
       RETURNING name, description, status, created_at
-    `;
-    return rows[0] as MailingList;
+    `) as MailingList[];
+    return rows[0];
   }
 
   // 1. Insert new mailing list entry
-  const rows = await sql`
+  const rows = (await sql`
     INSERT INTO mailing_lists (name, description, org_id, status)
     VALUES (${newName}, ${description || null}, ${orgId}, 'active')
     ON CONFLICT (name, org_id) DO UPDATE SET description = EXCLUDED.description, status = 'active'
     RETURNING name, description, status, created_at
-  `;
+  `) as MailingList[];
 
   // 2. Update mailing_list_subscriptions referencing oldName
   await sql`
@@ -306,7 +304,7 @@ export async function dbGetMailingListSubscribersCount(
       AND org_id = ${orgId}
       AND status = 'subscribed'
   `;
-  return rows[0]?.count || 0;
+  return (rows as Array<{ count: number }>)[0]?.count || 0;
 }
 
 /**
@@ -395,4 +393,3 @@ export async function dbRebalanceSubscribersForList(
   `;
   return (result as Array<{ client_id: string }>).map((r) => r.client_id);
 }
-

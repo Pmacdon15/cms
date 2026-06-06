@@ -1,9 +1,11 @@
+import { auth } from "@clerk/nextjs/server";
 import { err, ok, type Result } from "neverthrow";
 import {
   dbCreateClient,
   dbDeleteClient,
   dbGetClientById,
   dbGetClients,
+  dbGetClientsCount,
   dbSearchClients,
   dbUpdateClient,
   dbUpdateClientOptIn,
@@ -88,15 +90,10 @@ export async function dalCreateClient(
   input: ClientInput,
 ): Promise<Result<Client, Error>> {
   try {
-    const authResult = await checkAuth();
-    if (authResult.isErr()) {
-      return err(authResult.error);
-    }
-    const { orgId, isAdmin } = authResult.value;
-    if (!orgId) {
-      return err(new Error("Please select or create an organization."));
-    }
-    if (!isAdmin) {
+    const { orgId, has } = await auth.protect();
+    const isAdmin = has({ role: "org:admin" });
+
+    if (!isAdmin || !orgId) {
       return err(
         new Error("Unauthorized. Only organization admins can add clients."),
       );
@@ -111,6 +108,23 @@ export async function dalCreateClient(
       return err(
         new Error(
           "Missing required client fields (Name, Email, and Phone are mandatory).",
+        ),
+      );
+    }
+
+    // Check client limit using .find with features
+    const clientLimit =
+      [100, 60, 30, 15].find(
+        (num) =>
+          has({ feature: `${num}_clients_per_list` }) ||
+          has({ feature: `${num}_clients_pre_list` }),
+      ) || 1;
+
+    const currentCount = await dbGetClientsCount(orgId);
+    if (currentCount >= clientLimit) {
+      return err(
+        new Error(
+          `Client limit reached. This organization is limited to ${clientLimit} client(s).`,
         ),
       );
     }

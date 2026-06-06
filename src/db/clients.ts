@@ -176,3 +176,15 @@ export async function dbDeleteClient(
   `;
   return result.length > 0;
 }
+
+/**
+ * Get the total count of clients for an organization
+ */
+export async function dbGetClientsCount(orgId: string): Promise<number> {
+  const rows = await sql`
+    SELECT COUNT(*)::integer as count
+    FROM clients
+    WHERE org_id = ${orgId}
+  `;
+  return rows[0]?.count || 0;
+}
