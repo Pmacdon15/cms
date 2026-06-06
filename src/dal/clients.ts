@@ -95,7 +95,7 @@ export async function dalCreateClient(
 
     if (!isAdmin || !orgId) {
       return err(
-        new Error("Unauthorized. Only organization admins can add clients."),
+        new Error("Unauthorized."),
       );
     }
 
@@ -114,10 +114,8 @@ export async function dalCreateClient(
 
     // Check client limit using .find with features
     const clientLimit =
-      [100, 60, 30, 15].find(
-        (num) =>
-          has({ feature: `${num}_clients_per_list` }) ||
-          has({ feature: `${num}_clients_pre_list` }),
+      [100, 60, 30, 15].find((num) =>
+        has({ feature: `${num}_clients_per_list` }),
       ) || 1;
 
     const currentCount = await dbGetClientsCount(orgId);
