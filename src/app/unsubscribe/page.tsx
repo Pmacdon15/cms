@@ -1,13 +1,13 @@
-import { AlertCircle, Mail, Sparkles } from "lucide-react";
+import { AlertCircle } from "lucide-react";
+import { UnsubscribeManager } from "@/components/ui/UnsubscribeManager";
 import { dalGetClientSubscriptionsById } from "../../dal/mailing_lists";
-import { UnsubscribeManager } from "./UnsubscribeManager";
 
 export const revalidate = 0; // Force dynamic loading
 
 // Uses the built-in PageProps parameter signature from Next.js (no custom type definition)
 export default async function UnsubscribePage(props: {
-  params: Promise<any>;
-  searchParams: Promise<any>;
+  params: Promise<unknown>;
+  searchParams: Promise<unknown>;
 }) {
   const searchParams = await props.searchParams;
   const idParam = searchParams.id;

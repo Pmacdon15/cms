@@ -3,6 +3,7 @@ import { Inter, Outfit } from "next/font/google";
 import { Providers } from "../components/Providers";
 import { Toaster } from "../components/ui/toast";
 import "./globals.css";
+import Navbar from "@/components/Navbar";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -34,7 +35,10 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans antialiased select-none">
         <Providers>
-          {children}
+          <div className="flex flex-col min-h-screen bg-background">
+            <Navbar />
+            {children}
+          </div>
           <Toaster />
         </Providers>
       </body>

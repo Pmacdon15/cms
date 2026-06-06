@@ -25,7 +25,7 @@ export function useCreateCampaignMutation(onSuccessCallback?: () => void) {
         showToast.error(res.error || "Failed to dispatch campaign.");
       }
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       showToast.error(
         err?.message || "An unexpected error occurred during dispatch.",
       );

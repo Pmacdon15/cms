@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   actionCreateClient,
   actionDeleteClient,
+  actionUpdateClient,
   actionUpdateClientOptIn,
 } from "../actions/clients";
 import { showToast } from "../components/ui/toast";
@@ -29,7 +30,33 @@ export function useCreateClientMutation(onSuccessCallback?: () => void) {
         showToast.error(res.error || "Failed to create client.");
       }
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
+      showToast.error(err?.message || "An unexpected error occurred.");
+    },
+  });
+}
+
+/**
+ * Hook for updating an existing client's details with reactive toast feedback
+ */
+export function useUpdateClientMutation(onSuccessCallback?: () => void) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (variables: { id: string; input: ClientInput }) => {
+      const response = await actionUpdateClient(variables.id, variables.input);
+      return response;
+    },
+    onSuccess: (res) => {
+      if (res.ok) {
+        showToast.success("Client updated successfully.");
+        queryClient.invalidateQueries({ queryKey: ["clients"] });
+        if (onSuccessCallback) onSuccessCallback();
+      } else {
+        showToast.error(res.error || "Failed to update client.");
+      }
+    },
+    onError: (err: Error) => {
       showToast.error(err?.message || "An unexpected error occurred.");
     },
   });
@@ -62,7 +89,7 @@ export function useUpdateClientOptInMutation() {
         showToast.error(res.error || "Failed to update subscriptions.");
       }
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       showToast.error(err?.message || "An unexpected error occurred.");
     },
   });
@@ -87,7 +114,7 @@ export function useDeleteClientMutation() {
         showToast.error(res.error || "Failed to remove client.");
       }
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       showToast.error(err?.message || "An unexpected error occurred.");
     },
   });

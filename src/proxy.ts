@@ -13,7 +13,7 @@ const isProtectedRoute = createRouteMatcher([
   "/campaigns(.*)",
 ]);
 
-export default function middleware(req: NextRequest, event: any) {
+export default function middleware(req: NextRequest, event: unknown) {
   if (!hasClerkKeys) {
     // If Clerk is not set up, bypass routing protection
     return NextResponse.next();

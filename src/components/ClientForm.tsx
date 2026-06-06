@@ -1,24 +1,38 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { useCreateClientMutation } from "../mutations/clients";
+import {
+  useCreateClientMutation,
+  useUpdateClientMutation,
+} from "../mutations/clients";
+import type { Client } from "../types/types";
 import { Button } from "./ui/button";
-import { Checkbox } from "./ui/checkbox";
 import { Input } from "./ui/input";
 
 interface ClientFormProps {
+  client?: Client;
   onSuccess: () => void;
+  onOptimisticUpdate?: (
+    action: { type: "update"; client: Client } | { type: "delete"; id: string },
+  ) => void;
 }
 
-export function ClientForm({ onSuccess }: ClientFormProps) {
+export function ClientForm({
+  client,
+  onSuccess,
+  onOptimisticUpdate,
+}: ClientFormProps) {
   const createMutation = useCreateClientMutation(onSuccess);
+  const updateMutation = useUpdateClientMutation(onSuccess);
+
+  const isEditMode = !!client;
 
   // TanStack Form definition
   const form = useForm({
     defaultValues: {
-      name: "",
-      email: "",
-      phone_number: "",
+      name: client?.name ?? "",
+      email: client?.email ?? "",
+      phone_number: client?.phone_number ?? "",
     },
     validators: {
       onChange({ value }) {
@@ -32,11 +46,34 @@ export function ClientForm({ onSuccess }: ClientFormProps) {
       },
     },
     onSubmit: async ({ value }) => {
-      await createMutation.mutateAsync({
-        name: value.name.trim(),
-        email: value.email.trim(),
-        phone_number: value.phone_number.trim(),
-      });
+      if (isEditMode && client) {
+        const updatedClient = {
+          ...client,
+          name: value.name.trim(),
+          email: value.email.trim(),
+          phone_number: value.phone_number.trim(),
+        };
+
+        // Optimistically update parent state
+        onOptimisticUpdate?.({ type: "update", client: updatedClient });
+        // Close modal instantly
+        onSuccess();
+
+        await updateMutation.mutateAsync({
+          id: client.id,
+          input: {
+            name: value.name.trim(),
+            email: value.email.trim(),
+            phone_number: value.phone_number.trim(),
+          },
+        });
+      } else {
+        await createMutation.mutateAsync({
+          name: value.name.trim(),
+          email: value.email.trim(),
+          phone_number: value.phone_number.trim(),
+        });
+      }
     },
   });
 
@@ -50,9 +87,8 @@ export function ClientForm({ onSuccess }: ClientFormProps) {
       className="flex flex-col gap-5"
     >
       {/* Name Input */}
-      <form.Field
-        name="name"
-        children={(field) => (
+      <form.Field name="name">
+        {(field) => (
           <Input
             label="Full Name"
             placeholder="John Doe"
@@ -66,12 +102,11 @@ export function ClientForm({ onSuccess }: ClientFormProps) {
             }
           />
         )}
-      />
+      </form.Field>
 
       {/* Email Input */}
-      <form.Field
-        name="email"
-        children={(field) => (
+      <form.Field name="email">
+        {(field) => (
           <Input
             label="Email Address"
             type="email"
@@ -86,12 +121,11 @@ export function ClientForm({ onSuccess }: ClientFormProps) {
             }
           />
         )}
-      />
+      </form.Field>
 
       {/* Phone Number Input */}
-      <form.Field
-        name="phone_number"
-        children={(field) => (
+      <form.Field name="phone_number">
+        {(field) => (
           <Input
             label="Phone Number"
             type="tel"
@@ -106,16 +140,24 @@ export function ClientForm({ onSuccess }: ClientFormProps) {
             }
           />
         )}
-      />
+      </form.Field>
 
       {/* Submit Button */}
       <div className="flex justify-end gap-3 mt-4 border-t border-zinc-100 pt-4">
         <Button
           type="submit"
           className="w-full sm:w-auto"
-          disabled={createMutation.isPending}
+          disabled={
+            isEditMode ? updateMutation.isPending : createMutation.isPending
+          }
         >
-          {createMutation.isPending ? "Adding Client..." : "Add Client Profile"}
+          {isEditMode
+            ? updateMutation.isPending
+              ? "Saving Changes..."
+              : "Save Changes"
+            : createMutation.isPending
+              ? "Adding Client..."
+              : "Add Client Profile"}
         </Button>
       </div>
     </form>

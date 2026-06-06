@@ -7,6 +7,7 @@ export interface Client {
   phone_number: string;
   opt_in_newsletter: boolean; // Stored locally in PostgreSQL
   opt_in_sms: boolean; // Stored locally in PostgreSQL
+  org_id: string;
   created_at: Date | string;
 }
 
@@ -17,6 +18,7 @@ export interface Campaign {
   content: string;
   sent_count: number;
   mailing_list_name?: string;
+  org_id: string;
   created_at: Date | string;
 }
 
@@ -28,12 +30,18 @@ export interface SentMessage {
   status: "sent" | "failed";
   aws_message_id?: string;
   created_at: Date | string;
+  client_name?: string;
+  client_email?: string;
 }
 
 export interface MailingList {
   name: string;
   description?: string;
+  org_id?: string;
+  status?: "active" | "disabled" | "deleted";
   created_at?: Date | string;
+  campaignsSentThisWeek?: number;
+  campaignLimit?: number;
 }
 
 export interface MailingListSubscription {
@@ -59,3 +67,13 @@ export interface CampaignInput {
 
 // Common type for Result patterns
 export type AppResult<T, E = string> = Result<T, E>;
+
+export type DispatchResult = {
+  logs: Array<{
+    clientId: string;
+    channel: "email" | "sms";
+    status: "sent" | "failed";
+    msgId?: string;
+  }>;
+  successCount: number;
+};

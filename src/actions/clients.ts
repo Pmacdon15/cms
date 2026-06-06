@@ -4,15 +4,31 @@ import {
   dalCreateClient,
   dalDeleteClient,
   dalGetClients,
+  dalSearchClients,
+  dalUpdateClient,
   dalUpdateClientOptIn,
 } from "../dal/clients";
 import type { ClientInput } from "../types/types";
 
 /**
- * Server action to fetch all clients safely
+ * Server action to fetch all clients safely with optional filters
  */
-export async function actionGetClients() {
-  const result = await dalGetClients();
+export async function actionGetClients(params?: {
+  search?: string;
+  client?: string;
+}) {
+  const result = await dalGetClients(params);
+  if (result.ok) {
+    return { ok: true, value: result.value };
+  }
+  return { ok: false, error: String(result.error) };
+}
+
+/**
+ * Server action to search clients safely for autocomplete
+ */
+export async function actionSearchClients(query: string) {
+  const result = await dalSearchClients(query);
   if (result.isOk()) {
     return { ok: true, value: result.value };
   }
@@ -39,6 +55,17 @@ export async function actionUpdateClientOptIn(
   optInSms: boolean,
 ) {
   const result = await dalUpdateClientOptIn(id, optInNewsletter, optInSms);
+  if (result.isOk()) {
+    return { ok: true, value: result.value };
+  }
+  return { ok: false, error: result.error.message };
+}
+
+/**
+ * Server action to update a client's profile details safely
+ */
+export async function actionUpdateClient(id: string, input: ClientInput) {
+  const result = await dalUpdateClient(id, input);
   if (result.isOk()) {
     return { ok: true, value: result.value };
   }
