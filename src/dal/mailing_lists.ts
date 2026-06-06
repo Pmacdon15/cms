@@ -91,18 +91,13 @@ export async function dalCreateMailingList(
   description?: string,
 ): Promise<{ ok: true; value: MailingList } | { ok: false; error: string }> {
   try {
-    const authResult = await checkAuth();
-    if (authResult.isErr())
-      return { ok: false, error: authResult.error.message };
-    const { orgId, isAdmin } = authResult.value;
-    if (!orgId) {
-      return { ok: false, error: "Please select or create an organization." };
-    }
-    if (!isAdmin) {
+    const { orgId, has } = await auth.protect();
+    const isAdmin = has({ role: "org:admin" });
+
+    if (!isAdmin || !orgId) {
       return {
         ok: false,
-        error:
-          "Unauthorized. Only organization admins can create mailing lists.",
+        error: "Unauthorized.",
       };
     }
 
@@ -110,33 +105,10 @@ export async function dalCreateMailingList(
       return { ok: false, error: "Mailing list name is required." };
     }
 
-    let mailingListLimit = 1;
-    const hasClerkKeys = !!(
-      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
-      process.env.CLERK_SECRET_KEY
-    );
-    if (hasClerkKeys) {
-      const clerkAuth = await auth.protect();
-      const has15 = clerkAuth.has
-        ? clerkAuth.has({ feature: "15_mailing_list" })
-        : false;
-      const has10 = clerkAuth.has
-        ? clerkAuth.has({ feature: "10_mailing_list" })
-        : false;
-      const has5 = clerkAuth.has
-        ? clerkAuth.has({ feature: "5_mailing_list" })
-        : false;
-
-      if (has15) {
-        mailingListLimit = 15;
-      } else if (has10) {
-        mailingListLimit = 10;
-      } else if (has5) {
-        mailingListLimit = 5;
-      } else {
-        mailingListLimit = 1;
-      }
-    }
+    const mailingListLimit =
+      [15, 10, 5].find(async (num) =>
+        has?.({ feature: `${num}_mailing_list` }),
+      ) || 1;
 
     const currentListCount = await dbGetMailingListsCount(orgId);
     if (currentListCount >= mailingListLimit) {
@@ -234,9 +206,7 @@ export async function dalGetClientSubscriptionsByEmail(email: string): Promise<
 
     const normalized = {
       ...res,
-      client: res.client
-        ? { ...res.client, id: String(res.client.id) }
-        : null,
+      client: res.client ? { ...res.client, id: String(res.client.id) } : null,
     };
 
     return { ok: true, value: normalized };
@@ -369,9 +339,11 @@ export async function dalUpdateSubscriptionStatus(
       }
 
       // Check existing subscription footprint
-      const existingSub = (isUuidString(cleanInput)
-        ? await sql`SELECT status FROM mailing_list_subscriptions WHERE client_id = ${cleanInput} AND mailing_list_name = ${listName} AND org_id = ${resolvedOrgId}`
-        : await sql`SELECT mls.status FROM mailing_list_subscriptions mls JOIN clients c ON c.id = mls.client_id WHERE c.email = ${cleanInput.toLowerCase()} AND mls.mailing_list_name = ${listName} AND mls.org_id = ${resolvedOrgId}`) as Array<{ status: string }>;
+      const existingSub = (
+        isUuidString(cleanInput)
+          ? await sql`SELECT status FROM mailing_list_subscriptions WHERE client_id = ${cleanInput} AND mailing_list_name = ${listName} AND org_id = ${resolvedOrgId}`
+          : await sql`SELECT mls.status FROM mailing_list_subscriptions mls JOIN clients c ON c.id = mls.client_id WHERE c.email = ${cleanInput.toLowerCase()} AND mls.mailing_list_name = ${listName} AND mls.org_id = ${resolvedOrgId}`
+      ) as Array<{ status: string }>;
 
       const isAlreadySubscribed =
         existingSub.length > 0 && existingSub[0].status === "subscribed";

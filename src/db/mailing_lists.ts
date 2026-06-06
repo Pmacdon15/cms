@@ -1,7 +1,6 @@
 import type { MailingList } from "../types/types";
 import { sql } from "./neon";
 
-
 export async function dbGetMailingLists(orgId: string): Promise<MailingList[]> {
   const rows = await sql`
     SELECT name, description, status, created_at
@@ -20,12 +19,12 @@ export async function dbCreateMailingList(
   description: string | undefined,
   orgId: string,
 ): Promise<MailingList> {
-  const rows = await sql`
+  const rows = (await sql`
     INSERT INTO mailing_lists (name, description, org_id, status)
     VALUES (${name}, ${description || null}, ${orgId}, 'active')
     ON CONFLICT (name, org_id) DO UPDATE SET description = EXCLUDED.description, status = 'active'
     RETURNING name, description, status, created_at
-  ` as MailingList[];
+  `) as MailingList[];
   return rows[0];
 }
 
@@ -90,7 +89,6 @@ export async function dbUpdateSubscriptionStatus(
   }
 
   if (!resolvedOrgId) return false;
-  
 
   await sql`
     INSERT INTO mailing_list_subscriptions (client_id, mailing_list_name, status, org_id)
