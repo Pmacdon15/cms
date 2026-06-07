@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
+import { Suspense } from "react";
 import { Providers } from "../components/Providers";
 import { Toaster } from "../components/ui/toast";
 import "./globals.css";
@@ -37,7 +38,9 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans antialiased select-none">
         <Providers>
           <div className="flex flex-col min-h-screen bg-background">
-            <Navbar />
+            <Suspense fallback={<div className="h-15 border-b border-zinc-200 bg-white" />}>
+              <Navbar />
+            </Suspense>
             {children}
             <Footer />
           </div>

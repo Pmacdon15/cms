@@ -9,7 +9,7 @@ const isProtectedRoute = createRouteMatcher([
 ]);
 
 export default function middleware(req: NextRequest, event: NextFetchEvent) {
-  // Otherwise, invoke real Clerk protection middleware
+  
   return clerkMiddleware(async (auth, request) => {
     if (isProtectedRoute(request)) {
       await auth.protect();

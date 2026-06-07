@@ -7,7 +7,7 @@ import { dalGetClients } from "../../dal/clients";
 
 export const revalidate = 0; // Force dynamic server rendering
 
-export default async function ClientsPage(props: PageProps<"/clients">) {
+export default function ClientsPage(props: PageProps<"/clients">) {
   const clientsPromise = props.searchParams.then((p) =>
     dalGetClients({
       search: parseParams(p.search),
