@@ -1,35 +1,18 @@
-import { AlertCircle } from "lucide-react";
+import { Suspense } from "react";
 import { UnsubscribeManager } from "@/components/ui/UnsubscribeManager";
 import { dalGetClientSubscriptionsById } from "../../dal/mailing_lists";
 
 export const revalidate = 0; // Force dynamic loading
 
-// Uses the built-in PageProps parameter signature from Next.js (no custom type definition)
-export default async function UnsubscribePage(props: {
-  params: Promise<unknown>;
-  searchParams: Promise<unknown>;
-}) {
-  const searchParams = await props.searchParams;
-  const idParam = searchParams.id;
-  const highlightedListName = searchParams.listName;
+export default function UnsubscribePage(props: PageProps<"/unsubscribe">) {
+  
+  const highlightedListNamePromise = props.searchParams.then((sp) =>
+    typeof sp.listName === "string" ? sp.listName : undefined,
+  );
 
-  const id = typeof idParam === "string" ? idParam.trim() : "";
-
-  // 1. Fetch subscriber's dynamic preferences from DB
-  let preferences = null;
-  let errorMsg = null;
-
-  if (id) {
-    const res = await dalGetClientSubscriptionsById(id);
-    if (res.isOk()) {
-      preferences = res.value;
-    } else {
-      errorMsg = res.error.message;
-    }
-  } else {
-    errorMsg =
-      "No subscriber reference was provided in the link. Please check your newsletter email.";
-  }
+  const preferencesPromise = props.searchParams.then((p) =>
+    dalGetClientSubscriptionsById(Array.isArray(p.id) ? p.id[0] : (p.id ?? "")),
+  );
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-zinc-800 items-center justify-center p-4">
@@ -44,33 +27,21 @@ export default async function UnsubscribePage(props: {
           </span>
         </div>
 
-        {/* Error State box */}
-        {errorMsg && (
-          <div className="p-6 rounded-2xl border border-red-200 bg-red-50/50 text-red-950 text-sm flex flex-col gap-3">
-            <div className="flex items-center gap-2 text-red-600 font-bold">
-              <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-600" />
-              <span>Preferences Retrieval Error</span>
+        <Suspense
+          fallback={
+            <div className="text-center text-zinc-500 text-xs py-4">
+              Loading subscriber preferences...
             </div>
-            <p className="text-red-900 text-xs leading-relaxed">{errorMsg}</p>
-            <div className="mt-2 text-zinc-500 text-[11px]">
-              If you believe this is an error, please ensure the unsubscribe
-              link you clicked is complete and unmodified.
-            </div>
-          </div>
-        )}
-
-        {/* Interactive Preferences Manager */}
-        {preferences && (
+          }
+        >
           <UnsubscribeManager
-            initialPreferences={preferences}
-            highlightedListName={
-              typeof highlightedListName === "string"
-                ? highlightedListName
-                : undefined
-            }
+            preferencesPromise={preferencesPromise}
+            highlightedListNamePromise={highlightedListNamePromise}
           />
-        )}
+        </Suspense>
       </div>
     </div>
   );
 }
+
+

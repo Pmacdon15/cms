@@ -9,11 +9,6 @@ import { dalGetMailingLists } from "../../dal/mailing_lists";
 
 export const revalidate = 0; // Force dynamic server rendering
 
-// PageProps type mock since it's not exported globally here
-type PageProps<_T> = {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-};
-
 export default function CampaignsPage(props: PageProps<"/campaigns">) {
   const searchParamsPromise = props.searchParams;
   const clientPromise = searchParamsPromise.then((p) => parseParams(p.client));

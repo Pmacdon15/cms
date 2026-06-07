@@ -1,39 +1,47 @@
 "use client";
 
 import { BellOff, CheckCircle, Layers, Mail } from "lucide-react";
-import { useState } from "react";
+import { use, useState } from "react";
 import { Checkbox } from "../../components/ui/checkbox";
 import {
   useUpdateGlobalOptInMutation,
   useUpdateSubscriptionStatusMutation,
 } from "../../mutations/mailing_lists";
 
-interface UnsubscribeManagerProps {
-  initialPreferences: {
-    client: { id: string; name: string; email: string } | null;
-    globalOptIn: boolean;
-    subscriptions: Array<{
-      listName: string;
-      description: string;
-      status: "subscribed" | "unsubscribed";
-    }>;
-  };
-  highlightedListName?: string;
-}
-
 export function UnsubscribeManager({
-  initialPreferences,
-  highlightedListName,
-}: UnsubscribeManagerProps) {
-  const [globalOptIn, setGlobalOptIn] = useState(
-    initialPreferences.globalOptIn,
-  );
-  const [subscriptions, setSubscriptions] = useState(
-    initialPreferences.subscriptions,
-  );
+  preferencesPromise,
+  highlightedListNamePromise,
+}: {
+  preferencesPromise: Promise<
+    | {
+        ok: true;
+        value: {
+          client: { id: string; name: string; email: string } | null;
+          globalOptIn: boolean;
+          subscriptions: Array<{
+            listName: string;
+            description: string;
+            status: "subscribed" | "unsubscribed";
+          }>;
+        };
+      }
+    | { ok: false; error: string }
+  >;
+  highlightedListNamePromise: Promise<string | undefined>;
+}) {
+  const initialPreferences = use(preferencesPromise);
+  const highlightedListName = use(highlightedListNamePromise);
 
-  const clientEmail = initialPreferences.client?.email || "";
-  const clientId = initialPreferences.client?.id || "";
+  // Normalize promise result to a safe preferences object
+  const prefs = initialPreferences.ok
+    ? initialPreferences.value
+    : { client: null, globalOptIn: false, subscriptions: [] };
+
+  const [globalOptIn, setGlobalOptIn] = useState(prefs.globalOptIn);
+  const [subscriptions, setSubscriptions] = useState(prefs.subscriptions);
+
+  const clientEmail = prefs.client?.email || "";
+  const clientId = prefs.client?.id || "";
 
   // Mutations
   const updateGlobalOptIn = useUpdateGlobalOptInMutation();
@@ -59,8 +67,8 @@ export function UnsubscribeManager({
 
     if (!result.ok) {
       // Revert state on failure
-      setGlobalOptIn(initialPreferences.globalOptIn);
-      setSubscriptions(initialPreferences.subscriptions);
+      setGlobalOptIn(prefs.globalOptIn);
+      setSubscriptions(prefs.subscriptions);
     }
   };
 
@@ -89,7 +97,7 @@ export function UnsubscribeManager({
 
     if (!result.ok) {
       // Revert state on failure
-      setSubscriptions(initialPreferences.subscriptions);
+      setSubscriptions(prefs.subscriptions);
     }
   };
 
@@ -129,7 +137,7 @@ export function UnsubscribeManager({
             checked={globalOptIn}
             onChange={(e) => handleGlobalToggle(e.target.checked)}
             label={globalOptIn ? "Opted In" : "Opted Out"}
-            className="flex-shrink-0 cursor-pointer"
+            className="shrink-0 cursor-pointer"
           />
         </div>
       </div>
@@ -182,7 +190,7 @@ export function UnsubscribeManager({
                     onChange={() => handleListToggle(sub.listName, sub.status)}
                     disabled={!globalOptIn}
                     label={isSubscribed ? "Active" : "Paused"}
-                    className={`flex-shrink-0 ${globalOptIn ? "cursor-pointer" : "cursor-not-allowed"}`}
+                    className={`shrink-0 ${globalOptIn ? "cursor-pointer" : "cursor-not-allowed"}`}
                   />
                 </div>
               );
@@ -194,7 +202,7 @@ export function UnsubscribeManager({
       {/* Global Opt-Out Informational block */}
       {!globalOptIn && (
         <div className="p-4 rounded-xl border border-zinc-200 bg-zinc-50/50 text-[11px] text-zinc-500 flex items-center gap-2">
-          <BellOff className="w-4 h-4 text-blue-600 flex-shrink-0" />
+          <BellOff className="w-4 h-4 text-blue-600 shrink-0" />
           <span>You have unsubscribed globally from all campaigns.</span>
         </div>
       )}
