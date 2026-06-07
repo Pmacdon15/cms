@@ -5,9 +5,7 @@ import { dalGetClientSubscriptionsById } from "../../dal/mailing_lists";
 export const revalidate = 0; // Force dynamic loading
 
 export default function UnsubscribePage(props: PageProps<"/unsubscribe">) {
-  const idPromise = props.searchParams.then((p) =>
-    Array.isArray(p.id) ? p.id[0] : (p.id ?? ""),
-  );
+  
   const highlightedListNamePromise = props.searchParams.then((sp) =>
     typeof sp.listName === "string" ? sp.listName : undefined,
   );

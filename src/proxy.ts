@@ -6,10 +6,10 @@ const isProtectedRoute = createRouteMatcher([
   // "/",
   "/clients(.*)",
   "/campaigns(.*)",
+  "/unsubscribe(.*)",
 ]);
 
 export default function middleware(req: NextRequest, event: NextFetchEvent) {
-  
   return clerkMiddleware(async (auth, request) => {
     if (isProtectedRoute(request)) {
       await auth.protect();
