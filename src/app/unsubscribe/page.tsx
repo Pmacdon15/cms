@@ -1,11 +1,11 @@
 import { Suspense } from "react";
+import Logo from "@/components/Logo";
 import { UnsubscribeManager } from "@/components/ui/UnsubscribeManager";
 import { dalGetClientSubscriptionsById } from "../../dal/mailing_lists";
 
 export const revalidate = 0; // Force dynamic loading
 
 export default function UnsubscribePage(props: PageProps<"/unsubscribe">) {
-  
   const highlightedListNamePromise = props.searchParams.then((sp) =>
     typeof sp.listName === "string" ? sp.listName : undefined,
   );
@@ -19,10 +19,8 @@ export default function UnsubscribePage(props: PageProps<"/unsubscribe">) {
       <div className="relative z-10 w-full max-w-xl flex flex-col gap-6">
         {/* Brand Header */}
         <div className="flex items-center justify-center gap-2 group mb-2">
-          <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-md shadow-sm">
-            Ω
-          </div>
-          <span className="font-extrabold text-lg tracking-wider text-zinc-900">
+          <Logo className="w-9 h-9" />
+          <span className="font-extrabold text-lg tracking-wider text-zinc-900 font-display">
             CMS<span className="text-blue-600 font-semibold"> Pro</span>
           </span>
         </div>
@@ -43,5 +41,3 @@ export default function UnsubscribePage(props: PageProps<"/unsubscribe">) {
     </div>
   );
 }
-
-

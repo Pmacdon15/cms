@@ -38,13 +38,17 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans antialiased select-none">
         <Providers>
           <div className="flex flex-col min-h-screen bg-background">
-            <Suspense fallback={<div className="h-15 border-b border-zinc-200 bg-white" />}>
+            <Suspense
+              fallback={
+                <div className="h-15 border-b border-zinc-200 bg-white" />
+              }
+            >
               <Navbar />
             </Suspense>
             {children}
             <Footer />
           </div>
-          
+
           <Toaster />
         </Providers>
       </body>

@@ -43,17 +43,19 @@ export async function dbGetClientById(
   id: string,
   orgId?: string,
 ): Promise<Client | null> {
-  const rows = (orgId
-    ? await sql`
+  const rows = (
+    orgId
+      ? await sql`
         SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at 
         FROM clients 
         WHERE id = ${id} AND org_id = ${orgId}
       `
-    : await sql`
+      : await sql`
         SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at 
         FROM clients 
         WHERE id = ${id}
-      `) as any[];
+      `
+  ) as any[];
   if (rows.length === 0) return null;
   return rows[0] as Client;
 }
@@ -65,17 +67,19 @@ export async function dbGetClientByEmail(
   email: string,
   orgId?: string,
 ): Promise<Client | null> {
-  const rows = (orgId
-    ? await sql`
+  const rows = (
+    orgId
+      ? await sql`
         SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at 
         FROM clients 
         WHERE email = ${email} AND org_id = ${orgId}
       `
-    : await sql`
+      : await sql`
         SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at 
         FROM clients 
         WHERE email = ${email}
-      `) as any[];
+      `
+  ) as any[];
   if (rows.length === 0) return null;
   return rows[0] as Client;
 }
@@ -104,19 +108,21 @@ export async function dbUpdateClientOptIn(
   optInSms: boolean,
   orgId?: string,
 ): Promise<Client | null> {
-  const rows = (orgId
-    ? await sql`
+  const rows = (
+    orgId
+      ? await sql`
         UPDATE clients
         SET opt_in_newsletter = ${optInNewsletter}, opt_in_sms = ${optInSms}
         WHERE id = ${id} AND org_id = ${orgId}
         RETURNING id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at
       `
-    : await sql`
+      : await sql`
         UPDATE clients
         SET opt_in_newsletter = ${optInNewsletter}, opt_in_sms = ${optInSms}
         WHERE id = ${id}
         RETURNING id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at
-      `) as any[];
+      `
+  ) as any[];
   if (rows.length === 0) return null;
   return rows[0] as Client;
 }

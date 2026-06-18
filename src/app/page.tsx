@@ -1,12 +1,19 @@
 import { auth } from "@clerk/nextjs/server";
 import { Send, Sparkles, Users } from "lucide-react";
 import Link from "next/link";
+import LandingPage from "../components/LandingPage";
+import { checkAuth } from "../dal/auth";
 import { dalGetCampaigns } from "../dal/campaigns";
 import { dalGetClients } from "../dal/clients";
 
 export const revalidate = 0; // Force dynamic rendering
 
 export default async function DashboardPage() {
+  const authResult = await checkAuth();
+  if (authResult.isErr()) {
+    return <LandingPage />;
+  }
+
   // Fetch dashboard stats directly from our Data Access Layer on the Server
   const clientsRes = await dalGetClients();
   const campaignsRes = await dalGetCampaigns();

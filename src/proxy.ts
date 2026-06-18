@@ -6,6 +6,7 @@ const isProtectedRoute = createRouteMatcher([
   // "/",
   "/clients(.*)",
   "/campaigns(.*)",
+  "/mailing-lists(.*)",
   "/unsubscribe(.*)",
 ]);
 

@@ -94,9 +94,7 @@ export async function dalCreateClient(
     const isAdmin = has({ role: "org:admin" });
 
     if (!isAdmin || !orgId) {
-      return err(
-        new Error("Unauthorized."),
-      );
+      return err(new Error("Unauthorized."));
     }
 
     // Input verification
