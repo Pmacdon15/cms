@@ -23,7 +23,6 @@ import {
 } from "../db/mailing_lists";
 import { sql } from "../db/neon";
 import type { MailingList } from "../types/types";
-import { checkAuth } from "./auth";
 import { getOrgFeatures } from "./clerk";
 
 /**
@@ -152,10 +151,8 @@ export async function dalGetMailingListSubscribers(listName: string): Promise<
   | { ok: false; error: string }
 > {
   try {
-    const authResult = await checkAuth();
-    if (authResult.isErr())
-      return { ok: false, error: authResult.error.message };
-    const { orgId } = authResult.value;
+    const { orgId } = await auth.protect();
+
     if (!orgId) {
       return { ok: false, error: "Please select or create an organization." };
     }
@@ -470,14 +467,9 @@ export async function dalDeleteMailingList(
   name: string,
 ): Promise<{ ok: true; value: boolean } | { ok: false; error: string }> {
   try {
-    const authResult = await checkAuth();
-    if (authResult.isErr())
-      return { ok: false, error: authResult.error.message };
-    const { orgId, isAdmin } = authResult.value;
-    if (!orgId) {
-      return { ok: false, error: "Please select or create an organization." };
-    }
-    if (!isAdmin) {
+    const { orgId, has } = await auth.protect();
+
+    if (!has({ role: "org:admin" }) || !orgId) {
       return {
         ok: false,
         error:
@@ -504,14 +496,9 @@ export async function dalEditMailingList(
   description?: string,
 ): Promise<{ ok: true; value: MailingList } | { ok: false; error: string }> {
   try {
-    const authResult = await checkAuth();
-    if (authResult.isErr())
-      return { ok: false, error: authResult.error.message };
-    const { orgId, isAdmin } = authResult.value;
-    if (!orgId) {
-      return { ok: false, error: "Please select or create an organization." };
-    }
-    if (!isAdmin) {
+    const { orgId, has } = await auth.protect();
+
+    if (!has({ role: "org:admin" }) || !orgId) {
       return {
         ok: false,
         error: "Unauthorized. Only organization admins can edit mailing lists.",
