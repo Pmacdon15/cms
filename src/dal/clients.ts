@@ -13,7 +13,6 @@ import {
 import { dbUpdateSubscriptionStatus } from "../db/mailing_lists";
 import type { Client, ClientInput } from "../types/types";
 
-
 /**
  * Fetch clients with auth protection and filter parameters (search term or specific client)
  */
@@ -22,11 +21,8 @@ export async function dalGetClients(params?: {
   client?: string;
 }): Promise<{ ok: true; value: Client[] } | { ok: false; error: string }> {
   try {
-    const authResult = await checkAuth();
-    if (authResult.isErr()) {
-      return { ok: false, error: authResult.error.message };
-    }
-    const { orgId } = authResult.value;
+    const { orgId } = await auth.protect();
+
     if (!orgId) {
       return { ok: false, error: "Please select or create an organization." };
     }
@@ -60,11 +56,8 @@ export async function dalSearchClients(
   query: string,
 ): Promise<Result<Client[], Error>> {
   try {
-    const authResult = await checkAuth();
-    if (authResult.isErr()) {
-      return err(authResult.error);
-    }
-    const { orgId } = authResult.value;
+    const { orgId } = await auth.protect();
+
     if (!orgId) {
       return err(new Error("Please select or create an organization."));
     }
@@ -154,15 +147,9 @@ export async function dalUpdateClientOptIn(
   optInSms: boolean,
 ): Promise<Result<Client, Error>> {
   try {
-    const authResult = await checkAuth();
-    if (authResult.isErr()) {
-      return err(authResult.error);
-    }
-    const { orgId, isAdmin } = authResult.value;
-    if (!orgId) {
-      return err(new Error("Please select or create an organization."));
-    }
-    if (!isAdmin) {
+    const { orgId, has } = await auth.protect();
+
+    if (!has({ role: "org:admin" }) || !orgId) {
       return err(
         new Error(
           "Unauthorized. Only organization admins can update subscription preferences.",
@@ -199,15 +186,9 @@ export async function dalUpdateClient(
   input: ClientInput,
 ): Promise<Result<Client, Error>> {
   try {
-    const authResult = await checkAuth();
-    if (authResult.isErr()) {
-      return err(authResult.error);
-    }
-    const { orgId, isAdmin } = authResult.value;
-    if (!orgId) {
-      return err(new Error("Please select or create an organization."));
-    }
-    if (!isAdmin) {
+    const { orgId, has } = await auth.protect();
+
+    if (!has({ role: "org:admin" }) || !orgId) {
       return err(
         new Error(
           "Unauthorized. Only organization admins can update client details.",
@@ -251,15 +232,9 @@ export async function dalDeleteClient(
   id: string,
 ): Promise<Result<boolean, Error>> {
   try {
-    const authResult = await checkAuth();
-    if (authResult.isErr()) {
-      return err(authResult.error);
-    }
-    const { orgId, isAdmin } = authResult.value;
-    if (!orgId) {
-      return err(new Error("Please select or create an organization."));
-    }
-    if (!isAdmin) {
+    const { orgId, has } = await auth.protect();
+
+    if (!has({ role: "org:admin" }) || !orgId) {
       return err(
         new Error("Unauthorized. Only organization admins can delete clients."),
       );
