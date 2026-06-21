@@ -7,8 +7,6 @@ import {
   dalGetMailingLists,
 } from "../../dal/mailing_lists";
 
-export const revalidate = 0; // Force dynamic server rendering
-
 export default function MailingListsPage(props: PageProps<"/mailing-lists">) {
   const searchParamsPromise = props.searchParams;
   const selectedListNamePromise = searchParamsPromise.then((p) =>

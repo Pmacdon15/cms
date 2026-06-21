@@ -13,7 +13,6 @@ import {
 import { dbGetCampaignRecipients } from "../db/clients";
 import { dbGetMailingListsCount } from "../db/mailing_lists";
 import type { Campaign, CampaignInput, SentMessage } from "../types/types";
-import { checkAuth } from "./auth";
 
 /**
  * Fetch campaign history
@@ -22,10 +21,8 @@ export async function dalGetCampaigns(
   clientId?: string,
 ): Promise<{ ok: true; value: Campaign[] } | { ok: false; error: string }> {
   try {
-    const authResult = await checkAuth();
-    if (authResult.isErr())
-      return { ok: false, error: authResult.error.message };
-    const { orgId } = authResult.value;
+    const { orgId } = await auth.protect();
+
     if (!orgId) {
       return { ok: false, error: "Please select or create an organization." };
     }
@@ -183,10 +180,7 @@ export async function dalGetSentMessages(
   campaignId: string,
 ): Promise<{ ok: true; value: SentMessage[] } | { ok: false; error: string }> {
   try {
-    const authResult = await checkAuth();
-    if (authResult.isErr())
-      return { ok: false, error: authResult.error.message };
-    const { orgId } = authResult.value;
+    const { orgId } = await auth.protect();
     if (!orgId) {
       return { ok: false, error: "Please select or create an organization." };
     }

@@ -7,8 +7,6 @@ import { dalGetCampaigns } from "../../dal/campaigns";
 import { dalGetClients } from "../../dal/clients";
 import { dalGetMailingLists } from "../../dal/mailing_lists";
 
-export const revalidate = 0; // Force dynamic server rendering
-
 export default function CampaignsPage(props: PageProps<"/campaigns">) {
   const searchParamsPromise = props.searchParams;
   const clientPromise = searchParamsPromise.then((p) => parseParams(p.client));

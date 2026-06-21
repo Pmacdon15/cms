@@ -5,8 +5,6 @@ import ClientList from "@/components/ClientList";
 import { parseParams } from "@/utils/params";
 import { dalGetClients } from "../../dal/clients";
 
-export const revalidate = 0; // Force dynamic server rendering
-
 export default function ClientsPage(props: PageProps<"/clients">) {
   const clientsPromise = props.searchParams.then((p) =>
     dalGetClients({
