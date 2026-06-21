@@ -1,13 +1,15 @@
 "use client";
 
 import { Mail, Phone, Search, X } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDebounce } from "../../utils/useDebounce";
 
 export function MailingListSearchBar({
   initialSearch,
   subscribers,
+  onSelectSubscriber,
+  onSubmitSearch,
+  onClear,
 }: {
   initialSearch: string;
   subscribers: Array<{
@@ -16,10 +18,10 @@ export function MailingListSearchBar({
     email: string;
     phone_number: string;
   }>;
+  onSelectSubscriber?: (id: string, name: string) => void;
+  onSubmitSearch?: (search: string) => void;
+  onClear?: () => void;
 }) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
   const getNameForSearch = useCallback(
     (s: string) => {
       if (!s) return "";
@@ -38,12 +40,6 @@ export function MailingListSearchBar({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const debouncedSearch = useDebounce(inputValue, 300);
-
-  // Sync when URL changes externally
-  useEffect(() => {
-    const s = searchParams.get("client") || searchParams.get("search") || "";
-    setInputValue(getNameForSearch(s));
-  }, [searchParams, getNameForSearch]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -75,29 +71,13 @@ export function MailingListSearchBar({
     setInputValue(subscriber.name);
     setShowDropdown(false);
     setActiveIndex(-1);
-
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("client", subscriber.id);
-    params.delete("search");
-    router.replace(`/mailing-lists?${params.toString()}`, { scroll: false });
+    onSelectSubscriber?.(subscriber.id, subscriber.name);
   };
 
   const handleSearchSubmit = () => {
     setShowDropdown(false);
     setActiveIndex(-1);
-
-    const params = new URLSearchParams(searchParams.toString());
-    if (inputValue.trim()) {
-      params.set("search", inputValue.trim());
-      params.delete("client");
-    } else {
-      params.delete("search");
-      params.delete("client");
-    }
-
-    if (params.toString() !== searchParams.toString()) {
-      router.replace(`/mailing-lists?${params.toString()}`, { scroll: false });
-    }
+    onSubmitSearch?.(inputValue.trim());
   };
 
   const handleClear = () => {
@@ -105,11 +85,7 @@ export function MailingListSearchBar({
     setShowDropdown(false);
     setActiveIndex(-1);
     inputRef.current?.focus();
-
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("search");
-    params.delete("client");
-    router.replace(`/mailing-lists?${params.toString()}`, { scroll: false });
+    onClear?.();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

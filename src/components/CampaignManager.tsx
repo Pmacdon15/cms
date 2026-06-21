@@ -2,7 +2,7 @@
 
 import { Search, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { use, useEffect, useRef, useState } from "react";
+import { startTransition, use, useEffect, useRef, useOptimistic, useState } from "react";
 import type { Campaign, Client, MailingList } from "../types/types";
 import { useDebounce } from "../utils/useDebounce";
 import { CampaignForm } from "./CampaignForm";
@@ -11,36 +11,28 @@ import { CampaignList } from "./CampaignList";
 function CampaignSearchBar({
   initialSearch,
   selectedClientName,
+  onSearch,
+  onClear,
 }: {
   initialSearch: string;
   selectedClientName?: string;
+  onSearch?: (query: string) => void;
+  onClear?: () => void;
 }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [inputValue, setInputValue] = useState(initialSearch);
+  const [inputValue, setInputValue] = useState(
+    selectedClientName || initialSearch,
+  );
 
   const debouncedSearch = useDebounce(inputValue, 300);
-  const lastUpdatedValueRef = useRef(initialSearch);
-
-  // Sync when URL changes externally (e.g. back/forward navigation)
-  useEffect(() => {
-    const searchVal = searchParams.get("search") || "";
-    const clientVal = searchParams.get("client") || "";
-    if (clientVal && selectedClientName) {
-      setInputValue(selectedClientName);
-      lastUpdatedValueRef.current = selectedClientName;
-    } else if (!clientVal) {
-      setInputValue(searchVal);
-      lastUpdatedValueRef.current = searchVal;
-    }
-  }, [searchParams, selectedClientName]);
+  const lastUpdatedValueRef = useRef(selectedClientName || initialSearch);
 
   // Update URL with debounced value if it's different from the last updated URL state
   useEffect(() => {
     if (debouncedSearch === lastUpdatedValueRef.current) {
       return;
     }
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(window.location.search);
     if (debouncedSearch) {
       if (selectedClientName && debouncedSearch !== selectedClientName) {
         params.delete("client");
@@ -52,8 +44,16 @@ function CampaignSearchBar({
     }
     const qs = params.toString();
     lastUpdatedValueRef.current = debouncedSearch;
-    router.replace(qs ? `/campaigns?${qs}` : "/campaigns", { scroll: false });
-  }, [debouncedSearch, router, searchParams, selectedClientName]);
+
+    startTransition(() => {
+      if (debouncedSearch) {
+        onSearch?.(debouncedSearch);
+      } else {
+        onClear?.();
+      }
+      router.replace(qs ? `/campaigns?${qs}` : "/campaigns", { scroll: false });
+    });
+  }, [debouncedSearch, router, selectedClientName, onSearch, onClear]);
 
   return (
     <div className="relative w-full sm:w-64">
@@ -71,17 +71,20 @@ function CampaignSearchBar({
           onClick={() => {
             setInputValue("");
             lastUpdatedValueRef.current = "";
-            const params = new URLSearchParams(searchParams.toString());
+            const params = new URLSearchParams(window.location.search);
             params.delete("search");
             params.delete("client");
-            router.replace(
-              params.toString()
-                ? `/campaigns?${params.toString()}`
-                : "/campaigns",
-              {
-                scroll: false,
-              },
-            );
+            startTransition(() => {
+              onClear?.();
+              router.replace(
+                params.toString()
+                  ? `/campaigns?${params.toString()}`
+                  : "/campaigns",
+                {
+                  scroll: false,
+                },
+              );
+            });
           }}
           className="absolute top-1/2 right-2.5 -translate-y-1/2 cursor-pointer text-zinc-400 transition-colors hover:text-zinc-600"
         >
@@ -126,20 +129,64 @@ export default function CampaignManager({
     ? use(selectedClientPromise)
     : null;
 
+  const [optimisticState, setOptimisticState] = useOptimistic(
+    {
+      currentSearch,
+      selectedClient,
+    },
+    (
+      state,
+      action: { type: "search"; query: string } | { type: "clear" },
+    ) => {
+      if (action.type === "search") {
+        return {
+          ...state,
+          currentSearch: action.query,
+          selectedClient: null,
+        };
+      }
+      if (action.type === "clear") {
+        return {
+          ...state,
+          currentSearch: "",
+          selectedClient: null,
+        };
+      }
+      return state;
+    },
+  );
+
+  const handleSearch = (query: string) => {
+    setOptimisticState({ type: "search", query });
+  };
+
+  const handleClear = () => {
+    setOptimisticState({ type: "clear" });
+  };
+
   const filteredCampaigns =
     campaigns.ok && campaigns.value
       ? campaigns.value.filter((c) => {
-          if (selectedClient && currentSearch === selectedClient.name) {
+          if (
+            optimisticState.selectedClient &&
+            optimisticState.currentSearch === optimisticState.selectedClient.name
+          ) {
             return true;
           }
-          if (!currentSearch) return true;
+          if (!optimisticState.currentSearch) return true;
           return (
-            c.subject?.toLowerCase().includes(currentSearch.toLowerCase()) ||
-            c.content?.toLowerCase().includes(currentSearch.toLowerCase()) ||
+            c.subject
+              ?.toLowerCase()
+              .includes(optimisticState.currentSearch.toLowerCase()) ||
+            c.content
+              ?.toLowerCase()
+              .includes(optimisticState.currentSearch.toLowerCase()) ||
             c.mailing_list_name
               ?.toLowerCase()
-              .includes(currentSearch.toLowerCase()) ||
-            c.type?.toLowerCase().includes(currentSearch.toLowerCase())
+              .includes(optimisticState.currentSearch.toLowerCase()) ||
+            c.type
+              ?.toLowerCase()
+              .includes(optimisticState.currentSearch.toLowerCase())
           );
         })
       : [];
@@ -162,10 +209,17 @@ export default function CampaignManager({
               Dispatch History & Logs
             </h2>
             <CampaignSearchBar
+              key={`${optimisticState.currentSearch}-${
+                optimisticState.selectedClient?.id || ""
+              }`}
               initialSearch={
-                selectedClient ? selectedClient.name : currentSearch
+                optimisticState.selectedClient
+                  ? optimisticState.selectedClient.name
+                  : optimisticState.currentSearch
               }
-              selectedClientName={selectedClient?.name}
+              selectedClientName={optimisticState.selectedClient?.name}
+              onSearch={handleSearch}
+              onClear={handleClear}
             />
           </div>
           <CampaignList initialCampaigns={filteredCampaigns} hasSms={hasSms} />
