@@ -21,8 +21,8 @@ export async function actionGetClients(params?: {
 }) {
   const result = await dalGetClients(params);
   return result.match(
-    (value) => ({ ok: true, value }),
-    (error) => ({ ok: false, error: error.reason }),
+    (value) => ({ ok: true as const, value }),
+    (error) => ({ ok: false as const, error: error.reason }),
   );
 }
 
@@ -32,8 +32,8 @@ export async function actionGetClients(params?: {
 export async function actionSearchClients(query: string) {
   const result = await dalSearchClients(query);
   return result.match(
-    (value) => ({ ok: true, value }),
-    (error) => ({ ok: false, error: error.reason }),
+    (value) => ({ ok: true as const, value }),
+    (error) => ({ ok: false as const, error: error.reason }),
   );
 }
 
@@ -45,9 +45,9 @@ export async function actionCreateClient(input: ClientInput) {
   return result.match(
     (client) => {
       updateTag(`clients-${client.org_id}`);
-      return { ok: true, value: client };
+      return { ok: true as const, value: client };
     },
-    (error) => ({ ok: false, error: error.reason }),
+    (error) => ({ ok: false as const, error: error.reason }),
   );
 }
 
@@ -65,9 +65,9 @@ export async function actionUpdateClientOptIn(
       updateTag(`clients-${client.org_id}`);
       updateTag(`clients-${client.org_id}-id-${client.id}`);
       updateTag(`clients-${client.org_id}-email-${client.email}`);
-      return { ok: true, value: client };
+      return { ok: true as const, value: client };
     },
-    (error) => ({ ok: false, error: error.reason }),
+    (error) => ({ ok: false as const, error: error.reason }),
   );
 }
 
@@ -81,9 +81,9 @@ export async function actionUpdateClient(id: string, input: ClientInput) {
       updateTag(`clients-${client.org_id}`);
       updateTag(`clients-${client.org_id}-id-${client.id}`);
       updateTag(`clients-${client.org_id}-email-${client.email}`);
-      return { ok: true, value: client };
+      return { ok: true as const, value: client };
     },
-    (error) => ({ ok: false, error: error.reason }),
+    (error) => ({ ok: false as const, error: error.reason }),
   );
 }
 
@@ -99,8 +99,8 @@ export async function actionDeleteClient(id: string) {
         updateTag(`clients-${orgId}`);
         updateTag(`clients-${orgId}-id-${id}`);
       }
-      return { ok: true, value };
+      return { ok: true as const, value };
     },
-    (error) => ({ ok: false, error: error.reason }),
+    (error) => ({ ok: false as const, error: error.reason }),
   );
 }

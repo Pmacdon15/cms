@@ -8,14 +8,16 @@ interface ClientTableProps {
   clients: Client[];
   hasSms: boolean;
   currentSearch: string;
-  onSelectClient: (client: Client) => void;
+  onOptimisticUpdate?: (
+    action: { type: "update"; client: Client } | { type: "delete"; id: string },
+  ) => void;
 }
 
 export function ClientTable({
   clients,
   hasSms,
   currentSearch,
-  onSelectClient,
+  onOptimisticUpdate,
 }: ClientTableProps) {
   if (clients.length === 0) {
     return (
@@ -44,7 +46,7 @@ export function ClientTable({
             key={client.id}
             client={client}
             hasSms={hasSms}
-            onSelectClient={onSelectClient}
+            onOptimisticUpdate={onOptimisticUpdate}
           />
         ))}
       </TableBody>

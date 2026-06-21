@@ -9,7 +9,7 @@ export async function dbGetClients(orgId: string): Promise<Client[]> {
   "use cache";
   cacheTag(`clients-${orgId}`);
   const rows = await sql`
-    SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at 
+    SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, org_id, created_at 
     FROM clients 
     WHERE org_id = ${orgId}
     ORDER BY created_at DESC
@@ -28,7 +28,7 @@ export async function dbSearchClients(
   cacheTag(`clients-${orgId}`, `clients-${orgId}-search-${query}`);
   const pattern = `%${query}%`;
   const rows = await sql`
-    SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at 
+    SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, org_id, created_at 
     FROM clients 
     WHERE org_id = ${orgId}
       AND (
@@ -55,12 +55,12 @@ export async function dbGetClientById(
   const rows = (
     orgId
       ? await sql`
-        SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at 
+        SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, org_id, created_at 
         FROM clients 
         WHERE id = ${id} AND org_id = ${orgId}
       `
       : await sql`
-        SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at 
+        SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, org_id, created_at 
         FROM clients 
         WHERE id = ${id}
       `
@@ -83,12 +83,12 @@ export async function dbGetClientByEmail(
   const rows = (
     orgId
       ? await sql`
-        SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at 
+        SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, org_id, created_at 
         FROM clients 
         WHERE email = ${email} AND org_id = ${orgId}
       `
       : await sql`
-        SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at 
+        SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, org_id, created_at 
         FROM clients 
         WHERE email = ${email}
       `
@@ -107,7 +107,7 @@ export async function dbCreateClient(
   const rows = (await sql`
     INSERT INTO clients (name, email, phone_number, opt_in_newsletter, opt_in_sms, org_id)
     VALUES (${input.name}, ${input.email}, ${input.phone_number}, true, true, ${orgId})
-    RETURNING id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at
+    RETURNING id, name, email, phone_number, opt_in_newsletter, opt_in_sms, org_id, created_at
   `) as Client[];
   return rows[0];
 }
@@ -127,13 +127,13 @@ export async function dbUpdateClientOptIn(
         UPDATE clients
         SET opt_in_newsletter = ${optInNewsletter}, opt_in_sms = ${optInSms}
         WHERE id = ${id} AND org_id = ${orgId}
-        RETURNING id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at
+        RETURNING id, name, email, phone_number, opt_in_newsletter, opt_in_sms, org_id, created_at
       `
       : await sql`
         UPDATE clients
         SET opt_in_newsletter = ${optInNewsletter}, opt_in_sms = ${optInSms}
         WHERE id = ${id}
-        RETURNING id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at
+        RETURNING id, name, email, phone_number, opt_in_newsletter, opt_in_sms, org_id, created_at
       `
   ) as Client[];
   if (rows.length === 0) return null;
@@ -152,7 +152,7 @@ export async function dbUpdateClient(
     UPDATE clients
     SET name = ${input.name}, email = ${input.email}, phone_number = ${input.phone_number}
     WHERE id = ${id} AND org_id = ${orgId}
-    RETURNING id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at
+    RETURNING id, name, email, phone_number, opt_in_newsletter, opt_in_sms, org_id, created_at
   `) as Client[];
   if (rows.length === 0) return null;
   return rows[0];
@@ -169,7 +169,7 @@ export async function dbGetCampaignRecipients(
   if (mailingListName) {
     cacheTag(`clients-${orgId}`, `clients-${orgId}-list-${mailingListName}`);
     const rows = await sql`
-      SELECT c.id, c.name, c.email, c.phone_number, c.opt_in_newsletter, c.opt_in_sms, c.created_at
+      SELECT c.id, c.name, c.email, c.phone_number, c.opt_in_newsletter, c.opt_in_sms, c.org_id, c.created_at
       FROM clients c
       JOIN mailing_list_subscriptions mls ON mls.client_id = c.id
       WHERE mls.mailing_list_name = ${mailingListName} 

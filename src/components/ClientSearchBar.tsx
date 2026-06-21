@@ -2,8 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Mail, Phone, Search, X } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { startTransition, useEffect, useRef, useState } from "react";
 import { actionSearchClients } from "../actions/clients";
 import type { Client } from "../types/types";
 import { useDebounce } from "../utils/useDebounce";
@@ -15,14 +15,25 @@ import { useDebounce } from "../utils/useDebounce";
  * - Pressing Enter navigates to /clients?search=TERM (full table search).
  */
 export function ClientSearchBar({
-  selectedClientName,
+  initialSearch = "",
+  selectedClientName = "",
+  onOptimisticUpdate,
+  onClear,
 }: {
+  initialSearch?: string;
   selectedClientName?: string;
+  onOptimisticUpdate?: (
+    action:
+      | { type: "update"; client: Client }
+      | { type: "delete"; id: string }
+      | { type: "selectClient"; id: string; client: Client }
+      | { type: "submitSearch"; search: string; clients: Client[] },
+  ) => void;
+  onClear?: () => void;
 }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [inputValue, setInputValue] = useState(
-    searchParams.get("search") || "",
+    selectedClientName || initialSearch,
   );
   const [showDropdown, setShowDropdown] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -30,17 +41,6 @@ export function ClientSearchBar({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const debouncedSearch = useDebounce(inputValue, 300);
-
-  // Sync input value with URL search param changes (e.g. back/forward navigation)
-  useEffect(() => {
-    const s = searchParams.get("search") || "";
-    const c = searchParams.get("client");
-    if (c && selectedClientName) {
-      setInputValue(selectedClientName);
-    } else if (!c) {
-      setInputValue(s);
-    }
-  }, [searchParams, selectedClientName]);
 
   // Autocomplete suggestions
   const { data: suggestions = [], isFetching: isSearching } = useQuery({
@@ -76,14 +76,24 @@ export function ClientSearchBar({
     setInputValue(client.name);
     setShowDropdown(false);
     setActiveIndex(-1);
-    router.push(`/clients?client=${client.id}`);
+    startTransition(() => {
+      onOptimisticUpdate?.({ type: "selectClient", id: client.id, client });
+      router.push(`/clients?client=${client.id}`);
+    });
   };
 
   const handleSearchSubmit = () => {
     setShowDropdown(false);
     setActiveIndex(-1);
     if (inputValue.trim()) {
-      router.push(`/clients?search=${encodeURIComponent(inputValue.trim())}`);
+      startTransition(() => {
+        onOptimisticUpdate?.({
+          type: "submitSearch",
+          search: inputValue.trim(),
+          clients: suggestions,
+        });
+        router.push(`/clients?search=${encodeURIComponent(inputValue.trim())}`);
+      });
     } else {
       router.push("/clients");
     }
@@ -94,7 +104,7 @@ export function ClientSearchBar({
     setShowDropdown(false);
     setActiveIndex(-1);
     inputRef.current?.focus();
-    router.push("/clients");
+    onClear?.();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

@@ -1,21 +1,17 @@
 "use client";
 
 import { ArrowLeft, Mail, Phone, User } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import {
-  useDeleteClientMutation,
-  useUpdateClientOptInMutation,
-} from "../../mutations/clients";
+import { useState } from "react";
+import { useClientNavigation } from "@/hooks/useClientNavigation";
 import type { Client } from "../../types/types";
 import { ClientForm } from "../ClientForm";
-import { Checkbox } from "../ui/checkbox";
+import { ClientDeleteButton } from "./client-delete-button";
+import { ClientOptInCheckbox } from "./client-opt-in-checkbox";
 import { Dialog } from "./dialog";
 
 interface ClientDetailViewProps {
   client: Client;
   hasSms: boolean;
-  onBack: () => void;
   onOptimisticUpdate?: (
     action: { type: "update"; client: Client } | { type: "delete"; id: string },
   ) => void;
@@ -24,52 +20,10 @@ interface ClientDetailViewProps {
 export function ClientDetailView({
   client,
   hasSms,
-  onBack,
   onOptimisticUpdate,
 }: ClientDetailViewProps) {
-  const _router = useRouter();
-  const deleteMutation = useDeleteClientMutation();
-  const optInMutation = useUpdateClientOptInMutation();
-
+  const { handleClear } = useClientNavigation();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [optInNewsletter, setOptInNewsletter] = useState(
-    client.opt_in_newsletter,
-  );
-  const [optInSms, setOptInSms] = useState(client.opt_in_sms);
-
-  useEffect(() => {
-    setOptInNewsletter(client.opt_in_newsletter);
-    setOptInSms(client.opt_in_sms);
-  }, [client]);
-
-  const handleOptInToggle = async (
-    channel: "email" | "sms",
-    checked: boolean,
-  ) => {
-    const nextNewsletter = channel === "email" ? checked : optInNewsletter;
-    const nextSms = channel === "sms" ? checked : optInSms;
-
-    if (channel === "email") setOptInNewsletter(checked);
-    if (channel === "sms") setOptInSms(checked);
-
-    const result = await optInMutation.mutateAsync({
-      id: client.id,
-      optInNewsletter: nextNewsletter,
-      optInSms: nextSms,
-    });
-
-    if (!result.ok) {
-      if (channel === "email") setOptInNewsletter(!checked);
-      if (channel === "sms") setOptInSms(!checked);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!confirm("Are you sure you want to remove this client?")) return;
-    onOptimisticUpdate?.({ type: "delete", id: client.id });
-    onBack();
-    await deleteMutation.mutateAsync(client.id);
-  };
 
   const initials = client.name
     .split(" ")
@@ -82,7 +36,7 @@ export function ClientDetailView({
     <div className="animate-fade-in-scale">
       <button
         type="button"
-        onClick={onBack}
+        onClick={handleClear}
         className="group mb-4 flex cursor-pointer items-center gap-1.5 font-medium text-sm text-zinc-500 transition-colors hover:text-zinc-800"
       >
         <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
@@ -104,14 +58,15 @@ export function ClientDetailView({
               >
                 Edit Profile
               </button>
-              <button
-                onClick={handleDelete}
+              <ClientDeleteButton
+                clientId={client.id}
                 className="cursor-pointer rounded-lg border border-rose-200 bg-white px-3 py-1.5 font-semibold text-rose-500 text-xs shadow-sm transition-all hover:bg-rose-50 hover:text-rose-600"
-                type="button"
-                disabled={deleteMutation.isPending}
-              >
-                {deleteMutation.isPending ? "Removing..." : "Delete Client"}
-              </button>
+                label="Delete Client"
+                onBeforeDelete={() => {
+                  onOptimisticUpdate?.({ type: "delete", id: client.id });
+                  handleClear();
+                }}
+              />
             </div>
           </div>
 
@@ -174,10 +129,10 @@ export function ClientDetailView({
                     Receive campaigns via email
                   </span>
                 </div>
-                <Checkbox
-                  checked={optInNewsletter}
-                  onChange={(e) => handleOptInToggle("email", e.target.checked)}
-                  label={optInNewsletter ? "Subscribed" : "Opted out"}
+                <ClientOptInCheckbox
+                  client={client}
+                  channel="email"
+                  onOptimisticUpdate={onOptimisticUpdate}
                 />
               </div>
 
@@ -191,10 +146,10 @@ export function ClientDetailView({
                       Receive campaigns via text
                     </span>
                   </div>
-                  <Checkbox
-                    checked={optInSms}
-                    onChange={(e) => handleOptInToggle("sms", e.target.checked)}
-                    label={optInSms ? "Subscribed" : "Opted out"}
+                  <ClientOptInCheckbox
+                    client={client}
+                    channel="sms"
+                    onOptimisticUpdate={onOptimisticUpdate}
                   />
                 </div>
               )}

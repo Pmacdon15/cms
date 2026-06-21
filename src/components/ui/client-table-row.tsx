@@ -1,108 +1,65 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import {
-  useDeleteClientMutation,
-  useUpdateClientOptInMutation,
-} from "@/mutations/clients";
+import { useClientNavigation } from "@/hooks/useClientNavigation";
 import type { Client } from "@/types/types";
-import Checkbox from "./checkbox";
+import { ClientDeleteButton } from "./client-delete-button";
+import { ClientOptInCheckbox } from "./client-opt-in-checkbox";
 import { TableCell, TableRow } from "./table";
 
 interface ClientTableRowProps {
   client: Client;
   hasSms: boolean;
-  onSelectClient: (client: Client) => void;
+  onOptimisticUpdate?: (
+    action: { type: "update"; client: Client } | { type: "delete"; id: string },
+  ) => void;
 }
 
 export function ClientTableRow({
   client,
   hasSms,
-  onSelectClient,
+  onOptimisticUpdate,
 }: ClientTableRowProps) {
-  const _router = useRouter();
-  const deleteMutation = useDeleteClientMutation();
-  const optInMutation = useUpdateClientOptInMutation();
-
-  const [optInNewsletter, setOptInNewsletter] = useState(
-    client.opt_in_newsletter,
-  );
-  const [optInSms, setOptInSms] = useState(client.opt_in_sms);
-
-  const handleOptInToggle = async (
-    channel: "email" | "sms",
-    checked: boolean,
-  ) => {
-    const nextNewsletter = channel === "email" ? checked : optInNewsletter;
-    const nextSms = channel === "sms" ? checked : optInSms;
-
-    if (channel === "email") setOptInNewsletter(checked);
-    if (channel === "sms") setOptInSms(checked);
-
-    const result = await optInMutation.mutateAsync({
-      id: client.id,
-      optInNewsletter: nextNewsletter,
-      optInSms: nextSms,
-    });
-
-    if (!result.ok) {
-      if (channel === "email") setOptInNewsletter(!checked);
-      if (channel === "sms") setOptInSms(!checked);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!confirm("Are you sure you want to remove this client?")) return;
-    await deleteMutation.mutateAsync(client.id);
-  };
+  const { handleSelectClient } = useClientNavigation();
 
   return (
-    <TableRow
-      className="cursor-pointer transition-colors hover:bg-blue-50/40"
-      onClick={() => onSelectClient(client)}
-    >
-      <TableCell className="font-bold text-zinc-900">{client.name}</TableCell>
-      <TableCell>
+    <TableRow className="cursor-pointer transition-colors hover:bg-blue-50/40">
+      <TableCell
+        className="font-bold text-zinc-900"
+        onClick={() => handleSelectClient(client)}
+      >
+        {client.name}
+      </TableCell>
+      <TableCell onClick={() => handleSelectClient(client)}>
         <div className="flex flex-col gap-0.5 text-xs text-zinc-500">
           <span>{client.email}</span>
           <span>{client.phone_number}</span>
         </div>
       </TableCell>
       <TableCell>
-        <Checkbox
-          checked={optInNewsletter}
-          onChange={(e) => {
-            e.stopPropagation();
-            handleOptInToggle("email", e.target.checked);
-          }}
-          label={optInNewsletter ? "Subscribed" : "Opted out"}
+        <ClientOptInCheckbox
+          client={client}
+          channel="email"
+          onOptimisticUpdate={onOptimisticUpdate}
         />
       </TableCell>
       {hasSms && (
         <TableCell>
-          <Checkbox
-            checked={optInSms}
-            onChange={(e) => {
-              e.stopPropagation();
-              handleOptInToggle("sms", e.target.checked);
-            }}
-            label={optInSms ? "Subscribed" : "Opted out"}
+          <ClientOptInCheckbox
+            client={client}
+            channel="sms"
+            onOptimisticUpdate={onOptimisticUpdate}
           />
         </TableCell>
       )}
       <TableCell className="text-right">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleDelete();
-          }}
+        <ClientDeleteButton
+          clientId={client.id}
           className="cursor-pointer border-none bg-transparent font-semibold text-rose-500 text-xs hover:text-rose-400 hover:underline"
-          type="button"
-          disabled={deleteMutation.isPending}
-        >
-          {deleteMutation.isPending ? "Removing..." : "Delete"}
-        </button>
+          label="Delete"
+          onBeforeDelete={() => {
+            onOptimisticUpdate?.({ type: "delete", id: client.id });
+          }}
+        />
       </TableCell>
     </TableRow>
   );

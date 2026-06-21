@@ -6,7 +6,7 @@ export async function dbGetMailingLists(orgId: string): Promise<MailingList[]> {
   "use cache";
   cacheTag(`mailing-lists-${orgId}`);
   const rows = await sql`
-    SELECT name, description, status, created_at
+    SELECT name, description, org_id, status, created_at
     FROM mailing_lists
     WHERE org_id = ${orgId} AND status != 'deleted'
     ORDER BY created_at DESC
@@ -26,7 +26,7 @@ export async function dbCreateMailingList(
     INSERT INTO mailing_lists (name, description, org_id, status)
     VALUES (${name}, ${description || null}, ${orgId}, 'active')
     ON CONFLICT (name, org_id) DO UPDATE SET description = EXCLUDED.description, status = 'active'
-    RETURNING name, description, status, created_at
+    RETURNING name, description, org_id, status, created_at
   `) as MailingList[];
   return rows[0];
 }
@@ -272,7 +272,7 @@ export async function dbEditMailingList(
       UPDATE mailing_lists
       SET description = ${description || null}
       WHERE name = ${oldName} AND org_id = ${orgId}
-      RETURNING name, description, status, created_at
+      RETURNING name, description, org_id, status, created_at
     `) as MailingList[];
     return rows[0];
   }
@@ -282,7 +282,7 @@ export async function dbEditMailingList(
     INSERT INTO mailing_lists (name, description, org_id, status)
     VALUES (${newName}, ${description || null}, ${orgId}, 'active')
     ON CONFLICT (name, org_id) DO UPDATE SET description = EXCLUDED.description, status = 'active'
-    RETURNING name, description, status, created_at
+    RETURNING name, description, org_id, status, created_at
   `) as MailingList[];
 
   // 2. Update mailing_list_subscriptions referencing oldName
