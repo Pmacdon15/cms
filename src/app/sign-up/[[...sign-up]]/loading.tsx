@@ -1,4 +1,3 @@
-import { SignIn } from "@clerk/nextjs";
 import Logo from "@/components/Logo";
 
 export default function SignInPage() {
@@ -11,8 +10,6 @@ export default function SignInPage() {
             CMS<span className="text-blue-600 font-semibold"> Pro</span>
           </span>
         </div>
-
-        <SignIn />
       </main>
     </div>
   );
