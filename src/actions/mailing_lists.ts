@@ -30,7 +30,7 @@ export async function actionCreateMailingList(
 ) {
   const parsed = mailingListSchema.safeParse({ name, description });
   if (!parsed.success) {
-    return { ok: false as const, error: parsed.error.errors[0]?.message || "Invalid mailing list input" };
+    return { ok: false as const, error: parsed.error.issues[0]?.message || "Invalid mailing list input" };
   }
   const result = await dalCreateMailingList(parsed.data.name, parsed.data.description);
   return result.match(
@@ -135,7 +135,7 @@ export async function actionEditMailingList(
 ) {
   const parsed = mailingListSchema.safeParse({ name: newName, description });
   if (!parsed.success) {
-    return { ok: false as const, error: parsed.error.errors[0]?.message || "Invalid mailing list input" };
+    return { ok: false as const, error: parsed.error.issues[0]?.message || "Invalid mailing list input" };
   }
   const result = await dalEditMailingList(oldName, parsed.data.name, parsed.data.description);
   return result.match(

@@ -22,7 +22,7 @@ export async function actionGetCampaigns() {
 export async function actionCreateCampaign(input: CampaignInput) {
   const parsed = campaignInputSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false as const, error: parsed.error.errors[0]?.message || "Invalid campaign input" };
+    return { ok: false as const, error: parsed.error.issues[0]?.message || "Invalid campaign input" };
   }
   const result = await dalCreateCampaign(parsed.data);
   return result.match(

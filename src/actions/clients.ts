@@ -44,7 +44,7 @@ export async function actionSearchClients(query: string) {
 export async function actionCreateClient(input: ClientInput) {
   const parsed = clientInputSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false as const, error: parsed.error.errors[0]?.message || "Invalid client input" };
+    return { ok: false as const, error: parsed.error.issues[0]?.message || "Invalid client input" };
   }
   const result = await dalCreateClient(parsed.data);
   return result.match(
@@ -82,7 +82,7 @@ export async function actionUpdateClientOptIn(
 export async function actionUpdateClient(id: string, input: ClientInput) {
   const parsed = clientInputSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false as const, error: parsed.error.errors[0]?.message || "Invalid client input" };
+    return { ok: false as const, error: parsed.error.issues[0]?.message || "Invalid client input" };
   }
   const result = await dalUpdateClient(id, parsed.data);
   return result.match(
