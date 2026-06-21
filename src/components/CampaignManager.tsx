@@ -1,8 +1,15 @@
 "use client";
 
 import { Search, X } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { startTransition, use, useEffect, useRef, useOptimistic, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  startTransition,
+  use,
+  useEffect,
+  useOptimistic,
+  useRef,
+  useState,
+} from "react";
 import type { Campaign, Client, MailingList } from "../types/types";
 import { useDebounce } from "../utils/useDebounce";
 import { CampaignForm } from "./CampaignForm";
@@ -134,10 +141,7 @@ export default function CampaignManager({
       currentSearch,
       selectedClient,
     },
-    (
-      state,
-      action: { type: "search"; query: string } | { type: "clear" },
-    ) => {
+    (state, action: { type: "search"; query: string } | { type: "clear" }) => {
       if (action.type === "search") {
         return {
           ...state,
@@ -169,7 +173,8 @@ export default function CampaignManager({
       ? campaigns.value.filter((c) => {
           if (
             optimisticState.selectedClient &&
-            optimisticState.currentSearch === optimisticState.selectedClient.name
+            optimisticState.currentSearch ===
+              optimisticState.selectedClient.name
           ) {
             return true;
           }

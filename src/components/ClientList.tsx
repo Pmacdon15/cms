@@ -1,9 +1,8 @@
 "use client";
 
-import { startTransition, use, useOptimistic, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { useClientNavigation } from "@/hooks/useClientNavigation";
+import { useRouter } from "next/navigation";
+import { startTransition, use, useOptimistic, useState } from "react";
 import { actionGetClients } from "../actions/clients";
 import type { Client } from "../types/types";
 import { ClientForm } from "./ClientForm";
@@ -38,7 +37,7 @@ export default function ClientList({
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Fetch the default (unfiltered) list of clients on load
-  const { data: baseClients = (currentSearch ? [] : clients) } = useQuery({
+  const { data: baseClients = currentSearch ? [] : clients } = useQuery({
     queryKey: ["client-base-list"],
     queryFn: async () => {
       const res = await actionGetClients();
