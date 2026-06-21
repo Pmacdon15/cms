@@ -31,9 +31,9 @@ export async function actionCreateMailingList(
   return result.match(
     (list) => {
       updateTag(`mailing-lists-${list.org_id}`);
-      return { ok: true, value: list };
+      return { ok: true as const, value: list };
     },
-    (error) => ({ ok: false, error: error.reason }),
+    (error) => ({ ok: false as const, error: error.reason }),
   );
 }
 
@@ -80,9 +80,9 @@ export async function actionUpdateSubscriptionStatus(
         updateTag(`mailing-lists-${orgId}`);
         updateTag(`clients-${orgId}`);
       }
-      return { ok: true, value: val };
+      return { ok: true as const, value: val };
     },
-    (error) => ({ ok: false, error: error.reason }),
+    (error) => ({ ok: false as const, error: error.reason }),
   );
 }
 
@@ -99,9 +99,9 @@ export async function actionUpdateGlobalOptIn(
       const { orgId } = val;
       updateTag(`mailing-lists-${orgId}`);
       updateTag(`clients-${orgId}`);
-      return { ok: true, value: val };
+      return { ok: true as const, value: val };
     },
-    (error) => ({ ok: false, error: error.reason }),
+    (error) => ({ ok: false as const, error: error.reason }),
   );
 }
 
@@ -114,9 +114,9 @@ export async function actionDeleteMailingList(name: string) {
     (val) => {
       const { orgId } = val;
       updateTag(`mailing-lists-${orgId}`);
-      return { ok: true, value: val };
+      return { ok: true as const, value: val };
     },
-    (error) => ({ ok: false, error: error.reason }),
+    (error) => ({ ok: false as const, error: error.reason }),
   );
 }
 
@@ -132,8 +132,8 @@ export async function actionEditMailingList(
   return result.match(
     (list) => {
       updateTag(`mailing-lists-${list.org_id}`);
-      return { ok: true, value: list };
+      return { ok: true as const, value: list };
     },
-    (error) => ({ ok: false, error: error.reason }),
+    (error) => ({ ok: false as const, error: error.reason }),
   );
 }

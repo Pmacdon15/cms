@@ -23,9 +23,9 @@ export async function actionCreateCampaign(input: CampaignInput) {
   return result.match(
     (campaign) => {
       updateTag(`campaigns-${campaign.org_id}`);
-      return { ok: true, value: campaign };
+      return { ok: true as const, value: campaign };
     },
-    (error) => ({ ok: false, error: error.reason }),
+    (error) => ({ ok: false as const, error: error.reason }),
   );
 }
 

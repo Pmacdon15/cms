@@ -12,7 +12,7 @@ export default function DashboardPage() {
   const clientsPromise = dalGetClients().then((res) =>
     res.match(
       (value) => ({ ok: true as const, value }),
-      (error) => ({ ok: false as const, error: error.message }),
+      (error) => ({ ok: false as const, error: error.reason }),
     ),
   );
   const campaignsPromise = dalGetCampaigns();
