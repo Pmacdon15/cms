@@ -40,9 +40,8 @@ function isUuidString(str: string): boolean {
 export async function dalGetMailingLists(): Promise<
   { ok: true; value: MailingList[] } | { ok: false; error: string }
 > {
+  const { orgId, has } = await auth.protect();
   try {
-    const { orgId, has } = await auth.protect();
-
     if (!orgId) {
       return { ok: false, error: "Please select or create an organization." };
     }
@@ -89,8 +88,8 @@ export async function dalCreateMailingList(
   name: string,
   description?: string,
 ): Promise<{ ok: true; value: MailingList } | { ok: false; error: string }> {
+  const { orgId, has } = await auth.protect();
   try {
-    const { orgId, has } = await auth.protect();
     const isAdmin = has({ role: "org:admin" });
 
     if (!isAdmin || !orgId) {
@@ -150,9 +149,8 @@ export async function dalGetMailingListSubscribers(listName: string): Promise<
     }
   | { ok: false; error: string }
 > {
+  const { orgId } = await auth.protect();
   try {
-    const { orgId } = await auth.protect();
-
     if (!orgId) {
       return { ok: false, error: "Please select or create an organization." };
     }
@@ -274,12 +272,15 @@ export async function dalUpdateSubscriptionStatus(
   status: "subscribed" | "unsubscribed",
   isPublic = false,
 ): Promise<{ ok: true; value: boolean } | { ok: false; error: string }> {
+  let resolvedOrgId: string | null = null;
+  let hasCheck: Awaited<ReturnType<typeof auth.protect>>["has"] | null = null;
+  let protectResult: Awaited<ReturnType<typeof auth.protect>> | null = null;
+  if (!isPublic) {
+    protectResult = await auth.protect();
+  }
   try {
-    let resolvedOrgId: string | null = null;
-    let hasCheck: Awaited<ReturnType<typeof auth.protect>>["has"] | null = null;
-
-    if (!isPublic) {
-      const { orgId, has } = await auth.protect();
+    if (!isPublic && protectResult) {
+      const { orgId, has } = protectResult;
       const isAdmin = has({ role: "org:admin" });
 
       if (!isAdmin || !orgId) {
@@ -322,7 +323,7 @@ export async function dalUpdateSubscriptionStatus(
       if (!isPublic && hasCheck) {
         clientLimit =
           [100, 60, 30, 15].find((num) =>
-            hasCheck({ feature: `${num}_clients_per_list` }),
+            hasCheck&&({ feature: `${num}_clients_per_list` }),
           ) || 1;
       } else {
         const features = await getOrgFeatures(resolvedOrgId || "");
@@ -466,9 +467,8 @@ export async function dalUpdateGlobalOptIn(
 export async function dalDeleteMailingList(
   name: string,
 ): Promise<{ ok: true; value: boolean } | { ok: false; error: string }> {
+  const { orgId, has } = await auth.protect();
   try {
-    const { orgId, has } = await auth.protect();
-
     if (!has({ role: "org:admin" }) || !orgId) {
       return {
         ok: false,
@@ -495,9 +495,8 @@ export async function dalEditMailingList(
   newName: string,
   description?: string,
 ): Promise<{ ok: true; value: MailingList } | { ok: false; error: string }> {
+  const { orgId, has } = await auth.protect();
   try {
-    const { orgId, has } = await auth.protect();
-
     if (!has({ role: "org:admin" }) || !orgId) {
       return {
         ok: false,

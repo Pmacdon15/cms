@@ -20,9 +20,8 @@ export async function dalGetClients(params?: {
   search?: string;
   client?: string;
 }): Promise<{ ok: true; value: Client[] } | { ok: false; error: string }> {
+  const { orgId } = await auth.protect();
   try {
-    const { orgId } = await auth.protect();
-
     if (!orgId) {
       return { ok: false, error: "Please select or create an organization." };
     }
@@ -55,9 +54,8 @@ export async function dalGetClients(params?: {
 export async function dalSearchClients(
   query: string,
 ): Promise<Result<Client[], Error>> {
+  const { orgId } = await auth.protect();
   try {
-    const { orgId } = await auth.protect();
-
     if (!orgId) {
       return err(new Error("Please select or create an organization."));
     }
@@ -82,15 +80,14 @@ export async function dalSearchClients(
 export async function dalCreateClient(
   input: ClientInput,
 ): Promise<Result<Client, Error>> {
+  const { orgId, has } = await auth.protect();
   try {
-    const { orgId, has } = await auth.protect();
     const isAdmin = has({ role: "org:admin" });
 
     if (!isAdmin || !orgId) {
       return err(new Error("Unauthorized."));
     }
 
-    // Input verification
     if (
       !input.name.trim() ||
       !input.email.trim() ||
@@ -103,7 +100,6 @@ export async function dalCreateClient(
       );
     }
 
-    // Check client limit using .find with features
     const clientLimit =
       [100, 60, 30, 15].find((num) =>
         has({ feature: `${num}_clients_per_list` }),
@@ -118,10 +114,8 @@ export async function dalCreateClient(
       );
     }
 
-    // 1. Write client to DB
     const newClient = await dbCreateClient(input, orgId);
 
-    // 2. Subscribe them to default local mailing list
     await dbUpdateSubscriptionStatus(
       newClient.id,
       "TanStackFormNewsletter",
@@ -146,8 +140,8 @@ export async function dalUpdateClientOptIn(
   optInNewsletter: boolean,
   optInSms: boolean,
 ): Promise<Result<Client, Error>> {
+  const { orgId, has } = await auth.protect();
   try {
-    const { orgId, has } = await auth.protect();
 
     if (!has({ role: "org:admin" }) || !orgId) {
       return err(
@@ -185,8 +179,8 @@ export async function dalUpdateClient(
   id: string,
   input: ClientInput,
 ): Promise<Result<Client, Error>> {
+  const { orgId, has } = await auth.protect();
   try {
-    const { orgId, has } = await auth.protect();
 
     if (!has({ role: "org:admin" }) || !orgId) {
       return err(
@@ -231,8 +225,8 @@ export async function dalUpdateClient(
 export async function dalDeleteClient(
   id: string,
 ): Promise<Result<boolean, Error>> {
+  const { orgId, has } = await auth.protect();
   try {
-    const { orgId, has } = await auth.protect();
 
     if (!has({ role: "org:admin" }) || !orgId) {
       return err(

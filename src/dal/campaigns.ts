@@ -20,9 +20,8 @@ import type { Campaign, CampaignInput, SentMessage } from "../types/types";
 export async function dalGetCampaigns(
   clientId?: string,
 ): Promise<{ ok: true; value: Campaign[] } | { ok: false; error: string }> {
+  const { orgId } = await auth.protect();
   try {
-    const { orgId } = await auth.protect();
-
     if (!orgId) {
       return { ok: false, error: "Please select or create an organization." };
     }
@@ -42,8 +41,8 @@ export async function dalGetCampaigns(
 export async function dalCreateCampaign(
   input: CampaignInput,
 ): Promise<{ ok: true; value: Campaign } | { ok: false; error: string }> {
+  const { orgId, has } = await auth.protect();
   try {
-    const { orgId, has } = await auth.protect();
     const isAdmin = has({ role: "org:admin" });
     const hasSms = has({ feature: "send_sms" });
 
@@ -179,8 +178,8 @@ export async function dalCreateCampaign(
 export async function dalGetSentMessages(
   campaignId: string,
 ): Promise<{ ok: true; value: SentMessage[] } | { ok: false; error: string }> {
+  const { orgId } = await auth.protect();
   try {
-    const { orgId } = await auth.protect();
     if (!orgId) {
       return { ok: false, error: "Please select or create an organization." };
     }

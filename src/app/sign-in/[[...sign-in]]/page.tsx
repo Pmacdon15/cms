@@ -13,23 +13,23 @@ export default function SignInPage() {
         </div>
 
         <SignIn
-          appearance={{
-            variables: {
-              colorPrimary: "#2563eb",
-              colorBackground: "#ffffff",
-              colorText: "#09090b",
-              colorInputBackground: "#ffffff",
-              colorInputText: "#09090b",
-              colorTextSecondary: "#71717a",
-            },
-            elements: {
-              card: "border border-zinc-200 bg-white rounded-2xl shadow-xl shadow-zinc-250/30",
-              socialButtonsBlockButton:
-                "border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-800",
-              formButtonPrimary: "bg-blue-600 hover:bg-blue-700 text-white",
-              footerActionLink: "text-blue-600 hover:text-blue-700",
-            },
-          }}
+          // appearance={{
+          //   variables: {
+          //     colorPrimary: "#2563eb",
+          //     colorBackground: "#ffffff",
+          //     text: "#09090b",
+          //     colorInputBackground: "#ffffff",
+          //     colorInputText: "#09090b",
+          //     colorTextSecondary: "#71717a",
+          //   },
+          //   elements: {
+          //     card: "border border-zinc-200 bg-white rounded-2xl shadow-xl shadow-zinc-250/30",
+          //     socialButtonsBlockButton:
+          //       "border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-zinc-800",
+          //     formButtonPrimary: "bg-blue-600 hover:bg-blue-700 text-white",
+          //     footerActionLink: "text-blue-600 hover:text-blue-700",
+          //   },
+          // }}
         />
       </main>
     </div>
