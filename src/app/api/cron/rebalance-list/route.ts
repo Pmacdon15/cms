@@ -2,8 +2,6 @@ import { type NextRequest, NextResponse } from "next/server";
 import { dalRebalanceListsForOrg } from "@/dal/mailing_lists";
 import { dbGetDistinctOrgsWithMailingLists } from "@/db/mailing_lists";
 
-export const revalidate = 0;
-
 export async function GET(req: NextRequest) {
   try {
     // Verify cron authorization header
