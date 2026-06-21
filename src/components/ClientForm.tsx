@@ -8,6 +8,7 @@ import {
 } from "../mutations/clients";
 import { clientInputSchema } from "../types/schemas";
 import type { Client } from "../types/types";
+import { getFieldError } from "../utils/form";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 
@@ -93,8 +94,8 @@ export function ClientForm({
             onChange={(e) => field.handleChange(e.target.value)}
             onBlur={field.handleBlur}
             error={
-              field.state.meta.errors && field.state.meta.isTouched
-                ? String(field.state.meta.errors)
+              field.state.meta.isTouched
+                ? getFieldError(field.state.meta.errors)
                 : undefined
             }
           />
@@ -112,8 +113,8 @@ export function ClientForm({
             onChange={(e) => field.handleChange(e.target.value)}
             onBlur={field.handleBlur}
             error={
-              field.state.meta.errors && field.state.meta.isTouched
-                ? String(field.state.meta.errors)
+              field.state.meta.isTouched
+                ? getFieldError(field.state.meta.errors)
                 : undefined
             }
           />
@@ -131,8 +132,8 @@ export function ClientForm({
             onChange={(e) => field.handleChange(e.target.value)}
             onBlur={field.handleBlur}
             error={
-              field.state.meta.errors && field.state.meta.isTouched
-                ? String(field.state.meta.errors)
+              field.state.meta.isTouched
+                ? getFieldError(field.state.meta.errors)
                 : undefined
             }
           />

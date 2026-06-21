@@ -6,6 +6,7 @@ import { Button } from "../../components/ui/button";
 import { Dialog } from "../../components/ui/dialog";
 import { Input } from "../../components/ui/input";
 import { mailingListFormSchema } from "../../types/schemas";
+import { getFieldError } from "../../utils/form";
 
 interface CreateMailingListModalProps {
   isModalOpen: boolean;
@@ -70,8 +71,8 @@ export function CreateMailingListModal({
               onChange={(e) => field.handleChange(e.target.value)}
               onBlur={field.handleBlur}
               error={
-                field.state.meta.errors && field.state.meta.isTouched
-                  ? String(field.state.meta.errors)
+                field.state.meta.isTouched
+                  ? getFieldError(field.state.meta.errors)
                   : undefined
               }
             />
@@ -101,9 +102,9 @@ export function CreateMailingListModal({
                     : ""
                 }`}
               />
-              {field.state.meta.errors && field.state.meta.isTouched && (
+              {field.state.meta.isTouched && getFieldError(field.state.meta.errors) && (
                 <span className="font-medium text-rose-500 text-xs">
-                  {String(field.state.meta.errors)}
+                  {getFieldError(field.state.meta.errors)}
                 </span>
               )}
             </div>
