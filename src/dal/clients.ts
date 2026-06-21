@@ -142,7 +142,6 @@ export async function dalUpdateClientOptIn(
 ): Promise<Result<Client, Error>> {
   const { orgId, has } = await auth.protect();
   try {
-
     if (!has({ role: "org:admin" }) || !orgId) {
       return err(
         new Error(
@@ -181,7 +180,6 @@ export async function dalUpdateClient(
 ): Promise<Result<Client, Error>> {
   const { orgId, has } = await auth.protect();
   try {
-
     if (!has({ role: "org:admin" }) || !orgId) {
       return err(
         new Error(
@@ -227,7 +225,6 @@ export async function dalDeleteClient(
 ): Promise<Result<boolean, Error>> {
   const { orgId, has } = await auth.protect();
   try {
-
     if (!has({ role: "org:admin" }) || !orgId) {
       return err(
         new Error("Unauthorized. Only organization admins can delete clients."),

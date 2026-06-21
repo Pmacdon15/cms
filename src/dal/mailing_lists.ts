@@ -322,8 +322,8 @@ export async function dalUpdateSubscriptionStatus(
 
       if (!isPublic && hasCheck) {
         clientLimit =
-          [100, 60, 30, 15].find((num) =>
-            hasCheck&&({ feature: `${num}_clients_per_list` }),
+          [100, 60, 30, 15].find(
+            (num) => hasCheck && { feature: `${num}_clients_per_list` },
           ) || 1;
       } else {
         const features = await getOrgFeatures(resolvedOrgId || "");

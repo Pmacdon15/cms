@@ -55,9 +55,9 @@ export async function dbGetClientById(
         FROM clients 
         WHERE id = ${id}
       `
-  ) as any[];
+  ) as Client[];
   if (rows.length === 0) return null;
-  return rows[0] as Client;
+  return rows[0];
 }
 
 /**
@@ -79,9 +79,9 @@ export async function dbGetClientByEmail(
         FROM clients 
         WHERE email = ${email}
       `
-  ) as any[];
+  ) as Client[];
   if (rows.length === 0) return null;
-  return rows[0] as Client;
+  return rows[0];
 }
 
 /**
@@ -95,8 +95,8 @@ export async function dbCreateClient(
     INSERT INTO clients (name, email, phone_number, opt_in_newsletter, opt_in_sms, org_id)
     VALUES (${input.name}, ${input.email}, ${input.phone_number}, true, true, ${orgId})
     RETURNING id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at
-  `) as any[];
-  return rows[0] as Client;
+  `) as Client[];
+  return rows[0];
 }
 
 /**
@@ -122,9 +122,9 @@ export async function dbUpdateClientOptIn(
         WHERE id = ${id}
         RETURNING id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at
       `
-  ) as any[];
+  ) as Client[];
   if (rows.length === 0) return null;
-  return rows[0] as Client;
+  return rows[0];
 }
 
 /**
@@ -140,9 +140,9 @@ export async function dbUpdateClient(
     SET name = ${input.name}, email = ${input.email}, phone_number = ${input.phone_number}
     WHERE id = ${id} AND org_id = ${orgId}
     RETURNING id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at
-  `) as any[];
+  `) as Client[];
   if (rows.length === 0) return null;
-  return rows[0] as Client;
+  return rows[0];
 }
 
 /**
@@ -179,7 +179,7 @@ export async function dbDeleteClient(
     DELETE FROM clients 
     WHERE id = ${id} AND org_id = ${orgId}
     RETURNING id
-  `) as any[];
+  `) as Array<{ id: string }>;
   return result.length > 0;
 }
 
