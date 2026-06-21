@@ -27,7 +27,7 @@ export function ClientDetailView({
   onBack,
   onOptimisticUpdate,
 }: ClientDetailViewProps) {
-  const router = useRouter();
+  const _router = useRouter();
   const deleteMutation = useDeleteClientMutation();
   const optInMutation = useUpdateClientOptInMutation();
 
@@ -58,9 +58,7 @@ export function ClientDetailView({
       optInSms: nextSms,
     });
 
-    if (result.ok) {
-      router.refresh();
-    } else {
+    if (!result.ok) {
       if (channel === "email") setOptInNewsletter(!checked);
       if (channel === "sms") setOptInSms(!checked);
     }
@@ -213,7 +211,6 @@ export function ClientDetailView({
           client={client}
           onSuccess={() => {
             setIsEditModalOpen(false);
-            router.refresh();
           }}
           onOptimisticUpdate={onOptimisticUpdate}
         />

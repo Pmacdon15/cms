@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
-import { err, ok, type Result } from "neverthrow";
+import { err, ok } from "neverthrow";
 import {
   dbCreateClient,
   dbDeleteClient,
@@ -11,7 +11,7 @@ import {
   dbUpdateClientOptIn,
 } from "../db/clients";
 import { dbUpdateSubscriptionStatus } from "../db/mailing_lists";
-import type { Client, ClientInput } from "../types/types";
+import type { AppResult, Client, ClientInput } from "../types/types";
 
 /**
  * Fetch clients with auth protection and filter parameters (search term or specific client)
@@ -19,32 +19,32 @@ import type { Client, ClientInput } from "../types/types";
 export async function dalGetClients(params?: {
   search?: string;
   client?: string;
-}): Promise<{ ok: true; value: Client[] } | { ok: false; error: string }> {
+}): Promise<AppResult<Client[]>> {
   const { orgId } = await auth.protect();
   try {
     if (!orgId) {
-      return { ok: false, error: "Please select or create an organization." };
+      return err({ reason: "Please select or create an organization." });
     }
 
     if (params?.client) {
       const client = await dbGetClientById(params.client, orgId);
-      return { ok: true, value: client ? [client] : [] };
+      return ok(client ? [client] : []);
     }
 
     if (params?.search) {
       const clients = await dbSearchClients(orgId, params.search);
-      return { ok: true, value: clients };
+      return ok(clients);
     }
 
     const clients = await dbGetClients(orgId);
-    return { ok: true, value: clients };
+    return ok(clients);
   } catch (error) {
     console.error("dalGetClients exception caught:", error);
     const message =
       error instanceof Error
         ? error.message
         : "Failed to retrieve clients list.";
-    return { ok: false, error: message };
+    return err({ reason: message });
   }
 }
 
@@ -53,11 +53,11 @@ export async function dalGetClients(params?: {
  */
 export async function dalSearchClients(
   query: string,
-): Promise<Result<Client[], Error>> {
+): Promise<AppResult<Client[]>> {
   const { orgId } = await auth.protect();
   try {
     if (!orgId) {
-      return err(new Error("Please select or create an organization."));
+      return err({ reason: "Please select or create an organization." });
     }
 
     if (!query.trim()) {
@@ -70,7 +70,7 @@ export async function dalSearchClients(
     console.error("dalSearchClients exception caught:", error);
     const message =
       error instanceof Error ? error.message : "Failed to search clients.";
-    return err(new Error(message));
+    return err({ reason: message });
   }
 }
 
@@ -79,13 +79,13 @@ export async function dalSearchClients(
  */
 export async function dalCreateClient(
   input: ClientInput,
-): Promise<Result<Client, Error>> {
+): Promise<AppResult<Client>> {
   const { orgId, has } = await auth.protect();
   try {
     const isAdmin = has({ role: "org:admin" });
 
     if (!isAdmin || !orgId) {
-      return err(new Error("Unauthorized."));
+      return err({ reason: "Unauthorized." });
     }
 
     if (
@@ -93,11 +93,10 @@ export async function dalCreateClient(
       !input.email.trim() ||
       !input.phone_number.trim()
     ) {
-      return err(
-        new Error(
+      return err({
+        reason:
           "Missing required client fields (Name, Email, and Phone are mandatory).",
-        ),
-      );
+      });
     }
 
     const clientLimit =
@@ -107,11 +106,9 @@ export async function dalCreateClient(
 
     const currentCount = await dbGetClientsCount(orgId);
     if (currentCount >= clientLimit) {
-      return err(
-        new Error(
-          `Client limit reached. This organization is limited to ${clientLimit} client(s).`,
-        ),
-      );
+      return err({
+        reason: `Client limit reached. This organization is limited to ${clientLimit} client(s).`,
+      });
     }
 
     const newClient = await dbCreateClient(input, orgId);
@@ -128,7 +125,7 @@ export async function dalCreateClient(
     console.error("dalCreateClient exception caught:", error);
     const message =
       error instanceof Error ? error.message : "Failed to create client.";
-    return err(new Error(message));
+    return err({ reason: message });
   }
 }
 
@@ -139,15 +136,14 @@ export async function dalUpdateClientOptIn(
   id: string,
   optInNewsletter: boolean,
   optInSms: boolean,
-): Promise<Result<Client, Error>> {
+): Promise<AppResult<Client>> {
   const { orgId, has } = await auth.protect();
   try {
     if (!has({ role: "org:admin" }) || !orgId) {
-      return err(
-        new Error(
+      return err({
+        reason:
           "Unauthorized. Only organization admins can update subscription preferences.",
-        ),
-      );
+      });
     }
 
     const updatedClient = await dbUpdateClientOptIn(
@@ -157,7 +153,7 @@ export async function dalUpdateClientOptIn(
       orgId,
     );
     if (!updatedClient) {
-      return err(new Error(`Client with ID ${id} not found.`));
+      return err({ reason: `Client with ID ${id} not found.` });
     }
 
     return ok(updatedClient);
@@ -167,7 +163,7 @@ export async function dalUpdateClientOptIn(
       error instanceof Error
         ? error.message
         : "Failed to update channel subscriptions.";
-    return err(new Error(message));
+    return err({ reason: message });
   }
 }
 
@@ -177,33 +173,30 @@ export async function dalUpdateClientOptIn(
 export async function dalUpdateClient(
   id: string,
   input: ClientInput,
-): Promise<Result<Client, Error>> {
+): Promise<AppResult<Client>> {
   const { orgId, has } = await auth.protect();
   try {
     if (!has({ role: "org:admin" }) || !orgId) {
-      return err(
-        new Error(
+      return err({
+        reason:
           "Unauthorized. Only organization admins can update client details.",
-        ),
-      );
+      });
     }
 
-    // Input verification
     if (
       !input.name.trim() ||
       !input.email.trim() ||
       !input.phone_number.trim()
     ) {
-      return err(
-        new Error(
+      return err({
+        reason:
           "Missing required client fields (Name, Email, and Phone are mandatory).",
-        ),
-      );
+      });
     }
 
     const updatedClient = await dbUpdateClient(id, input, orgId);
     if (!updatedClient) {
-      return err(new Error(`Client with ID ${id} not found.`));
+      return err({ reason: `Client with ID ${id} not found.` });
     }
 
     return ok(updatedClient);
@@ -213,29 +206,27 @@ export async function dalUpdateClient(
       error instanceof Error
         ? error.message
         : "Failed to update client details.";
-    return err(new Error(message));
+    return err({ reason: message });
   }
 }
 
 /**
  * Delete a client
  */
-export async function dalDeleteClient(
-  id: string,
-): Promise<Result<boolean, Error>> {
+export async function dalDeleteClient(id: string): Promise<AppResult<boolean>> {
   const { orgId, has } = await auth.protect();
   try {
     if (!has({ role: "org:admin" }) || !orgId) {
-      return err(
-        new Error("Unauthorized. Only organization admins can delete clients."),
-      );
+      return err({
+        reason: "Unauthorized. Only organization admins can delete clients.",
+      });
     }
 
     const success = await dbDeleteClient(id, orgId);
     if (!success) {
-      return err(
-        new Error(`Client with ID ${id} could not be found to delete.`),
-      );
+      return err({
+        reason: `Client with ID ${id} could not be found to delete.`,
+      });
     }
 
     return ok(true);
@@ -245,6 +236,6 @@ export async function dalDeleteClient(
       error instanceof Error
         ? error.message
         : "Failed to delete client record.";
-    return err(new Error(message));
+    return err({ reason: message });
   }
 }

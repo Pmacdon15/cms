@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import { err, ok } from "neverthrow";
 import { start } from "workflow/api";
 import { isOverMemberShipLimit } from "@/db/clerk";
 import { dispatchCampaignChannels } from "@/utils/clerk";
@@ -12,7 +13,12 @@ import {
 } from "../db/campaigns";
 import { dbGetCampaignRecipients } from "../db/clients";
 import { dbGetMailingListsCount } from "../db/mailing_lists";
-import type { Campaign, CampaignInput, SentMessage } from "../types/types";
+import type {
+  AppResult,
+  Campaign,
+  CampaignInput,
+  SentMessage,
+} from "../types/types";
 
 /**
  * Fetch campaign history
@@ -40,38 +46,33 @@ export async function dalGetCampaigns(
 
 export async function dalCreateCampaign(
   input: CampaignInput,
-): Promise<{ ok: true; value: Campaign } | { ok: false; error: string }> {
+): Promise<AppResult<Campaign>> {
   const { orgId, has } = await auth.protect();
   try {
     const isAdmin = has({ role: "org:admin" });
     const hasSms = has({ feature: "send_sms" });
 
     if (!isAdmin || !orgId) {
-      return {
-        ok: false,
-        error: "Unauthorized.",
-      };
+      return err({ reason: "Unauthorized." });
     }
 
     if (!input.content.trim()) {
-      return { ok: false, error: "Campaign message content cannot be empty." };
+      return err({ reason: "Campaign message content cannot be empty." });
     }
 
     if (
       (input.type === "email" || input.type === "both") &&
       !input.subject?.trim()
     ) {
-      return {
-        ok: false,
-        error: "Email and double campaigns require a Subject line.",
-      };
+      return err({
+        reason: "Email and double campaigns require a Subject line.",
+      });
     }
 
     if ((input.type === "sms" || input.type === "both") && !hasSms) {
-      return {
-        ok: false,
-        error: "SMS marketing features are not enabled for this organization.",
-      };
+      return err({
+        reason: "SMS marketing features are not enabled for this organization.",
+      });
     }
 
     const campaignLimit =
@@ -98,32 +99,26 @@ export async function dalCreateCampaign(
       const listLabel = targetListName
         ? `for the "${targetListName}" mailing list`
         : "for broadcast campaigns";
-      return {
-        ok: false,
-        error: `Campaign limit reached. This organization is limited to ${campaignLimit} campaign(s) per week ${listLabel}.`,
-      };
+      return err({
+        reason: `Campaign limit reached. This organization is limited to ${campaignLimit} campaign(s) per week ${listLabel}.`,
+      });
     }
 
     const globalLimit = activeListsCount * campaignLimit;
     if (totalCampaignsCount >= globalLimit) {
-      return {
-        ok: false,
-        error: `Global campaign limit reached. This organization is limited to ${globalLimit} campaign(s) per week total across all lists (based on ${activeListsCount} mailing list(s) allowed).`,
-      };
+      return err({
+        reason: `Global campaign limit reached. This organization is limited to ${globalLimit} campaign(s) per week total across all lists (based on ${activeListsCount} mailing list(s) allowed).`,
+      });
     }
 
     if (targetedClients.length === 0) {
-      return {
-        ok: false,
-        error: `No active subscribers found in the targeted list: ${input.mailing_list_name || "Broadcast to All"}`,
-      };
+      return err({
+        reason: `No active subscribers found in the targeted list: ${input.mailing_list_name || "Broadcast to All"}`,
+      });
     }
 
     if (isOverMemberShipLimitValue) {
-      return {
-        ok: false,
-        error: `Over organization membership limit.`,
-      };
+      return err({ reason: "Over organization membership limit." });
     }
 
     const emailRecipients = targetedClients.filter(
@@ -161,14 +156,14 @@ export async function dalCreateCampaign(
 
     await start(logCampaignWorkflow, [finalLogs]);
 
-    return { ok: true, value: campaign };
+    return ok(campaign);
   } catch (error) {
     console.error("dalCreateCampaign exception:", error);
     const message =
       error instanceof Error
         ? error.message
         : "Failed to dispatch marketing campaign.";
-    return { ok: false, error: message };
+    return err({ reason: message });
   }
 }
 

@@ -1,3 +1,4 @@
+import { cacheTag } from "next/cache";
 import type { Client, ClientInput } from "../types/types";
 import { sql } from "./neon";
 
@@ -5,6 +6,8 @@ import { sql } from "./neon";
  * Fetch all clients, sorted newest first
  */
 export async function dbGetClients(orgId: string): Promise<Client[]> {
+  "use cache";
+  cacheTag(`clients-${orgId}`);
   const rows = await sql`
     SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at 
     FROM clients 
@@ -21,6 +24,8 @@ export async function dbSearchClients(
   orgId: string,
   query: string,
 ): Promise<Client[]> {
+  "use cache";
+  cacheTag(`clients-${orgId}`, `clients-${orgId}-search-${query}`);
   const pattern = `%${query}%`;
   const rows = await sql`
     SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at 
@@ -43,6 +48,10 @@ export async function dbGetClientById(
   id: string,
   orgId?: string,
 ): Promise<Client | null> {
+  "use cache";
+  if (orgId) {
+    cacheTag(`clients-${orgId}`, `clients-${orgId}-id-${id}`);
+  }
   const rows = (
     orgId
       ? await sql`
@@ -67,6 +76,10 @@ export async function dbGetClientByEmail(
   email: string,
   orgId?: string,
 ): Promise<Client | null> {
+  "use cache";
+  if (orgId) {
+    cacheTag(`clients-${orgId}`, `clients-${orgId}-email-${email}`);
+  }
   const rows = (
     orgId
       ? await sql`
@@ -152,7 +165,9 @@ export async function dbGetCampaignRecipients(
   orgId: string,
   mailingListName?: string,
 ): Promise<Client[]> {
+  "use cache";
   if (mailingListName) {
+    cacheTag(`clients-${orgId}`, `clients-${orgId}-list-${mailingListName}`);
     const rows = await sql`
       SELECT c.id, c.name, c.email, c.phone_number, c.opt_in_newsletter, c.opt_in_sms, c.created_at
       FROM clients c
@@ -165,6 +180,7 @@ export async function dbGetCampaignRecipients(
     `;
     return rows as Client[];
   }
+  cacheTag(`clients-${orgId}`);
   return dbGetClients(orgId);
 }
 
@@ -187,6 +203,8 @@ export async function dbDeleteClient(
  * Get the total count of clients for an organization
  */
 export async function dbGetClientsCount(orgId: string): Promise<number> {
+  "use cache";
+  cacheTag(`clients-${orgId}`, `clients-${orgId}-count`);
   const rows = (await sql`
     SELECT COUNT(*)::integer as count
     FROM clients

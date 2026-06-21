@@ -9,7 +9,12 @@ import { dalGetCampaigns } from "../dal/campaigns";
 import { dalGetClients } from "../dal/clients";
 
 export default function DashboardPage() {
-  const clientsPromise = dalGetClients();
+  const clientsPromise = dalGetClients().then((res) =>
+    res.match(
+      (value) => ({ ok: true as const, value }),
+      (error) => ({ ok: false as const, error: error.message }),
+    ),
+  );
   const campaignsPromise = dalGetCampaigns();
   const hasSmsPromise = auth
     .protect()

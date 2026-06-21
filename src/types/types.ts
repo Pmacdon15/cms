@@ -65,8 +65,7 @@ export interface CampaignInput {
   mailing_list_name?: string;
 }
 
-// Common type for Result patterns
-export type AppResult<T, E = string> = Result<T, E>;
+export type AppResult<T> = Result<T, { reason: string }>;
 
 export type DispatchResult = {
   logs: Array<{

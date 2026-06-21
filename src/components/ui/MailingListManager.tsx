@@ -71,7 +71,6 @@ export function MailingListManager({
     setIsModalOpen(false);
     setNewListName("");
     setNewListDesc("");
-    router.refresh();
   });
 
   const toggleSubscriptionMutation = useUpdateSubscriptionStatusMutation();
@@ -105,9 +104,7 @@ export function MailingListManager({
       isPublic: false,
     });
 
-    if (result.ok) {
-      router.refresh();
-    } else {
+    if (!result.ok) {
       setSubscribers(initialSubscribers);
     }
   };

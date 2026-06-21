@@ -1,5 +1,6 @@
 "use server";
 
+import { updateTag } from "next/cache";
 import {
   dalCreateMailingList,
   dalDeleteMailingList,
@@ -26,7 +27,14 @@ export async function actionCreateMailingList(
   name: string,
   description?: string,
 ) {
-  return await dalCreateMailingList(name, description);
+  const result = await dalCreateMailingList(name, description);
+  return result.match(
+    (list) => {
+      updateTag(`mailing-lists-${list.org_id}`);
+      return { ok: true, value: list };
+    },
+    (error) => ({ ok: false, error: error.reason }),
+  );
 }
 
 /**
@@ -59,11 +67,22 @@ export async function actionUpdateSubscriptionStatus(
   status: "subscribed" | "unsubscribed",
   isPublic = false,
 ) {
-  return await dalUpdateSubscriptionStatus(
+  const result = await dalUpdateSubscriptionStatus(
     clientIdOrEmail,
     listName,
     status,
     isPublic,
+  );
+  return result.match(
+    (val) => {
+      const { orgId } = val;
+      if (orgId) {
+        updateTag(`mailing-lists-${orgId}`);
+        updateTag(`clients-${orgId}`);
+      }
+      return { ok: true, value: val };
+    },
+    (error) => ({ ok: false, error: error.reason }),
   );
 }
 
@@ -74,14 +93,31 @@ export async function actionUpdateGlobalOptIn(
   clientIdOrEmail: string,
   optInNewsletter: boolean,
 ) {
-  return await dalUpdateGlobalOptIn(clientIdOrEmail, optInNewsletter);
+  const result = await dalUpdateGlobalOptIn(clientIdOrEmail, optInNewsletter);
+  return result.match(
+    (val) => {
+      const { orgId } = val;
+      updateTag(`mailing-lists-${orgId}`);
+      updateTag(`clients-${orgId}`);
+      return { ok: true, value: val };
+    },
+    (error) => ({ ok: false, error: error.reason }),
+  );
 }
 
 /**
  * Server action to delete a mailing list
  */
 export async function actionDeleteMailingList(name: string) {
-  return await dalDeleteMailingList(name);
+  const result = await dalDeleteMailingList(name);
+  return result.match(
+    (val) => {
+      const { orgId } = val;
+      updateTag(`mailing-lists-${orgId}`);
+      return { ok: true, value: val };
+    },
+    (error) => ({ ok: false, error: error.reason }),
+  );
 }
 
 /**
@@ -92,5 +128,12 @@ export async function actionEditMailingList(
   newName: string,
   description?: string,
 ) {
-  return await dalEditMailingList(oldName, newName, description);
+  const result = await dalEditMailingList(oldName, newName, description);
+  return result.match(
+    (list) => {
+      updateTag(`mailing-lists-${list.org_id}`);
+      return { ok: true, value: list };
+    },
+    (error) => ({ ok: false, error: error.reason }),
+  );
 }

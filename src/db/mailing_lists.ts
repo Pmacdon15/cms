@@ -1,7 +1,10 @@
+import { cacheTag } from "next/cache";
 import type { MailingList } from "../types/types";
 import { sql } from "./neon";
 
 export async function dbGetMailingLists(orgId: string): Promise<MailingList[]> {
+  "use cache";
+  cacheTag(`mailing-lists-${orgId}`);
   const rows = await sql`
     SELECT name, description, status, created_at
     FROM mailing_lists
@@ -43,6 +46,11 @@ export async function dbGetMailingListSubscribers(
     status: "subscribed" | "unsubscribed";
   }>
 > {
+  "use cache";
+  cacheTag(
+    `mailing-lists-${orgId}`,
+    `mailing-lists-${orgId}-list-${listName}-subscribers`,
+  );
   const rows = await sql`
     SELECT 
       c.id, 
@@ -128,6 +136,7 @@ export async function dbUpdateSubscriptionStatusByEmail(
  * Fetch a subscriber's list preferences using their client ID (UUID)
  */
 export async function dbGetClientSubscriptionsById(id: string) {
+  "use cache";
   const clientRows = (await sql`
     SELECT id, name, email, opt_in_newsletter, org_id
     FROM clients
@@ -143,6 +152,10 @@ export async function dbGetClientSubscriptionsById(id: string) {
     return null;
   }
   const client = clientRows[0];
+  cacheTag(
+    `mailing-lists-${client.org_id}`,
+    `mailing-lists-${client.org_id}-id-${id}`,
+  );
 
   const subRows = await sql`
     SELECT 
@@ -170,6 +183,7 @@ export async function dbGetClientSubscriptionsById(id: string) {
  * Fetch a subscriber's list preferences using their email
  */
 export async function dbGetClientSubscriptionsByEmail(email: string) {
+  "use cache";
   const clientRows = (await sql`
     SELECT id, name, email, opt_in_newsletter, org_id
     FROM clients
@@ -185,6 +199,10 @@ export async function dbGetClientSubscriptionsByEmail(email: string) {
     return null;
   }
   const client = clientRows[0];
+  cacheTag(
+    `mailing-lists-${client.org_id}`,
+    `mailing-lists-${client.org_id}-email-${email}`,
+  );
 
   const subRows = await sql`
     SELECT 
@@ -212,6 +230,8 @@ export async function dbGetClientSubscriptionsByEmail(email: string) {
  * Get the total count of mailing lists for an organization
  */
 export async function dbGetMailingListsCount(orgId: string): Promise<number> {
+  "use cache";
+  cacheTag(`mailing-lists-${orgId}`);
   const rows = (await sql`
     SELECT COUNT(*)::integer as count
     FROM mailing_lists
@@ -295,6 +315,11 @@ export async function dbGetMailingListSubscribersCount(
   listName: string,
   orgId: string,
 ): Promise<number> {
+  "use cache";
+  cacheTag(
+    `mailing-lists-${orgId}`,
+    `mailing-lists-${orgId}-list-${listName}-count`,
+  );
   const rows = await sql`
     SELECT COUNT(*)::integer as count
     FROM mailing_list_subscriptions
@@ -309,6 +334,8 @@ export async function dbGetMailingListSubscribersCount(
  * Get all distinct organization IDs with non-deleted mailing lists
  */
 export async function dbGetDistinctOrgsWithMailingLists(): Promise<string[]> {
+  "use cache";
+  cacheTag("mailing-lists-global");
   const rows = await sql`
     SELECT DISTINCT org_id
     FROM mailing_lists

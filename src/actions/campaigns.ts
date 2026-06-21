@@ -1,5 +1,6 @@
 "use server";
 
+import { updateTag } from "next/cache";
 import {
   dalCreateCampaign,
   dalGetCampaigns,
@@ -18,7 +19,14 @@ export async function actionGetCampaigns() {
  * Server action to send/create a campaign safely
  */
 export async function actionCreateCampaign(input: CampaignInput) {
-  return await dalCreateCampaign(input);
+  const result = await dalCreateCampaign(input);
+  return result.match(
+    (campaign) => {
+      updateTag(`campaigns-${campaign.org_id}`);
+      return { ok: true, value: campaign };
+    },
+    (error) => ({ ok: false, error: error.reason }),
+  );
 }
 
 /**

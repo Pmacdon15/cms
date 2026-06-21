@@ -143,7 +143,6 @@ export default function ClientList({
         <ClientForm
           onSuccess={() => {
             setIsModalOpen(false);
-            router.refresh();
           }}
         />
       </Dialog>

@@ -20,18 +20,15 @@ export function MailingListSidebar({
   setIsModalOpen: (open: boolean) => void;
   selectList: (listName: string) => void;
 }) {
-  const router = useRouter();
+  const _router = useRouter();
   const [editingListName, setEditingListName] = useState<string | null>(null);
   const [editNameValue, setEditNameValue] = useState("");
   const [editDescValue, setEditDescValue] = useState("");
 
-  const deleteMutation = useDeleteMailingListMutation(() => {
-    router.refresh();
-  });
+  const deleteMutation = useDeleteMailingListMutation(() => {});
 
   const editMutation = useEditMailingListMutation(() => {
     setEditingListName(null);
-    router.refresh();
   });
 
   const handleDelete = async (e: React.MouseEvent, name: string) => {

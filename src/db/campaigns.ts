@@ -1,3 +1,4 @@
+import { cacheTag } from "next/cache";
 import type { Campaign, SentMessage } from "../types/types";
 import { sql } from "./neon";
 
@@ -8,7 +9,9 @@ export async function dbGetCampaigns(
   orgId: string,
   clientId?: string,
 ): Promise<Campaign[]> {
+  "use cache";
   if (clientId) {
+    cacheTag(`campaigns-${orgId}`, `campaigns-${orgId}-client-${clientId}`);
     const rows = (await sql`
       SELECT DISTINCT c.id, c.type, c.subject, c.content, c.sent_count, c.mailing_list_name, c.created_at
       FROM campaigns c
@@ -18,6 +21,7 @@ export async function dbGetCampaigns(
     `) as Campaign[];
     return rows;
   }
+  cacheTag(`campaigns-${orgId}`);
   const rows = (await sql`
     SELECT id, type, subject, content, sent_count, mailing_list_name, created_at
     FROM campaigns
@@ -113,6 +117,8 @@ export async function dbGetSentMessages(
   campaignId: string,
   orgId: string,
 ): Promise<SentMessage[]> {
+  "use cache";
+  cacheTag(`campaigns-${orgId}`, `campaigns-${orgId}-campaign-${campaignId}`);
   const rows = (await sql`
     SELECT sm.id, sm.campaign_id, sm.client_id, sm.channel, sm.status, sm.aws_message_id, sm.created_at,
            cl.email AS client_email, cl.name AS client_name
@@ -132,6 +138,15 @@ export async function dbGetCampaignsCountThisWeek(
   orgId: string,
   mailingListName?: string,
 ): Promise<number> {
+  "use cache";
+  if (mailingListName) {
+    cacheTag(
+      `campaigns-${orgId}`,
+      `campaigns-${orgId}-list-${mailingListName}`,
+    );
+  } else {
+    cacheTag(`campaigns-${orgId}`);
+  }
   const rows = mailingListName
     ? ((await sql`
         SELECT COUNT(*)::integer as count
@@ -156,6 +171,8 @@ export async function dbGetCampaignsCountThisWeek(
 export async function dbGetCampaignsCountAllListsThisWeek(
   orgId: string,
 ): Promise<number> {
+  "use cache";
+  cacheTag(`campaigns-${orgId}`);
   const rows = (await sql`
     SELECT COUNT(*)::integer as count
     FROM campaigns

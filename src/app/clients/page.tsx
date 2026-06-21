@@ -10,7 +10,12 @@ export default function ClientsPage(props: PageProps<"/clients">) {
     dalGetClients({
       search: parseParams(p.search),
       client: parseParams(p.client),
-    }),
+    }).then((res) =>
+      res.match(
+        (value) => ({ ok: true as const, value }),
+        (error) => ({ ok: false as const, error }),
+      ),
+    ),
   );
   const clientPromise = props.searchParams.then((p) => parseParams(p.client));
   const searchPromise = props.searchParams.then((p) => parseParams(p.search));

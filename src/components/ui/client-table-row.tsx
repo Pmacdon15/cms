@@ -21,7 +21,7 @@ export function ClientTableRow({
   hasSms,
   onSelectClient,
 }: ClientTableRowProps) {
-  const router = useRouter();
+  const _router = useRouter();
   const deleteMutation = useDeleteClientMutation();
   const optInMutation = useUpdateClientOptInMutation();
 
@@ -46,9 +46,7 @@ export function ClientTableRow({
       optInSms: nextSms,
     });
 
-    if (result.ok) {
-      router.refresh();
-    } else {
+    if (!result.ok) {
       if (channel === "email") setOptInNewsletter(!checked);
       if (channel === "sms") setOptInSms(!checked);
     }
@@ -56,10 +54,7 @@ export function ClientTableRow({
 
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to remove this client?")) return;
-    const result = await deleteMutation.mutateAsync(client.id);
-    if (result.ok) {
-      router.refresh();
-    }
+    await deleteMutation.mutateAsync(client.id);
   };
 
   return (

@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import { err, ok } from "neverthrow";
 import { isOverMemberShipLimit } from "@/db/clerk";
 import { dbGetCampaignsCountThisWeek } from "../db/campaigns";
 import {
@@ -22,7 +23,7 @@ import {
   dbUpdateSubscriptionStatusByEmail,
 } from "../db/mailing_lists";
 import { sql } from "../db/neon";
-import type { MailingList } from "../types/types";
+import type { AppResult, MailingList } from "../types/types";
 import { getOrgFeatures } from "./clerk";
 
 /**
@@ -87,20 +88,17 @@ export async function dalGetMailingLists(): Promise<
 export async function dalCreateMailingList(
   name: string,
   description?: string,
-): Promise<{ ok: true; value: MailingList } | { ok: false; error: string }> {
+): Promise<AppResult<MailingList>> {
   const { orgId, has } = await auth.protect();
   try {
     const isAdmin = has({ role: "org:admin" });
 
     if (!isAdmin || !orgId) {
-      return {
-        ok: false,
-        error: "Unauthorized.",
-      };
+      return err({ reason: "Unauthorized." });
     }
 
     if (!name.trim()) {
-      return { ok: false, error: "Mailing list name is required." };
+      return err({ reason: "Mailing list name is required." });
     }
 
     const mailingListLimit =
@@ -110,26 +108,25 @@ export async function dalCreateMailingList(
 
     const currentListCount = await dbGetMailingListsCount(orgId);
     if (currentListCount >= mailingListLimit) {
-      return {
-        ok: false,
-        error: `Mailing list limit reached. This organization is limited to ${mailingListLimit} mailing list(s).`,
-      };
+      return err({
+        reason: `Mailing list limit reached. This organization is limited to ${mailingListLimit} mailing list(s).`,
+      });
     }
 
-    const cleanName = name.trim().replace(/\s+/g, "_"); // Keep list name clean
+    const cleanName = name.trim().replace(/\s+/g, "_");
     const list = await dbCreateMailingList(
       cleanName,
       description?.trim(),
       orgId,
     );
-    return { ok: true, value: list };
+    return ok(list);
   } catch (error) {
     console.error("dalCreateMailingList exception:", error);
     const message =
       error instanceof Error
         ? error.message
         : "Failed to create mailing list in database.";
-    return { ok: false, error: message };
+    return err({ reason: message });
   }
 }
 
@@ -271,7 +268,7 @@ export async function dalUpdateSubscriptionStatus(
   listName: string,
   status: "subscribed" | "unsubscribed",
   isPublic = false,
-): Promise<{ ok: true; value: boolean } | { ok: false; error: string }> {
+): Promise<AppResult<{ orgId: string | null; clientIdOrEmail: string }>> {
   let resolvedOrgId: string | null = null;
   let hasCheck: Awaited<ReturnType<typeof auth.protect>>["has"] | null = null;
   let protectResult: Awaited<ReturnType<typeof auth.protect>> | null = null;
@@ -284,10 +281,7 @@ export async function dalUpdateSubscriptionStatus(
       const isAdmin = has({ role: "org:admin" });
 
       if (!isAdmin || !orgId) {
-        return {
-          ok: false,
-          error: "Unauthorized.",
-        };
+        return err({ reason: "Unauthorized." });
       }
       resolvedOrgId = orgId;
       hasCheck = has;
@@ -295,7 +289,7 @@ export async function dalUpdateSubscriptionStatus(
 
     const cleanInput = clientIdOrEmail.trim();
     if (!cleanInput) {
-      return { ok: false, error: "Subscriber identifier is required." };
+      return err({ reason: "Subscriber identifier is required." });
     }
 
     if (!resolvedOrgId) {
@@ -308,15 +302,13 @@ export async function dalUpdateSubscriptionStatus(
       ) as Array<{ org_id: string }>;
 
       if (clientRows.length === 0) {
-        return {
-          ok: false,
-          error: "Subscriber or associated organization not found.",
-        };
+        return err({
+          reason: "Subscriber or associated organization not found.",
+        });
       }
       resolvedOrgId = clientRows[0].org_id;
     }
 
-    // 3. Enforce Limit Safeguards when moving a subscriber to 'subscribed'
     if (status === "subscribed") {
       let clientLimit = 1;
 
@@ -336,7 +328,6 @@ export async function dalUpdateSubscriptionStatus(
           ) || 1;
       }
 
-      // Check existing subscription footprint
       const existingSub = (
         isUuidString(cleanInput)
           ? await sql`SELECT status FROM mailing_list_subscriptions WHERE client_id = ${cleanInput} AND mailing_list_name = ${listName} AND org_id = ${resolvedOrgId}`
@@ -352,7 +343,6 @@ export async function dalUpdateSubscriptionStatus(
           resolvedOrgId,
         );
         if (currentCount >= clientLimit) {
-          // Force or leave as unsubscribed to block exceeding tier metrics
           if (isUuidString(cleanInput)) {
             await dbUpdateSubscriptionStatus(
               cleanInput,
@@ -368,15 +358,13 @@ export async function dalUpdateSubscriptionStatus(
               resolvedOrgId,
             );
           }
-          return {
-            ok: false,
-            error: `Limit reached. This mailing list is limited to ${clientLimit} active subscribers.`,
-          };
+          return err({
+            reason: `Limit reached. This mailing list is limited to ${clientLimit} active subscribers.`,
+          });
         }
       }
     }
 
-    // 4. Fire final targeted DB mutations
     if (isUuidString(cleanInput)) {
       await dbUpdateSubscriptionStatus(
         cleanInput,
@@ -392,23 +380,21 @@ export async function dalUpdateSubscriptionStatus(
         resolvedOrgId,
       );
       if (!success) {
-        return {
-          ok: false,
-          error: `Subscriber with email ${cleanInput} not found.`,
-        };
+        return err({
+          reason: `Subscriber with email ${cleanInput} not found.`,
+        });
       }
     }
 
-    return { ok: true, value: true };
+    return ok({ orgId: resolvedOrgId, clientIdOrEmail });
   } catch (error) {
     console.error("dalUpdateSubscriptionStatus exception:", error);
-    return {
-      ok: false,
-      error:
+    return err({
+      reason:
         error instanceof Error
           ? error.message
           : "Failed to update subscription preference.",
-    };
+    });
   }
 }
 
@@ -418,11 +404,11 @@ export async function dalUpdateSubscriptionStatus(
 export async function dalUpdateGlobalOptIn(
   clientIdOrEmail: string,
   optInNewsletter: boolean,
-): Promise<{ ok: true; value: boolean } | { ok: false; error: string }> {
+): Promise<AppResult<{ orgId: string; clientId: string }>> {
   try {
     const cleanInput = clientIdOrEmail.trim();
     if (!cleanInput) {
-      return { ok: false, error: "Subscriber identifier is required." };
+      return err({ reason: "Subscriber identifier is required." });
     }
 
     const isUuid = isUuidString(cleanInput);
@@ -431,13 +417,11 @@ export async function dalUpdateGlobalOptIn(
       : await dbGetClientByEmail(cleanInput.toLowerCase());
 
     if (!client) {
-      return { ok: false, error: "Subscriber profile not found." };
+      return err({ reason: "Subscriber profile not found." });
     }
 
-    // Update global subscription status on client
     await dbUpdateClientOptIn(client.id, optInNewsletter, client.opt_in_sms);
 
-    // Sync all specific lists to match the global toggle
     const lists = await dbGetMailingLists(client.org_id);
     const targetStatus = optInNewsletter ? "subscribed" : "unsubscribed";
 
@@ -450,14 +434,14 @@ export async function dalUpdateGlobalOptIn(
       );
     }
 
-    return { ok: true, value: true };
+    return ok({ orgId: client.org_id, clientId: client.id });
   } catch (error) {
     console.error("dalUpdateGlobalOptIn exception:", error);
     const message =
       error instanceof Error
         ? error.message
         : "Failed to update global preferences.";
-    return { ok: false, error: message };
+    return err({ reason: message });
   }
 }
 
@@ -466,24 +450,23 @@ export async function dalUpdateGlobalOptIn(
  */
 export async function dalDeleteMailingList(
   name: string,
-): Promise<{ ok: true; value: boolean } | { ok: false; error: string }> {
+): Promise<AppResult<{ orgId: string; success: boolean }>> {
   const { orgId, has } = await auth.protect();
   try {
     if (!has({ role: "org:admin" }) || !orgId) {
-      return {
-        ok: false,
-        error:
+      return err({
+        reason:
           "Unauthorized. Only organization admins can delete mailing lists.",
-      };
+      });
     }
 
     const success = await dbDeleteMailingList(name, orgId);
-    return { ok: true, value: success };
+    return ok({ orgId, success });
   } catch (error) {
     console.error("dalDeleteMailingList exception:", error);
     const message =
       error instanceof Error ? error.message : "Failed to delete mailing list.";
-    return { ok: false, error: message };
+    return err({ reason: message });
   }
 }
 
@@ -494,18 +477,18 @@ export async function dalEditMailingList(
   oldName: string,
   newName: string,
   description?: string,
-): Promise<{ ok: true; value: MailingList } | { ok: false; error: string }> {
+): Promise<AppResult<MailingList>> {
   const { orgId, has } = await auth.protect();
   try {
     if (!has({ role: "org:admin" }) || !orgId) {
-      return {
-        ok: false,
-        error: "Unauthorized. Only organization admins can edit mailing lists.",
-      };
+      return err({
+        reason:
+          "Unauthorized. Only organization admins can edit mailing lists.",
+      });
     }
 
     if (!newName.trim()) {
-      return { ok: false, error: "New mailing list name is required." };
+      return err({ reason: "New mailing list name is required." });
     }
 
     const cleanNewName = newName.trim().replace(/\s+/g, "_");
@@ -515,12 +498,12 @@ export async function dalEditMailingList(
       description?.trim(),
       orgId,
     );
-    return { ok: true, value: list };
+    return ok(list);
   } catch (error) {
     console.error("dalEditMailingList exception:", error);
     const message =
       error instanceof Error ? error.message : "Failed to edit mailing list.";
-    return { ok: false, error: message };
+    return err({ reason: message });
   }
 }
 
