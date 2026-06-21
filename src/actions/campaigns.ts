@@ -6,6 +6,7 @@ import {
   dalGetCampaigns,
   dalGetSentMessages,
 } from "../dal/campaigns";
+import { campaignInputSchema } from "../types/schemas";
 import type { CampaignInput } from "../types/types";
 
 /**
@@ -19,7 +20,11 @@ export async function actionGetCampaigns() {
  * Server action to send/create a campaign safely
  */
 export async function actionCreateCampaign(input: CampaignInput) {
-  const result = await dalCreateCampaign(input);
+  const parsed = campaignInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, error: parsed.error.errors[0]?.message || "Invalid campaign input" };
+  }
+  const result = await dalCreateCampaign(parsed.data);
   return result.match(
     (campaign) => {
       updateTag(`campaigns-${campaign.org_id}`);

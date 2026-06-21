@@ -59,9 +59,6 @@ export function MailingListManager({
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [newListName, setNewListName] = useState("");
-  const [newListDesc, setNewListDesc] = useState("");
-
   const [optimisticState, setOptimisticState] = useOptimistic(
     {
       subscribers: initialSubscribers,
@@ -119,20 +116,9 @@ export function MailingListManager({
 
   const createListMutation = useCreateMailingListMutation(() => {
     setIsModalOpen(false);
-    setNewListName("");
-    setNewListDesc("");
   });
 
   const toggleSubscriptionMutation = useUpdateSubscriptionStatusMutation();
-
-  const handleCreateList = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newListName.trim()) return;
-    await createListMutation.mutateAsync({
-      name: newListName,
-      description: newListDesc,
-    });
-  };
 
   const handleToggleSubscription = async (
     id: string,
@@ -280,11 +266,9 @@ export function MailingListManager({
       <CreateMailingListModal
         isModalOpen={isModalOpen}
         setIsModalOpen={setIsModalOpen}
-        handleCreateList={handleCreateList}
-        newListName={newListName}
-        setNewListName={setNewListName}
-        newListDesc={newListDesc}
-        setNewListDesc={setNewListDesc}
+        onSubmit={async (values) => {
+          await createListMutation.mutateAsync(values);
+        }}
         isPending={createListMutation.isPending}
       />
     </div>

@@ -12,6 +12,7 @@ import {
   dalUpdateGlobalOptIn,
   dalUpdateSubscriptionStatus,
 } from "../dal/mailing_lists";
+import { mailingListSchema } from "../types/schemas";
 
 /**
  * Server action to get all mailing lists
@@ -27,7 +28,11 @@ export async function actionCreateMailingList(
   name: string,
   description?: string,
 ) {
-  const result = await dalCreateMailingList(name, description);
+  const parsed = mailingListSchema.safeParse({ name, description });
+  if (!parsed.success) {
+    return { ok: false as const, error: parsed.error.errors[0]?.message || "Invalid mailing list input" };
+  }
+  const result = await dalCreateMailingList(parsed.data.name, parsed.data.description);
   return result.match(
     (list) => {
       updateTag(`mailing-lists-${list.org_id}`);
@@ -128,7 +133,11 @@ export async function actionEditMailingList(
   newName: string,
   description?: string,
 ) {
-  const result = await dalEditMailingList(oldName, newName, description);
+  const parsed = mailingListSchema.safeParse({ name: newName, description });
+  if (!parsed.success) {
+    return { ok: false as const, error: parsed.error.errors[0]?.message || "Invalid mailing list input" };
+  }
+  const result = await dalEditMailingList(oldName, parsed.data.name, parsed.data.description);
   return result.match(
     (list) => {
       updateTag(`mailing-lists-${list.org_id}`);
