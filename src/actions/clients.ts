@@ -1,5 +1,7 @@
 "use server";
 
+import { auth } from "@clerk/nextjs/server";
+import { updateTag } from "next/cache";
 import {
   dalCreateClient,
   dalDeleteClient,
@@ -18,10 +20,10 @@ export async function actionGetClients(params?: {
   client?: string;
 }) {
   const result = await dalGetClients(params);
-  if (result.ok) {
-    return { ok: true, value: result.value };
-  }
-  return { ok: false, error: String(result.error) };
+  return result.match(
+    (value) => ({ ok: true as const, value }),
+    (error) => ({ ok: false as const, error: error.reason }),
+  );
 }
 
 /**
@@ -29,10 +31,10 @@ export async function actionGetClients(params?: {
  */
 export async function actionSearchClients(query: string) {
   const result = await dalSearchClients(query);
-  if (result.isOk()) {
-    return { ok: true, value: result.value };
-  }
-  return { ok: false, error: result.error.message };
+  return result.match(
+    (value) => ({ ok: true as const, value }),
+    (error) => ({ ok: false as const, error: error.reason }),
+  );
 }
 
 /**
@@ -40,10 +42,13 @@ export async function actionSearchClients(query: string) {
  */
 export async function actionCreateClient(input: ClientInput) {
   const result = await dalCreateClient(input);
-  if (result.isOk()) {
-    return { ok: true, value: result.value };
-  }
-  return { ok: false, error: result.error.message };
+  return result.match(
+    (client) => {
+      updateTag(`clients-${client.org_id}`);
+      return { ok: true as const, value: client };
+    },
+    (error) => ({ ok: false as const, error: error.reason }),
+  );
 }
 
 /**
@@ -55,10 +60,15 @@ export async function actionUpdateClientOptIn(
   optInSms: boolean,
 ) {
   const result = await dalUpdateClientOptIn(id, optInNewsletter, optInSms);
-  if (result.isOk()) {
-    return { ok: true, value: result.value };
-  }
-  return { ok: false, error: result.error.message };
+  return result.match(
+    (client) => {
+      updateTag(`clients-${client.org_id}`);
+      updateTag(`clients-${client.org_id}-id-${client.id}`);
+      updateTag(`clients-${client.org_id}-email-${client.email}`);
+      return { ok: true as const, value: client };
+    },
+    (error) => ({ ok: false as const, error: error.reason }),
+  );
 }
 
 /**
@@ -66,19 +76,31 @@ export async function actionUpdateClientOptIn(
  */
 export async function actionUpdateClient(id: string, input: ClientInput) {
   const result = await dalUpdateClient(id, input);
-  if (result.isOk()) {
-    return { ok: true, value: result.value };
-  }
-  return { ok: false, error: result.error.message };
+  return result.match(
+    (client) => {
+      updateTag(`clients-${client.org_id}`);
+      updateTag(`clients-${client.org_id}-id-${client.id}`);
+      updateTag(`clients-${client.org_id}-email-${client.email}`);
+      return { ok: true as const, value: client };
+    },
+    (error) => ({ ok: false as const, error: error.reason }),
+  );
 }
 
 /**
  * Server action to delete a client record safely
  */
 export async function actionDeleteClient(id: string) {
+  const { orgId } = await auth.protect();
   const result = await dalDeleteClient(id);
-  if (result.isOk()) {
-    return { ok: true, value: result.value };
-  }
-  return { ok: false, error: result.error.message };
+  return result.match(
+    (value) => {
+      if (orgId) {
+        updateTag(`clients-${orgId}`);
+        updateTag(`clients-${orgId}-id-${id}`);
+      }
+      return { ok: true as const, value };
+    },
+    (error) => ({ ok: false as const, error: error.reason }),
+  );
 }

@@ -8,18 +8,20 @@ interface ClientTableProps {
   clients: Client[];
   hasSms: boolean;
   currentSearch: string;
-  onSelectClient: (client: Client) => void;
+  onOptimisticUpdate?: (
+    action: { type: "update"; client: Client } | { type: "delete"; id: string },
+  ) => void;
 }
 
 export function ClientTable({
   clients,
   hasSms,
   currentSearch,
-  onSelectClient,
+  onOptimisticUpdate,
 }: ClientTableProps) {
   if (clients.length === 0) {
     return (
-      <div className="py-16 text-center text-zinc-500 border border-zinc-200 rounded-xl bg-white">
+      <div className="rounded-xl border border-zinc-200 bg-white py-16 text-center text-zinc-500">
         {currentSearch
           ? "No clients match your search criteria."
           : "No clients registered yet."}
@@ -44,7 +46,7 @@ export function ClientTable({
             key={client.id}
             client={client}
             hasSms={hasSms}
-            onSelectClient={onSelectClient}
+            onOptimisticUpdate={onOptimisticUpdate}
           />
         ))}
       </TableBody>

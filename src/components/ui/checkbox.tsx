@@ -9,22 +9,22 @@ export interface CheckboxProps
 export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
   ({ className, label, ...props }, ref) => {
     return (
-      <label className="flex items-center gap-3 cursor-pointer select-none group">
+      <label className="group flex cursor-pointer select-none items-center gap-3">
         <div className="relative">
           <input
             type="checkbox"
-            className="sr-only peer"
+            className="peer sr-only"
             ref={ref}
             {...props}
           />
           <div
             className={cn(
-              "w-5 h-5 rounded-md border border-zinc-300 bg-white flex items-center justify-center transition-all duration-200 group-hover:border-zinc-450 peer-checked:bg-blue-600 peer-checked:border-blue-600 peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 peer-checked:[&>svg]:scale-100 peer-checked:[&>svg]:opacity-100",
+              "flex h-5 w-5 items-center justify-center rounded-md border border-zinc-300 bg-white transition-all duration-200 group-hover:border-zinc-450 peer-checked:border-blue-600 peer-checked:bg-blue-600 peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 peer-checked:[&>svg]:scale-100 peer-checked:[&>svg]:opacity-100",
               className,
             )}
           >
             <svg
-              className="w-3 h-3 text-white scale-0 opacity-0 transition-all duration-200"
+              className="h-3 w-3 scale-0 text-white opacity-0 transition-all duration-200"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -41,7 +41,7 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
           </div>
         </div>
         {label && (
-          <span className="text-sm text-zinc-600 font-medium group-hover:text-zinc-900 transition-colors">
+          <span className="font-medium text-sm text-zinc-600 transition-colors group-hover:text-zinc-900">
             {label}
           </span>
         )}

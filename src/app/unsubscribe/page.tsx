@@ -3,8 +3,6 @@ import Logo from "@/components/Logo";
 import { UnsubscribeManager } from "@/components/ui/UnsubscribeManager";
 import { dalGetClientSubscriptionsById } from "../../dal/mailing_lists";
 
-export const revalidate = 0; // Force dynamic loading
-
 export default function UnsubscribePage(props: PageProps<"/unsubscribe">) {
   const highlightedListNamePromise = props.searchParams.then((sp) =>
     typeof sp.listName === "string" ? sp.listName : undefined,
@@ -15,19 +13,19 @@ export default function UnsubscribePage(props: PageProps<"/unsubscribe">) {
   );
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-zinc-800 items-center justify-center p-4">
-      <div className="relative z-10 w-full max-w-xl flex flex-col gap-6">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 text-zinc-800">
+      <div className="relative z-10 flex w-full max-w-xl flex-col gap-6">
         {/* Brand Header */}
-        <div className="flex items-center justify-center gap-2 group mb-2">
-          <Logo className="w-9 h-9" />
-          <span className="font-extrabold text-lg tracking-wider text-zinc-900 font-display">
-            CMS<span className="text-blue-600 font-semibold"> Pro</span>
+        <div className="group mb-2 flex items-center justify-center gap-2">
+          <Logo className="h-9 w-9" />
+          <span className="font-display font-extrabold text-lg text-zinc-900 tracking-wider">
+            CMS<span className="font-semibold text-blue-600"> Pro</span>
           </span>
         </div>
 
         <Suspense
           fallback={
-            <div className="text-center text-zinc-500 text-xs py-4">
+            <div className="py-4 text-center text-xs text-zinc-500">
               Loading subscriber preferences...
             </div>
           }

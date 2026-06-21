@@ -21,7 +21,7 @@ export function TableHeader({
 }: React.HTMLAttributes<HTMLTableSectionElement>) {
   return (
     <thead
-      className={cn("border-b border-zinc-200 bg-zinc-50/70", className)}
+      className={cn("border-zinc-200 border-b bg-zinc-50/70", className)}
       {...props}
     />
   );
@@ -43,7 +43,7 @@ export function TableFooter({
   return (
     <tfoot
       className={cn(
-        "border-t border-zinc-200 bg-zinc-50/70 font-medium",
+        "border-zinc-200 border-t bg-zinc-50/70 font-medium",
         className,
       )}
       {...props}
@@ -58,7 +58,7 @@ export function TableRow({
   return (
     <tr
       className={cn(
-        "border-b border-zinc-100 transition-colors hover:bg-zinc-50/50 data-[state=selected]:bg-zinc-100",
+        "border-zinc-100 border-b transition-colors hover:bg-zinc-50/50 data-[state=selected]:bg-zinc-100",
         className,
       )}
       {...props}
@@ -73,7 +73,7 @@ export function TableHead({
   return (
     <th
       className={cn(
-        "h-12 px-4 text-left align-middle font-semibold text-zinc-500 uppercase tracking-wider text-xs [&:has([role=checkbox])]:pr-0",
+        "h-12 px-4 text-left align-middle font-semibold text-xs text-zinc-500 uppercase tracking-wider [&:has([role=checkbox])]:pr-0",
         className,
       )}
       {...props}
@@ -88,7 +88,7 @@ export function TableCell({
   return (
     <td
       className={cn(
-        "p-4 align-middle [&:has([role=checkbox])]:pr-0 text-zinc-900",
+        "p-4 align-middle text-zinc-900 [&:has([role=checkbox])]:pr-0",
         className,
       )}
       {...props}

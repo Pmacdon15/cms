@@ -7,8 +7,6 @@ import { dalGetCampaigns } from "../../dal/campaigns";
 import { dalGetClients } from "../../dal/clients";
 import { dalGetMailingLists } from "../../dal/mailing_lists";
 
-export const revalidate = 0; // Force dynamic server rendering
-
 export default function CampaignsPage(props: PageProps<"/campaigns">) {
   const searchParamsPromise = props.searchParams;
   const clientPromise = searchParamsPromise.then((p) => parseParams(p.client));
@@ -22,10 +20,10 @@ export default function CampaignsPage(props: PageProps<"/campaigns">) {
   const selectedClientPromise = clientPromise.then(async (clientId) => {
     if (!clientId) return null;
     const res = await dalGetClients({ client: clientId });
-    if (res.ok && res.value && res.value[0]) {
-      return res.value[0];
-    }
-    return null;
+    return res.match(
+      (clients) => clients[0] || null,
+      () => null,
+    );
   });
 
   const hasSmsPromise = auth
@@ -36,12 +34,12 @@ export default function CampaignsPage(props: PageProps<"/campaigns">) {
     .catch(() => false);
 
   return (
-    <main className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8 flex flex-col gap-6">
+    <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 p-6 md:p-8">
       {/* Title Heading */}
-      <div className="flex flex-col gap-2 border-b border-zinc-100 pb-5">
+      <div className="flex flex-col gap-2 border-zinc-100 border-b pb-5">
         <div className="flex items-center gap-2">
-          <Send className="w-5 h-5 text-blue-605" />
-          <h1 className="text-2xl font-extrabold text-zinc-900 tracking-tight">
+          <Send className="h-5 w-5 text-blue-605" />
+          <h1 className="font-extrabold text-2xl text-zinc-900 tracking-tight">
             Campaigns & SMS Compositions
           </h1>
         </div>

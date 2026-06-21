@@ -1,3 +1,4 @@
+import { cacheTag } from "next/cache";
 import type { Client, ClientInput } from "../types/types";
 import { sql } from "./neon";
 
@@ -5,8 +6,10 @@ import { sql } from "./neon";
  * Fetch all clients, sorted newest first
  */
 export async function dbGetClients(orgId: string): Promise<Client[]> {
+  "use cache";
+  cacheTag(`clients-${orgId}`);
   const rows = await sql`
-    SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at 
+    SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, org_id, created_at 
     FROM clients 
     WHERE org_id = ${orgId}
     ORDER BY created_at DESC
@@ -21,9 +24,11 @@ export async function dbSearchClients(
   orgId: string,
   query: string,
 ): Promise<Client[]> {
+  "use cache";
+  cacheTag(`clients-${orgId}`, `clients-${orgId}-search-${query}`);
   const pattern = `%${query}%`;
   const rows = await sql`
-    SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at 
+    SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, org_id, created_at 
     FROM clients 
     WHERE org_id = ${orgId}
       AND (
@@ -43,21 +48,25 @@ export async function dbGetClientById(
   id: string,
   orgId?: string,
 ): Promise<Client | null> {
+  "use cache";
+  if (orgId) {
+    cacheTag(`clients-${orgId}`, `clients-${orgId}-id-${id}`);
+  }
   const rows = (
     orgId
       ? await sql`
-        SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at 
+        SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, org_id, created_at 
         FROM clients 
         WHERE id = ${id} AND org_id = ${orgId}
       `
       : await sql`
-        SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at 
+        SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, org_id, created_at 
         FROM clients 
         WHERE id = ${id}
       `
-  ) as any[];
+  ) as Client[];
   if (rows.length === 0) return null;
-  return rows[0] as Client;
+  return rows[0];
 }
 
 /**
@@ -67,21 +76,25 @@ export async function dbGetClientByEmail(
   email: string,
   orgId?: string,
 ): Promise<Client | null> {
+  "use cache";
+  if (orgId) {
+    cacheTag(`clients-${orgId}`, `clients-${orgId}-email-${email}`);
+  }
   const rows = (
     orgId
       ? await sql`
-        SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at 
+        SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, org_id, created_at 
         FROM clients 
         WHERE email = ${email} AND org_id = ${orgId}
       `
       : await sql`
-        SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at 
+        SELECT id, name, email, phone_number, opt_in_newsletter, opt_in_sms, org_id, created_at 
         FROM clients 
         WHERE email = ${email}
       `
-  ) as any[];
+  ) as Client[];
   if (rows.length === 0) return null;
-  return rows[0] as Client;
+  return rows[0];
 }
 
 /**
@@ -94,9 +107,9 @@ export async function dbCreateClient(
   const rows = (await sql`
     INSERT INTO clients (name, email, phone_number, opt_in_newsletter, opt_in_sms, org_id)
     VALUES (${input.name}, ${input.email}, ${input.phone_number}, true, true, ${orgId})
-    RETURNING id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at
-  `) as any[];
-  return rows[0] as Client;
+    RETURNING id, name, email, phone_number, opt_in_newsletter, opt_in_sms, org_id, created_at
+  `) as Client[];
+  return rows[0];
 }
 
 /**
@@ -114,17 +127,17 @@ export async function dbUpdateClientOptIn(
         UPDATE clients
         SET opt_in_newsletter = ${optInNewsletter}, opt_in_sms = ${optInSms}
         WHERE id = ${id} AND org_id = ${orgId}
-        RETURNING id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at
+        RETURNING id, name, email, phone_number, opt_in_newsletter, opt_in_sms, org_id, created_at
       `
       : await sql`
         UPDATE clients
         SET opt_in_newsletter = ${optInNewsletter}, opt_in_sms = ${optInSms}
         WHERE id = ${id}
-        RETURNING id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at
+        RETURNING id, name, email, phone_number, opt_in_newsletter, opt_in_sms, org_id, created_at
       `
-  ) as any[];
+  ) as Client[];
   if (rows.length === 0) return null;
-  return rows[0] as Client;
+  return rows[0];
 }
 
 /**
@@ -139,10 +152,10 @@ export async function dbUpdateClient(
     UPDATE clients
     SET name = ${input.name}, email = ${input.email}, phone_number = ${input.phone_number}
     WHERE id = ${id} AND org_id = ${orgId}
-    RETURNING id, name, email, phone_number, opt_in_newsletter, opt_in_sms, created_at
-  `) as any[];
+    RETURNING id, name, email, phone_number, opt_in_newsletter, opt_in_sms, org_id, created_at
+  `) as Client[];
   if (rows.length === 0) return null;
-  return rows[0] as Client;
+  return rows[0];
 }
 
 /**
@@ -152,9 +165,11 @@ export async function dbGetCampaignRecipients(
   orgId: string,
   mailingListName?: string,
 ): Promise<Client[]> {
+  "use cache";
   if (mailingListName) {
+    cacheTag(`clients-${orgId}`, `clients-${orgId}-list-${mailingListName}`);
     const rows = await sql`
-      SELECT c.id, c.name, c.email, c.phone_number, c.opt_in_newsletter, c.opt_in_sms, c.created_at
+      SELECT c.id, c.name, c.email, c.phone_number, c.opt_in_newsletter, c.opt_in_sms, c.org_id, c.created_at
       FROM clients c
       JOIN mailing_list_subscriptions mls ON mls.client_id = c.id
       WHERE mls.mailing_list_name = ${mailingListName} 
@@ -165,6 +180,7 @@ export async function dbGetCampaignRecipients(
     `;
     return rows as Client[];
   }
+  cacheTag(`clients-${orgId}`);
   return dbGetClients(orgId);
 }
 
@@ -179,7 +195,7 @@ export async function dbDeleteClient(
     DELETE FROM clients 
     WHERE id = ${id} AND org_id = ${orgId}
     RETURNING id
-  `) as any[];
+  `) as Array<{ id: string }>;
   return result.length > 0;
 }
 
@@ -187,6 +203,8 @@ export async function dbDeleteClient(
  * Get the total count of clients for an organization
  */
 export async function dbGetClientsCount(orgId: string): Promise<number> {
+  "use cache";
+  cacheTag(`clients-${orgId}`, `clients-${orgId}-count`);
   const rows = (await sql`
     SELECT COUNT(*)::integer as count
     FROM clients

@@ -58,11 +58,11 @@ export function Toaster() {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3 max-w-sm w-full">
+    <div className="fixed right-6 bottom-6 z-50 flex w-full max-w-sm flex-col gap-3">
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className={`flex items-start justify-between p-4 rounded-xl border bg-white shadow-xl transition-all duration-300 transform translate-y-0 scale-100 animate-slide-in ${
+          className={`flex translate-y-0 scale-100 transform animate-slide-in items-start justify-between rounded-xl border bg-white p-4 shadow-xl transition-all duration-300 ${
             toast.type === "success"
               ? "border-emerald-200 text-zinc-900"
               : toast.type === "error"
@@ -72,7 +72,7 @@ export function Toaster() {
         >
           <div className="flex gap-3">
             <span
-              className={`mt-0.5 text-lg font-extrabold ${
+              className={`mt-0.5 font-extrabold text-lg ${
                 toast.type === "success"
                   ? "text-emerald-600"
                   : toast.type === "error"
@@ -84,7 +84,7 @@ export function Toaster() {
               {toast.type === "error" && "✕"}
               {toast.type === "info" && "ℹ"}
             </span>
-            <p className="text-sm font-medium leading-5 text-zinc-800">
+            <p className="font-medium text-sm text-zinc-800 leading-5">
               {toast.message}
             </p>
           </div>
@@ -92,7 +92,7 @@ export function Toaster() {
             onClick={() =>
               setToasts((prev) => prev.filter((t) => t.id !== toast.id))
             }
-            className="ml-4 text-xs font-semibold text-zinc-450 hover:text-zinc-800 transition-colors cursor-pointer"
+            className="ml-4 cursor-pointer font-semibold text-xs text-zinc-450 transition-colors hover:text-zinc-800"
             type="button"
           >
             ✕

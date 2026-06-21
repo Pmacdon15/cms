@@ -7,8 +7,8 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <div className="max-w-3xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-bold mb-8 text-slate-900 dark:text-slate-100">
+    <div className="mx-auto max-w-3xl px-4 py-12">
+      <h1 className="mb-8 font-bold text-3xl text-slate-900 dark:text-slate-100">
         Terms of Service
       </h1>
 
@@ -18,7 +18,7 @@ export default function TermsPage() {
         </p>
 
         <div>
-          <h2 className="text-xl font-semibold mt-8 mb-4 text-slate-900 dark:text-slate-100">
+          <h2 className="mt-8 mb-4 font-semibold text-slate-900 text-xl dark:text-slate-100">
             Service Availability
           </h2>
           <p>
@@ -29,7 +29,7 @@ export default function TermsPage() {
         </div>
 
         <div>
-          <h2 className="text-xl font-semibold mt-8 mb-4 text-slate-900 dark:text-slate-100">
+          <h2 className="mt-8 mb-4 font-semibold text-slate-900 text-xl dark:text-slate-100">
             Free Tier Limitations
           </h2>
           <p>
@@ -40,7 +40,7 @@ export default function TermsPage() {
         </div>
 
         <div>
-          <h2 className="text-xl font-semibold mt-8 mb-4 text-slate-900 dark:text-slate-100">
+          <h2 className="mt-8 mb-4 font-semibold text-slate-900 text-xl dark:text-slate-100">
             User Responsibilities
           </h2>
           <p>
@@ -51,7 +51,7 @@ export default function TermsPage() {
         </div>
 
         <div>
-          <h2 className="text-xl font-semibold mt-8 mb-4 text-slate-900 dark:text-slate-100">
+          <h2 className="mt-8 mb-4 font-semibold text-slate-900 text-xl dark:text-slate-100">
             Changes to Terms
           </h2>
           <p>
@@ -61,7 +61,7 @@ export default function TermsPage() {
         </div>
 
         <div>
-          <h2 className="text-xl font-semibold mt-8 mb-4 text-slate-900 dark:text-slate-100">
+          <h2 className="mt-8 mb-4 font-semibold text-slate-900 text-xl dark:text-slate-100">
             Contact
           </h2>
           <p>

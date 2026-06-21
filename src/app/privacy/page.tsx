@@ -8,8 +8,8 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <div className="max-w-3xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-bold mb-8 text-slate-900 dark:text-slate-100">
+    <div className="mx-auto max-w-3xl px-4 py-12">
+      <h1 className="mb-8 font-bold text-3xl text-slate-900 dark:text-slate-100">
         Privacy Policy
       </h1>
 
@@ -20,7 +20,7 @@ export default function PrivacyPage() {
         </p>
 
         <div>
-          <h2 className="text-xl font-semibold mt-8 mb-4 text-slate-900 dark:text-slate-100">
+          <h2 className="mt-8 mb-4 font-semibold text-slate-900 text-xl dark:text-slate-100">
             Data Collection and Use
           </h2>
           <p>
@@ -31,7 +31,7 @@ export default function PrivacyPage() {
         </div>
 
         <div>
-          <h2 className="text-xl font-semibold mt-8 mb-4 text-slate-900 dark:text-slate-100">
+          <h2 className="mt-8 mb-4 font-semibold text-slate-900 text-xl dark:text-slate-100">
             Data Security
           </h2>
           <p>
@@ -41,7 +41,7 @@ export default function PrivacyPage() {
         </div>
 
         <div>
-          <h2 className="text-xl font-semibold mt-8 mb-4 text-slate-900 dark:text-slate-100">
+          <h2 className="mt-8 mb-4 font-semibold text-slate-900 text-xl dark:text-slate-100">
             Third-Party Sharing
           </h2>
           <p>
@@ -55,7 +55,7 @@ export default function PrivacyPage() {
         </div>
 
         <div>
-          <h2 className="text-xl font-semibold mt-8 mb-4 text-slate-900 dark:text-slate-100">
+          <h2 className="mt-8 mb-4 font-semibold text-slate-900 text-xl dark:text-slate-100">
             Contact
           </h2>
           <p>

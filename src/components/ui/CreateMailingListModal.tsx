@@ -40,7 +40,7 @@ export function CreateMailingListModal({
         <div className="flex flex-col gap-1.5">
           <label
             htmlFor="description"
-            className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
+            className="font-semibold text-xs text-zinc-500 uppercase tracking-wider"
           >
             List Description
           </label>
@@ -50,10 +50,10 @@ export function CreateMailingListModal({
             rows={4}
             value={newListDesc}
             onChange={(e) => setNewListDesc(e.target.value)}
-            className="flex w-full rounded-xl bg-white border border-zinc-200 px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:outline-none focus-visible:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200"
+            className="flex w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 transition-all duration-200 placeholder:text-zinc-400 focus-visible:border-blue-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
           />
         </div>
-        <div className="flex justify-end pt-2 gap-3">
+        <div className="flex justify-end gap-3 pt-2">
           <Button
             type="button"
             variant="secondary"

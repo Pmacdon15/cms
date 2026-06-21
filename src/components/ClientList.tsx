@@ -1,7 +1,9 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { type ComponentType, use, useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { startTransition, use, useOptimistic, useState } from "react";
+import { actionGetClients } from "../actions/clients";
 import type { Client } from "../types/types";
 import { ClientForm } from "./ClientForm";
 import { ClientSearchBar } from "./ClientSearchBar";
@@ -9,14 +11,6 @@ import { Button } from "./ui/button";
 import { ClientDetailView } from "./ui/client-detailed-view";
 import { ClientTable } from "./ui/client-table";
 import { Dialog } from "./ui/dialog";
-
-const ClientSearchBarComponent = ClientSearchBar as ComponentType<{
-  currentSearch: string;
-  onSelectClient: (client: Client) => void;
-  onClear: () => void;
-  buildUrl: (overrides: Record<string, string>) => string;
-  selectedClientName?: string;
-}>;
 
 interface ClientListProps {
   initialClientsPromise: Promise<
@@ -31,67 +25,101 @@ export default function ClientList({
   initialClientsPromise,
   hasSmsPromise,
   currentSearchPromise,
+  currentClientPromise,
 }: ClientListProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-
+  const currentClient = use(currentClientPromise);
   const clientsResult = use(initialClientsPromise);
   const clients = clientsResult.ok ? clientsResult.value : [];
   const currentSearch = use(currentSearchPromise);
   const hasSms = use(hasSmsPromise);
 
-  const activeClientId = searchParams.get("client");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [localClients, setLocalClients] = useState<Client[]>([]);
 
-  useEffect(() => {
-    setLocalClients(clients);
-  }, [clients]);
-
-  const selectedClient = activeClientId
-    ? localClients.find((c) => c.id === activeClientId) || null
-    : null;
-
-  const buildUrl = (overrides: Record<string, string>) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("search");
-    params.delete("client");
-    for (const [key, val] of Object.entries(overrides)) {
-      if (val) params.set(key, val);
-    }
-    const qs = params.toString();
-    return qs ? `/clients?${qs}` : "/clients";
-  };
-
-  const handleSelectClient = (client: Client) => {
-    router.push(buildUrl({ client: client.id }));
-  };
+  // Fetch the default (unfiltered) list of clients on load
+  const { data: baseClients = currentSearch ? [] : clients } = useQuery({
+    queryKey: ["client-base-list"],
+    queryFn: async () => {
+      const res = await actionGetClients();
+      if (res.ok) return res.value as Client[];
+      return [];
+    },
+    staleTime: 1000 * 60 * 5, // cache for 5 minutes
+  });
 
   const handleClear = () => {
-    router.push(buildUrl({}));
+    startTransition(() => {
+      setOptimisticState({
+        type: "submitSearch",
+        search: "",
+        clients: baseClients,
+      });
+      router.push("/clients");
+    });
   };
 
-  const handleOptimisticUpdate = (
-    action: { type: "update"; client: Client } | { type: "delete"; id: string },
-  ) => {
-    if (action.type === "update") {
-      setLocalClients((prev) =>
-        prev.map((c) => (c.id === action.client.id ? action.client : c)),
-      );
-    } else if (action.type === "delete") {
-      setLocalClients((prev) => prev.filter((c) => c.id !== action.id));
-    }
-  };
+  const [optimisticState, setOptimisticState] = useOptimistic(
+    {
+      clients,
+      currentClient,
+      currentSearch,
+    },
+    (
+      state,
+      action:
+        | { type: "update"; client: Client }
+        | { type: "delete"; id: string }
+        | { type: "selectClient"; id: string; client: Client }
+        | { type: "submitSearch"; search: string; clients: Client[] },
+    ) => {
+      switch (action.type) {
+        case "update":
+          return {
+            ...state,
+            clients: state.clients.map((c) =>
+              c.id === action.client.id ? action.client : c,
+            ),
+          };
+        case "delete":
+          return {
+            ...state,
+            clients: state.clients.filter((c) => c.id !== action.id),
+          };
+        case "selectClient":
+          return {
+            ...state,
+            currentClient: action.id,
+            currentSearch: "",
+            clients: [action.client],
+          };
+        case "submitSearch":
+          return {
+            ...state,
+            currentClient: "",
+            currentSearch: action.search,
+            clients: action.clients,
+          };
+        default:
+          return state;
+      }
+    },
+  );
+
+  const selectedClient = optimisticState.currentClient
+    ? optimisticState.clients.find(
+        (c) => c.id === optimisticState.currentClient,
+      ) || null
+    : null;
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <ClientSearchBarComponent
-          currentSearch={currentSearch}
-          onSelectClient={handleSelectClient}
-          onClear={handleClear}
-          buildUrl={buildUrl}
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+        <ClientSearchBar
+          key={`${optimisticState.currentSearch}-${selectedClient?.id || ""}`}
+          initialSearch={optimisticState.currentSearch}
           selectedClientName={selectedClient?.name}
+          onOptimisticUpdate={setOptimisticState}
+          onClear={handleClear}
         />
         <Button
           onClick={() => setIsModalOpen(true)}
@@ -101,18 +129,18 @@ export default function ClientList({
         </Button>
       </div>
 
-      {currentSearch && !selectedClient && (
+      {optimisticState.currentSearch && !selectedClient && (
         <div className="flex items-center gap-2 text-sm">
           <span className="text-zinc-500">
             Showing results for{" "}
             <span className="font-semibold text-zinc-800">
-              &ldquo;{currentSearch}&rdquo;
+              &ldquo;{optimisticState.currentSearch}&rdquo;
             </span>
           </span>
           <button
             type="button"
             onClick={handleClear}
-            className="text-xs text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
+            className="cursor-pointer font-semibold text-blue-600 text-xs hover:text-blue-700"
           >
             Clear
           </button>
@@ -123,15 +151,14 @@ export default function ClientList({
         <ClientDetailView
           client={selectedClient}
           hasSms={hasSms}
-          onBack={handleClear}
-          onOptimisticUpdate={handleOptimisticUpdate}
+          onOptimisticUpdate={setOptimisticState}
         />
       ) : (
         <ClientTable
-          clients={localClients}
+          clients={optimisticState.clients}
           hasSms={hasSms}
-          currentSearch={currentSearch}
-          onSelectClient={handleSelectClient}
+          currentSearch={optimisticState.currentSearch}
+          onOptimisticUpdate={setOptimisticState}
         />
       )}
 
@@ -143,7 +170,6 @@ export default function ClientList({
         <ClientForm
           onSuccess={() => {
             setIsModalOpen(false);
-            router.refresh();
           }}
         />
       </Dialog>

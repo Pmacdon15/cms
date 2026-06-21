@@ -5,15 +5,19 @@ import ClientList from "@/components/ClientList";
 import { parseParams } from "@/utils/params";
 import { dalGetClients } from "../../dal/clients";
 
-export const revalidate = 0; // Force dynamic server rendering
-
 export default function ClientsPage(props: PageProps<"/clients">) {
   const clientsPromise = props.searchParams.then((p) =>
     dalGetClients({
       search: parseParams(p.search),
       client: parseParams(p.client),
-    }),
+    }).then((res) =>
+      res.match(
+        (value) => ({ ok: true as const, value }),
+        (error) => ({ ok: false as const, error }),
+      ),
+    ),
   );
+
   const clientPromise = props.searchParams.then((p) => parseParams(p.client));
   const searchPromise = props.searchParams.then((p) => parseParams(p.search));
   const hasSmsPromise = auth
@@ -21,12 +25,11 @@ export default function ClientsPage(props: PageProps<"/clients">) {
     .then((auth) => auth.has({ feature: "send_sms" }));
 
   return (
-    <main className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8 flex flex-col gap-6">
-      {/* Title Heading */}
-      <div className="flex flex-col gap-2 border-b border-zinc-100 pb-5">
+    <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 p-6 md:p-8">
+      <div className="flex flex-col gap-2 border-zinc-100 border-b pb-5">
         <div className="flex items-center gap-2">
-          <Users className="w-5 h-5 text-blue-605" />
-          <h1 className="text-2xl font-extrabold text-zinc-900 tracking-tight">
+          <Users className="h-5 w-5 text-blue-605" />
+          <h1 className="font-extrabold text-2xl text-zinc-900 tracking-tight">
             Clients Directory
           </h1>
         </div>
@@ -36,7 +39,6 @@ export default function ClientsPage(props: PageProps<"/clients">) {
         </p>
       </div>
 
-      {/* Dynamic client manager list */}
       <Suspense>
         <ClientList
           initialClientsPromise={clientsPromise}

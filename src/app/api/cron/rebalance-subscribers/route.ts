@@ -1,10 +1,9 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { connection, type NextRequest, NextResponse } from "next/server";
 import { dalRebalanceSubscribersForOrg } from "@/dal/mailing_lists";
 import { dbGetDistinctOrgsWithMailingLists } from "@/db/mailing_lists";
 
-export const revalidate = 0;
-
 export async function GET(req: NextRequest) {
+  await connection();
   try {
     // Verify cron authorization header
     const isDev = process.env.NODE_ENV === "development";

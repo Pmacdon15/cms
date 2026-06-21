@@ -1,6 +1,7 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
+import { startTransition } from "react";
 import {
   useCreateClientMutation,
   useUpdateClientMutation,
@@ -35,15 +36,17 @@ export function ClientForm({
       phone_number: client?.phone_number ?? "",
     },
     validators: {
-      onChange({ value }) {
-        if (!value.name.trim()) return { name: "Name is required" };
-        if (!value.email.trim()) return { email: "Email is required" };
-        if (!value.email.includes("@"))
-          return { email: "Invalid email address" };
-        if (!value.phone_number.trim())
-          return { phone_number: "Phone is required" };
-        return undefined;
-      },
+      // onBlur:
+      // onsubmit:
+      // onChange({ value }) {
+      //   if (!value.name.trim()) return { name: "Name is required" };
+      //   if (!value.email.trim()) return { email: "Email is required" };
+      //   if (!value.email.includes("@"))
+      //     return { email: "Invalid email address" };
+      //   if (!value.phone_number.trim())
+      //     return { phone_number: "Phone is required" };
+      //   return undefined;
+      // },
     },
     onSubmit: async ({ value }) => {
       if (isEditMode && client) {
@@ -54,18 +57,20 @@ export function ClientForm({
           phone_number: value.phone_number.trim(),
         };
 
-        // Optimistically update parent state
-        onOptimisticUpdate?.({ type: "update", client: updatedClient });
         // Close modal instantly
         onSuccess();
 
-        await updateMutation.mutateAsync({
-          id: client.id,
-          input: {
-            name: value.name.trim(),
-            email: value.email.trim(),
-            phone_number: value.phone_number.trim(),
-          },
+        startTransition(async () => {
+          // Optimistically update parent state
+          onOptimisticUpdate?.({ type: "update", client: updatedClient });
+          await updateMutation.mutateAsync({
+            id: client.id,
+            input: {
+              name: value.name.trim(),
+              email: value.email.trim(),
+              phone_number: value.phone_number.trim(),
+            },
+          });
         });
       } else {
         await createMutation.mutateAsync({
@@ -96,7 +101,7 @@ export function ClientForm({
             onChange={(e) => field.handleChange(e.target.value)}
             onBlur={field.handleBlur}
             error={
-              field.state.meta.errors
+              field.state.meta.errors && field.state.meta.isTouched
                 ? String(field.state.meta.errors)
                 : undefined
             }
@@ -115,7 +120,7 @@ export function ClientForm({
             onChange={(e) => field.handleChange(e.target.value)}
             onBlur={field.handleBlur}
             error={
-              field.state.meta.errors
+              field.state.meta.errors && field.state.meta.isTouched
                 ? String(field.state.meta.errors)
                 : undefined
             }
@@ -134,7 +139,7 @@ export function ClientForm({
             onChange={(e) => field.handleChange(e.target.value)}
             onBlur={field.handleBlur}
             error={
-              field.state.meta.errors
+              field.state.meta.errors && field.state.meta.isTouched
                 ? String(field.state.meta.errors)
                 : undefined
             }
@@ -143,7 +148,7 @@ export function ClientForm({
       </form.Field>
 
       {/* Submit Button */}
-      <div className="flex justify-end gap-3 mt-4 border-t border-zinc-100 pt-4">
+      <div className="mt-4 flex justify-end gap-3 border-zinc-100 border-t pt-4">
         <Button
           type="submit"
           className="w-full sm:w-auto"
