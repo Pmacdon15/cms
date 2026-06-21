@@ -22,7 +22,7 @@ export default function CampaignsPage(props: PageProps<"/campaigns">) {
   const selectedClientPromise = clientPromise.then(async (clientId) => {
     if (!clientId) return null;
     const res = await dalGetClients({ client: clientId });
-    if (res.ok && res.value && res.value[0]) {
+    if (res.ok && res.value?.[0]) {
       return res.value[0];
     }
     return null;

@@ -12,7 +12,7 @@ import {
 } from "../db/clients";
 import { dbUpdateSubscriptionStatus } from "../db/mailing_lists";
 import type { Client, ClientInput } from "../types/types";
-import { checkAuth } from "./auth";
+
 
 /**
  * Fetch clients with auth protection and filter parameters (search term or specific client)

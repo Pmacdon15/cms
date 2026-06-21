@@ -4,6 +4,7 @@ import { withWorkflow } from "workflow/next";
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
+  cacheComponents: true,
 };
 
 export default withWorkflow(nextConfig);
