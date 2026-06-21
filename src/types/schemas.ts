@@ -81,11 +81,11 @@ export const mailingListSchema = z.object({
 
 export const mailingListFormSchema = z.object({
   name: z.string().min(1, "List name is required").max(255, "List name is too long"),
-  description: z.string(),
+  description: z.string().min(1, "Description name is required").max(255, "List description is too long"),
 });
 
 export const mailingListSubscriptionSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z.email("Invalid email address"),
   listName: z.string(),
   status: z.enum(["subscribed", "unsubscribed"]),
 });
@@ -93,9 +93,9 @@ export const mailingListSubscriptionSchema = z.object({
 // --- SENT MESSAGE SCHEMAS ---
 
 export const sentMessageSchema = z.object({
-  id: z.string().uuid(),
-  campaign_id: z.string().uuid(),
-  client_id: z.string().uuid(),
+  id: z.uuid(),
+  campaign_id: z.uuid(),
+  client_id: z.uuid(),
   channel: z.enum(["email", "sms"]),
   status: z.enum(["sent", "failed"]),
   aws_message_id: z.string().optional(),
