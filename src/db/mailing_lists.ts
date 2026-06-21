@@ -236,8 +236,8 @@ export async function dbGetMailingListsCount(orgId: string): Promise<number> {
     SELECT COUNT(*)::integer as count
     FROM mailing_lists
     WHERE org_id = ${orgId} AND status != 'deleted'
-  `) as { count: number };
-  return rows?.count || 0;
+  `) as Array<{ count: number }>;
+  return rows[0]?.count || 0;
 }
 
 /**

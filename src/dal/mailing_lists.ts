@@ -102,9 +102,7 @@ export async function dalCreateMailingList(
     }
 
     const mailingListLimit =
-      [15, 10, 5].find(async (num) =>
-        has?.({ feature: `${num}_mailing_list` }),
-      ) || 1;
+      [15, 10, 5].find((num) => has?.({ feature: `${num}_mailing_list` })) || 1;
 
     const currentListCount = await dbGetMailingListsCount(orgId);
     if (currentListCount >= mailingListLimit) {

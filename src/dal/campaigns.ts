@@ -77,7 +77,7 @@ export async function dalCreateCampaign(
 
     const campaignLimit =
       [15, 10, 5].find((num) => has({ feature: `${num}_campaigns_a_week` })) ||
-      1;
+      1;    
 
     const targetListName = input.mailing_list_name || undefined;
 
@@ -104,7 +104,7 @@ export async function dalCreateCampaign(
       });
     }
 
-    const globalLimit = activeListsCount * campaignLimit;
+    const globalLimit = activeListsCount * campaignLimit;    
     if (totalCampaignsCount >= globalLimit) {
       return err({
         reason: `Global campaign limit reached. This organization is limited to ${globalLimit} campaign(s) per week total across all lists (based on ${activeListsCount} mailing list(s) allowed).`,
