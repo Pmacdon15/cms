@@ -3,9 +3,9 @@ import Logo from "@/components/Logo";
 export default function AuthHeader() {
   return (
     <div className="flex items-center gap-3">
-      <Logo className="w-10 h-10" />
-      <span className="font-extrabold text-2xl tracking-wider text-zinc-900 font-display">
-        CMS<span className="text-blue-600 font-semibold"> Pro</span>
+      <Logo className="h-10 w-10" />
+      <span className="font-display font-extrabold text-2xl text-zinc-900 tracking-wider">
+        CMS<span className="font-semibold text-blue-600"> Pro</span>
       </span>
     </div>
   );

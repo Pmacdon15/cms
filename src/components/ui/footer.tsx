@@ -2,27 +2,27 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="border-t border-slate-200/50 bg-primary/10 backdrop-blur-md w-full py-8 mt-auto">
-      <div className="max-w-7xl mx-auto px-4 md:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <footer className="mt-auto w-full border-slate-200/50 border-t bg-primary/10 py-8 backdrop-blur-md">
+      <div className="mx-auto max-w-7xl px-4 md:px-8">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           <div className="space-y-4">
-            <h3 className="font-bold text-lg tracking-tight text-slate-900 dark:text-slate-100">
+            <h3 className="font-bold text-lg text-slate-900 tracking-tight dark:text-slate-100">
               CMS Pro
             </h3>
-            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-xs">
+            <p className="max-w-xs text-slate-600 text-sm dark:text-slate-400">
               Efficient scheduling and management for your service business.
             </p>
           </div>
 
           <div className="space-y-4">
-            <h4 className="text-sm font-semibold  uppercase tracking-wider">
+            <h4 className="font-semibold text-sm uppercase tracking-wider">
               Legal & Privacy
             </h4>
             <ul className="space-y-2">
               <li>
                 <Link
                   href="/pricing"
-                  className="text-sm text-slate-600 hover:text-primary transition-colors"
+                  className="text-slate-600 text-sm transition-colors hover:text-primary"
                 >
                   Plans & Pricing
                 </Link>
@@ -30,7 +30,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/privacy"
-                  className="text-sm text-slate-600  hover:text-primary transition-colors"
+                  className="text-slate-600 text-sm transition-colors hover:text-primary"
                 >
                   Privacy Policy
                 </Link>
@@ -38,7 +38,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/terms"
-                  className="text-sm text-slate-600  hover:text-primary transition-colors"
+                  className="text-slate-600 text-sm transition-colors hover:text-primary"
                 >
                   Terms of Service
                 </Link>
@@ -47,13 +47,13 @@ export function Footer() {
           </div>
 
           <div className="space-y-4">
-            <h4 className="text-sm font-semibold text-slate-900  uppercase tracking-wider">
+            <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wider">
               Contact & Social
             </h4>
             <div className="flex flex-col gap-3">
               <a
                 href="mailto:patrick@patmac.ca"
-                className="flex items-center gap-2 text-sm text-slate-600 hover:text-primary transition-colors"
+                className="flex items-center gap-2 text-slate-600 text-sm transition-colors hover:text-primary"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -78,7 +78,7 @@ export function Footer() {
                 href="https://github.com/pmacdon15"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm text-slate-600 hover:text-primary transition-colors"
+                className="flex items-center gap-2 text-slate-600 text-sm transition-colors hover:text-primary"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -102,24 +102,24 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-slate-200/50 dark:border-slate-800/50">
-          <p className="text-xs text-slate-500  text-center leading-relaxed mb-4">
+        <div className="mt-8 border-slate-200/50 border-t pt-8 dark:border-slate-800/50">
+          <p className="mb-4 text-center text-slate-500 text-xs leading-relaxed">
             Built with professional software and website development services by
             Patrick Macdonald. For custom software solutions, contact:{" "}
             <a
               href="mailto:patrick@patmac.ca"
-              className="underline hover:text-primary transition-colors"
+              className="underline transition-colors hover:text-primary"
             >
               patrick@patmac.ca
             </a>
           </p>
-          <p className="text-xs text-slate-500 dark:text-slate-500 text-center leading-relaxed">
+          <p className="text-center text-slate-500 text-xs leading-relaxed dark:text-slate-500">
             Your data is safe and will never be sold. We only store it for the
             benefit of using the app and share it only with essential service
             providers like Neon DB. Features on the free tier may change without
             warning.
           </p>
-          <p className="text-xs text-slate-400 dark:text-slate-600 text-center mt-2">
+          <p className="mt-2 text-center text-slate-400 text-xs dark:text-slate-600">
             © 2026 CMS Pro App. All rights reserved.
           </p>
         </div>

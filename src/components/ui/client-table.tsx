@@ -19,7 +19,7 @@ export function ClientTable({
 }: ClientTableProps) {
   if (clients.length === 0) {
     return (
-      <div className="py-16 text-center text-zinc-500 border border-zinc-200 rounded-xl bg-white">
+      <div className="rounded-xl border border-zinc-200 bg-white py-16 text-center text-zinc-500">
         {currentSearch
           ? "No clients match your search criteria."
           : "No clients registered yet."}

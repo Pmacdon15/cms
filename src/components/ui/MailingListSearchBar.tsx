@@ -165,9 +165,9 @@ export function MailingListSearchBar({
   };
 
   return (
-    <div className="relative w-full max-w-sm hidden sm:block">
+    <div className="relative hidden w-full max-w-sm sm:block">
       <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
+        <Search className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-zinc-400" />
         <input
           ref={inputRef}
           type="text"
@@ -183,15 +183,15 @@ export function MailingListSearchBar({
           }}
           onKeyDown={handleKeyDown}
           autoComplete="off"
-          className="w-full h-11 rounded-xl bg-white border border-zinc-200 pl-10 pr-10 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:outline-none focus-visible:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-500 transition-all"
+          className="h-11 w-full rounded-xl border border-zinc-200 bg-white py-2 pr-10 pl-10 text-sm text-zinc-900 transition-all placeholder:text-zinc-400 focus-visible:border-blue-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
         />
         {inputValue && (
           <button
             type="button"
             onClick={handleClear}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors cursor-pointer"
+            className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-zinc-400 transition-colors hover:text-zinc-600"
           >
-            <X className="w-4 h-4" />
+            <X className="h-4 w-4" />
           </button>
         )}
       </div>
@@ -200,7 +200,7 @@ export function MailingListSearchBar({
       {showDropdown && debouncedSearch.trim().length > 0 && (
         <div
           ref={dropdownRef}
-          className="absolute z-[60] top-full left-0 mt-1.5 w-80 bg-white border border-zinc-200 rounded-xl shadow-xl shadow-zinc-200/60 overflow-hidden animate-fade-in-scale"
+          className="absolute top-full left-0 z-[60] mt-1.5 w-80 animate-fade-in-scale overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xl shadow-zinc-200/60"
         >
           {suggestions.length === 0 && (
             <div className="px-4 py-5 text-center text-xs text-zinc-400">
@@ -215,14 +215,14 @@ export function MailingListSearchBar({
                     type="button"
                     onClick={() => handleSelectSubscriber(sub)}
                     onMouseEnter={() => setActiveIndex(index)}
-                    className={`w-full text-left px-3.5 py-2.5 flex items-start gap-2.5 transition-colors cursor-pointer ${
+                    className={`flex w-full cursor-pointer items-start gap-2.5 px-3.5 py-2.5 text-left transition-colors ${
                       activeIndex === index
                         ? "bg-blue-50/80"
                         : "hover:bg-zinc-50"
                     }`}
                   >
                     {/* Avatar */}
-                    <div className="w-8 h-8 mt-0.5 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0 shadow-sm">
+                    <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 font-bold text-[10px] text-white shadow-sm">
                       {sub.name
                         .split(" ")
                         .map((w) => w[0])
@@ -231,17 +231,17 @@ export function MailingListSearchBar({
                         .toUpperCase()}
                     </div>
                     {/* Info */}
-                    <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                      <span className="text-xs font-semibold text-zinc-900 truncate">
+                    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span className="truncate font-semibold text-xs text-zinc-900">
                         {highlightMatch(sub.name, debouncedSearch)}
                       </span>
                       <div className="flex items-center gap-2.5 text-[11px] text-zinc-500">
                         <span className="flex items-center gap-1 truncate">
-                          <Mail className="w-2.5 h-2.5 flex-shrink-0" />
+                          <Mail className="h-2.5 w-2.5 flex-shrink-0" />
                           {highlightMatch(sub.email, debouncedSearch)}
                         </span>
                         <span className="flex items-center gap-1 truncate">
-                          <Phone className="w-2.5 h-2.5 flex-shrink-0" />
+                          <Phone className="h-2.5 w-2.5 flex-shrink-0" />
                           {highlightMatch(sub.phone_number, debouncedSearch)}
                         </span>
                       </div>
@@ -249,17 +249,17 @@ export function MailingListSearchBar({
                   </button>
                 </li>
               ))}
-              <li className="px-3.5 py-2 border-t border-zinc-100 flex items-center justify-between">
+              <li className="flex items-center justify-between border-zinc-100 border-t px-3.5 py-2">
                 <span className="text-[10px] text-zinc-400">
                   {suggestions.length} result
                   {suggestions.length !== 1 ? "s" : ""}
                 </span>
                 <span className="text-[10px] text-zinc-400">
-                  <div className="px-1 py-0.5 bg-zinc-100 border border-zinc-200 rounded text-[9px] font-mono">
+                  <div className="rounded border border-zinc-200 bg-zinc-100 px-1 py-0.5 font-mono text-[9px]">
                     ↵
                   </div>{" "}
                   search all ·{" "}
-                  <div className="px-1 py-0.5 bg-zinc-100 border border-zinc-200 rounded text-[9px] font-mono">
+                  <div className="rounded border border-zinc-200 bg-zinc-100 px-1 py-0.5 font-mono text-[9px]">
                     ↑↓
                   </div>{" "}
                   navigate

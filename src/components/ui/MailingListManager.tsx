@@ -127,7 +127,7 @@ export function MailingListManager({
   );
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+    <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-4">
       <MailingListSidebar
         lists={lists}
         activeList={activeList}
@@ -136,34 +136,34 @@ export function MailingListManager({
       />
 
       {/* Main Workspace - Client list mapper */}
-      <div className="lg:col-span-3 flex flex-col gap-5">
+      <div className="flex flex-col gap-5 lg:col-span-3">
         {!activeList ? (
-          <div className="py-24 text-center border border-dashed border-zinc-200 rounded-2xl text-zinc-450 flex flex-col items-center gap-3">
-            <Mail className="w-8 h-8 text-zinc-400" />
-            <span className="text-sm font-semibold">
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-zinc-200 border-dashed py-24 text-center text-zinc-450">
+            <Mail className="h-8 w-8 text-zinc-400" />
+            <span className="font-semibold text-sm">
               Select or Create an AWS SES Contact List to Manage Subscribers
             </span>
           </div>
         ) : (
           <div className="flex flex-col gap-5">
             {/* Header info */}
-            <div className="bg-white p-5 rounded-2xl border border-zinc-200 flex flex-col sm:flex-row justify-between items-center gap-4 shadow-sm shadow-zinc-100/50">
+            <div className="flex flex-col items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm shadow-zinc-100/50 sm:flex-row">
               <div>
-                <h3 className="text-md font-bold text-zinc-900 flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-blue-600" />{" "}
+                <h3 className="flex items-center gap-2 font-bold text-md text-zinc-900">
+                  <CheckCircle className="h-4 w-4 text-blue-600" />{" "}
                   {activeList.name}
                 </h3>
-                <p className="text-xs text-zinc-550 mt-1">
+                <p className="mt-1 text-xs text-zinc-550">
                   {activeList.description ||
                     "Active contact list deployed on AWS SES."}
                 </p>
               </div>
-              <div className="flex flex-col sm:flex-row items-center gap-4">
+              <div className="flex flex-col items-center gap-4 sm:flex-row">
                 <MailingListSearchBar
                   initialSearch={search}
                   subscribers={subscribers}
                 />
-                <span className="text-xs font-semibold uppercase bg-zinc-550/10 text-blue-650 border border-blue-200/50 px-3 py-1.5 rounded-full flex-shrink-0">
+                <span className="flex-shrink-0 rounded-full border border-blue-200/50 bg-zinc-550/10 px-3 py-1.5 font-semibold text-blue-650 text-xs uppercase">
                   {subscribers.filter((s) => s.status === "subscribed").length}{" "}
                   Active
                 </span>

@@ -34,7 +34,7 @@ export function MailingListSubscribersTable({
 
   if (filteredSubscribers.length === 0) {
     return (
-      <div className="py-16 text-center border border-zinc-200 rounded-xl bg-white text-zinc-550">
+      <div className="rounded-xl border border-zinc-200 bg-white py-16 text-center text-zinc-550">
         {search
           ? "No subscribers match your filter criteria."
           : "No subscribers on this contact list yet."}
@@ -65,7 +65,7 @@ export function MailingListSubscribersTable({
                     params.delete("search"); // Clear search when focusing on a client
                     router.push(`/mailing-lists?${params.toString()}`);
                   }}
-                  className="font-bold text-zinc-900 hover:text-blue-600 hover:underline transition-colors cursor-pointer text-left"
+                  className="cursor-pointer text-left font-bold text-zinc-900 transition-colors hover:text-blue-600 hover:underline"
                 >
                   {sub.name}
                 </button>

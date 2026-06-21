@@ -64,12 +64,12 @@ export function ClientTableRow({
 
   return (
     <TableRow
-      className="cursor-pointer hover:bg-blue-50/40 transition-colors"
+      className="cursor-pointer transition-colors hover:bg-blue-50/40"
       onClick={() => onSelectClient(client)}
     >
       <TableCell className="font-bold text-zinc-900">{client.name}</TableCell>
       <TableCell>
-        <div className="flex flex-col text-xs gap-0.5 text-zinc-500">
+        <div className="flex flex-col gap-0.5 text-xs text-zinc-500">
           <span>{client.email}</span>
           <span>{client.phone_number}</span>
         </div>
@@ -102,7 +102,7 @@ export function ClientTableRow({
             e.stopPropagation();
             handleDelete();
           }}
-          className="text-xs font-semibold text-rose-500 hover:text-rose-400 hover:underline cursor-pointer border-none bg-transparent"
+          className="cursor-pointer border-none bg-transparent font-semibold text-rose-500 text-xs hover:text-rose-400 hover:underline"
           type="button"
           disabled={deleteMutation.isPending}
         >

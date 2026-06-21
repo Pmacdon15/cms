@@ -85,7 +85,7 @@ export default function ClientList({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <ClientSearchBarComponent
           currentSearch={currentSearch}
           onSelectClient={handleSelectClient}
@@ -112,7 +112,7 @@ export default function ClientList({
           <button
             type="button"
             onClick={handleClear}
-            className="text-xs text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
+            className="cursor-pointer font-semibold text-blue-600 text-xs hover:text-blue-700"
           >
             Clear
           </button>

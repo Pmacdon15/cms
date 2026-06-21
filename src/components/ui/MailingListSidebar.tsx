@@ -68,27 +68,27 @@ export function MailingListSidebar({
   };
 
   return (
-    <div className="lg:col-span-1 flex flex-col gap-4 bg-white p-5 rounded-2xl border border-zinc-200 shadow-sm">
+    <div className="flex flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm lg:col-span-1">
       <div className="flex items-center justify-between">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+        <h2 className="font-bold text-xs text-zinc-500 uppercase tracking-wider">
           AWS SES Lists
         </h2>
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className="p-1 rounded-lg bg-zinc-50 border border-zinc-200 hover:bg-zinc-100 text-blue-600 transition-colors cursor-pointer"
+          className="cursor-pointer rounded-lg border border-zinc-200 bg-zinc-50 p-1 text-blue-600 transition-colors hover:bg-zinc-100"
           title="Create new list on AWS"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="h-4 w-4" />
         </button>
       </div>
 
       {lists.length === 0 ? (
-        <div className="text-center py-8 text-xs text-zinc-500">
+        <div className="py-8 text-center text-xs text-zinc-500">
           No contact lists found on AWS SES.
         </div>
       ) : (
-        <div className="flex flex-col gap-1.5 max-h-[400px] overflow-y-auto pr-1">
+        <div className="flex max-h-[400px] flex-col gap-1.5 overflow-y-auto pr-1">
           {lists.map((list) => {
             const isActive = activeList?.name === list.name;
             const sent = list.campaignsSentThisWeek ?? 0;
@@ -106,17 +106,17 @@ export function MailingListSidebar({
             }
 
             return (
-              <div key={list.name} className="relative group w-full">
+              <div key={list.name} className="group relative w-full">
                 {editingListName === list.name ? (
                   <form
                     onSubmit={(e) => handleSaveEdit(e, list.name)}
-                    className="flex flex-col gap-2 p-3 bg-zinc-50 border border-zinc-200 rounded-xl"
+                    className="flex flex-col gap-2 rounded-xl border border-zinc-200 bg-zinc-50 p-3"
                   >
                     <input
                       type="text"
                       value={editNameValue}
                       onChange={(e) => setEditNameValue(e.target.value)}
-                      className="w-full bg-white border border-zinc-250 rounded-lg px-2.5 py-1.5 text-xs font-semibold focus-visible:outline-none focus-visible:border-blue-500 text-zinc-900"
+                      className="w-full rounded-lg border border-zinc-250 bg-white px-2.5 py-1.5 font-semibold text-xs text-zinc-900 focus-visible:border-blue-500 focus-visible:outline-none"
                       placeholder="List name..."
                       required
                     />
@@ -124,25 +124,25 @@ export function MailingListSidebar({
                       type="text"
                       value={editDescValue}
                       onChange={(e) => setEditDescValue(e.target.value)}
-                      className="w-full bg-white border border-zinc-250 rounded-lg px-2.5 py-1.5 text-[11px] focus-visible:outline-none focus-visible:border-blue-500 text-zinc-500"
+                      className="w-full rounded-lg border border-zinc-250 bg-white px-2.5 py-1.5 text-[11px] text-zinc-500 focus-visible:border-blue-500 focus-visible:outline-none"
                       placeholder="Description..."
                     />
-                    <div className="flex justify-end gap-1.5 mt-1">
+                    <div className="mt-1 flex justify-end gap-1.5">
                       <button
                         type="button"
                         onClick={handleCancelEdit}
-                        className="p-1 rounded bg-zinc-200 hover:bg-zinc-300 text-zinc-650 cursor-pointer"
+                        className="cursor-pointer rounded bg-zinc-200 p-1 text-zinc-650 hover:bg-zinc-300"
                         title="Cancel"
                       >
-                        <X className="w-3.5 h-3.5" />
+                        <X className="h-3.5 w-3.5" />
                       </button>
                       <button
                         type="submit"
                         disabled={editMutation.isPending}
-                        className="p-1 rounded bg-blue-600 hover:bg-blue-750 text-white cursor-pointer"
+                        className="cursor-pointer rounded bg-blue-600 p-1 text-white hover:bg-blue-750"
                         title="Save"
                       >
-                        <Check className="w-3.5 h-3.5" />
+                        <Check className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   </form>
@@ -151,35 +151,35 @@ export function MailingListSidebar({
                     <button
                       type="button"
                       onClick={() => selectList(list.name)}
-                      className={`flex flex-col text-left w-full p-3.5 rounded-xl border transition-all cursor-pointer ${
+                      className={`flex w-full cursor-pointer flex-col rounded-xl border p-3.5 text-left transition-all ${
                         isActive
-                          ? "bg-blue-50/50 border-blue-200 text-blue-750 font-semibold"
+                          ? "border-blue-200 bg-blue-50/50 font-semibold text-blue-750"
                           : list.status === "disabled"
-                            ? "bg-zinc-50/60 border-zinc-200 text-zinc-500 hover:border-zinc-300 opacity-80"
-                            : "bg-white border-zinc-200 text-zinc-600 hover:border-zinc-350 hover:bg-zinc-50/50"
+                            ? "border-zinc-200 bg-zinc-50/60 text-zinc-500 opacity-80 hover:border-zinc-300"
+                            : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-350 hover:bg-zinc-50/50"
                       }`}
                     >
-                      <div className="flex items-center gap-2 pr-12 flex-wrap">
+                      <div className="flex flex-wrap items-center gap-2 pr-12">
                         <span
-                          className={`text-sm font-bold ${isActive ? "text-blue-600" : list.status === "disabled" ? "text-zinc-500" : "text-zinc-800"}`}
+                          className={`font-bold text-sm ${isActive ? "text-blue-600" : list.status === "disabled" ? "text-zinc-500" : "text-zinc-800"}`}
                         >
                           {list.name}
                         </span>
                         {list.status === "disabled" && (
-                          <span className="text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded-md">
+                          <span className="rounded-md border border-amber-200 bg-amber-50 px-1.5 py-0.5 font-extrabold text-[9px] text-amber-700 uppercase tracking-wider">
                             Disabled
                           </span>
                         )}
                       </div>
                       {list.description && (
-                        <span className="text-xs text-zinc-500 mt-1 line-clamp-1 pr-12">
+                        <span className="mt-1 line-clamp-1 pr-12 text-xs text-zinc-500">
                           {list.description}
                         </span>
                       )}
 
                       {/* Campaign limits progress bar */}
-                      <div className="w-full mt-3 pt-2.5 border-t border-zinc-100 flex flex-col gap-1.5">
-                        <div className="flex justify-between items-center text-[10px] font-semibold text-zinc-400">
+                      <div className="mt-3 flex w-full flex-col gap-1.5 border-zinc-100 border-t pt-2.5">
+                        <div className="flex items-center justify-between font-semibold text-[10px] text-zinc-400">
                           <span>Campaigns This Week</span>
                           <span>
                             {hasLimit
@@ -188,9 +188,9 @@ export function MailingListSidebar({
                           </span>
                         </div>
                         {hasLimit && limit > 0 && (
-                          <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-100">
                             <div
-                              className={`h-full ${barColor} transition-all duration-500 rounded-full`}
+                              className={`h-full ${barColor} rounded-full transition-all duration-500`}
                               style={{ width: `${percent}%` }}
                             />
                           </div>
@@ -199,22 +199,22 @@ export function MailingListSidebar({
                     </button>
 
                     {/* Options overlay visible on hover */}
-                    <div className="absolute top-3.5 right-3.5 hidden group-hover:flex items-center gap-1">
+                    <div className="absolute top-3.5 right-3.5 hidden items-center gap-1 group-hover:flex">
                       <button
                         type="button"
                         onClick={(e) => handleStartEdit(e, list)}
-                        className="p-1 rounded bg-zinc-50 border border-zinc-200 hover:bg-zinc-100 hover:text-zinc-900 text-zinc-500 transition-colors cursor-pointer"
+                        className="cursor-pointer rounded border border-zinc-200 bg-zinc-50 p-1 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
                         title="Edit List"
                       >
-                        <Edit2 className="w-3.5 h-3.5" />
+                        <Edit2 className="h-3.5 w-3.5" />
                       </button>
                       <button
                         type="button"
                         onClick={(e) => handleDelete(e, list.name)}
-                        className="p-1 rounded bg-zinc-50 border border-zinc-200 hover:bg-zinc-100 hover:text-rose-600 text-zinc-500 transition-colors cursor-pointer"
+                        className="cursor-pointer rounded border border-zinc-200 bg-zinc-50 p-1 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-rose-600"
                         title="Delete List"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   </div>

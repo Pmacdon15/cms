@@ -39,19 +39,19 @@ export function Navbar() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-zinc-200 bg-white/80 backdrop-blur-md px-6 py-3">
+    <header className="sticky top-0 z-40 w-full border-zinc-200 border-b bg-white/80 px-6 py-3 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between">
         {/* Brand Logo with Custom SVG Accent */}
-        <Link href="/" className="flex items-center gap-2 group">
-          <Logo className="w-8 h-8 group-hover:scale-105 transition-transform duration-200" />
-          <span className="font-extrabold text-md tracking-wider text-zinc-900 group-hover:text-black transition-colors font-display">
-            CMS<span className="text-blue-600 font-semibold"> Pro</span>
+        <Link href="/" className="group flex items-center gap-2">
+          <Logo className="h-8 w-8 transition-transform duration-200 group-hover:scale-105" />
+          <span className="font-display font-extrabold text-md text-zinc-900 tracking-wider transition-colors group-hover:text-black">
+            CMS<span className="font-semibold text-blue-600"> Pro</span>
           </span>
         </Link>
 
         {/* Center Nav tabs */}
         {isSignedIn ? (
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden items-center gap-1 md:flex">
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -59,14 +59,14 @@ export function Navbar() {
                 <Link
                   key={item.href}
                   href={buildHref(item.href)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                  className={`flex items-center gap-2 rounded-xl px-4 py-2 font-semibold text-sm transition-all duration-200 ${
                     isActive
-                      ? "bg-zinc-100 text-blue-600 border border-zinc-200/50"
-                      : "text-zinc-550 hover:text-zinc-900 hover:bg-zinc-100/60"
+                      ? "border border-zinc-200/50 bg-zinc-100 text-blue-600"
+                      : "text-zinc-550 hover:bg-zinc-100/60 hover:text-zinc-900"
                   }`}
                 >
                   <Icon
-                    className={`w-4 h-4 ${isActive ? "text-blue-600" : "text-zinc-400"}`}
+                    className={`h-4 w-4 ${isActive ? "text-blue-600" : "text-zinc-400"}`}
                   />
                   {item.name}
                 </Link>
@@ -74,22 +74,22 @@ export function Navbar() {
             })}
           </nav>
         ) : (
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden items-center gap-6 md:flex">
             <a
               href="#features"
-              className="text-sm font-semibold text-zinc-550 hover:text-zinc-900 transition-colors"
+              className="font-semibold text-sm text-zinc-550 transition-colors hover:text-zinc-900"
             >
               Features
             </a>
             <a
               href="#benefits"
-              className="text-sm font-semibold text-zinc-550 hover:text-zinc-900 transition-colors"
+              className="font-semibold text-sm text-zinc-550 transition-colors hover:text-zinc-900"
             >
               Benefits
             </a>
             <a
               href="#security"
-              className="text-sm font-semibold text-zinc-550 hover:text-zinc-900 transition-colors"
+              className="font-semibold text-sm text-zinc-550 transition-colors hover:text-zinc-900"
             >
               Security
             </a>
@@ -100,7 +100,7 @@ export function Navbar() {
         <div className="flex items-center gap-4">
           {/* Mobile responsive link indicators */}
           {isSignedIn && (
-            <div className="flex md:hidden items-center gap-3 mr-2 border-r border-zinc-200 pr-3">
+            <div className="mr-2 flex items-center gap-3 border-zinc-200 border-r pr-3 md:hidden">
               {navigationItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
@@ -108,14 +108,14 @@ export function Navbar() {
                   <Link
                     key={item.href}
                     href={buildHref(item.href)}
-                    className={`p-2 rounded-lg ${
+                    className={`rounded-lg p-2 ${
                       isActive
-                        ? "text-blue-600 bg-zinc-100"
+                        ? "bg-zinc-100 text-blue-600"
                         : "text-zinc-500 hover:text-zinc-800"
                     }`}
                     title={item.name}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="h-4 w-4" />
                   </Link>
                 );
               })}
@@ -150,13 +150,13 @@ export function Navbar() {
               <div className="flex items-center gap-2">
                 <Link
                   href="/sign-in"
-                  className="text-sm font-semibold text-zinc-650 hover:text-zinc-900 px-3 py-1.5 rounded-xl hover:bg-zinc-100 transition-colors"
+                  className="rounded-xl px-3 py-1.5 font-semibold text-sm text-zinc-650 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/sign-up"
-                  className="text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-xl shadow-sm hover:scale-102 transition-all active-scale-98"
+                  className="active-scale-98 rounded-xl bg-blue-600 px-4 py-1.5 font-semibold text-sm text-white shadow-sm transition-all hover:scale-102 hover:bg-blue-700"
                 >
                   Get Started
                 </Link>
@@ -164,10 +164,10 @@ export function Navbar() {
             )
           ) : (
             <div className="flex items-center gap-3">
-              <div className="px-3 py-1.5 rounded-xl border border-zinc-200 bg-zinc-50 text-xs font-semibold text-zinc-650">
+              <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 font-semibold text-xs text-zinc-650">
                 🏢 Clerk Simulation Org
               </div>
-              <div className="w-8.5 h-8.5 rounded-xl border border-zinc-200 bg-zinc-200 flex items-center justify-center font-bold text-xs text-zinc-700 shadow-sm">
+              <div className="flex h-8.5 w-8.5 items-center justify-center rounded-xl border border-zinc-200 bg-zinc-200 font-bold text-xs text-zinc-700 shadow-sm">
                 MA
               </div>
             </div>

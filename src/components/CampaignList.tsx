@@ -49,7 +49,7 @@ export function CampaignList({ initialCampaigns, hasSms }: CampaignListProps) {
   return (
     <div className="flex flex-col gap-4">
       {campaignsToShow.length === 0 ? (
-        <div className="py-16 text-center text-zinc-550 border border-zinc-200 rounded-xl bg-white">
+        <div className="rounded-xl border border-zinc-200 bg-white py-16 text-center text-zinc-550">
           No marketing campaigns sent yet. Use the composer to dispatch your
           first message.
         </div>
@@ -74,26 +74,26 @@ export function CampaignList({ initialCampaigns, hasSms }: CampaignListProps) {
                 </TableCell>
                 {hasSms && (
                   <TableCell>
-                    <span className="text-xs font-bold uppercase tracking-wider bg-zinc-100 px-2.5 py-1 rounded-full border border-zinc-200 text-zinc-650">
+                    <span className="rounded-full border border-zinc-200 bg-zinc-100 px-2.5 py-1 font-bold text-xs text-zinc-650 uppercase tracking-wider">
                       {camp.type === "both" ? "Email + SMS" : camp.type}
                     </span>
                   </TableCell>
                 )}
-                <TableCell className="text-xs font-semibold text-zinc-700">
+                <TableCell className="font-semibold text-xs text-zinc-700">
                   {camp.mailing_list_name || "Broadcast to All"}
                 </TableCell>
                 <TableCell>
-                  <div className="flex flex-col max-w-sm truncate">
-                    <span className="font-bold text-zinc-900 truncate">
+                  <div className="flex max-w-sm flex-col truncate">
+                    <span className="truncate font-bold text-zinc-900">
                       {camp.type === "sms" ? "Text Campaign" : camp.subject}
                     </span>
-                    <span className="text-xs text-zinc-500 truncate mt-0.5">
+                    <span className="mt-0.5 truncate text-xs text-zinc-500">
                       {camp.content}
                     </span>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <span className="text-xs text-emerald-705 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full font-bold">
+                  <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 font-bold text-emerald-705 text-xs">
                     {camp.sent_count} Sent
                   </span>
                 </TableCell>
@@ -121,7 +121,7 @@ export function CampaignList({ initialCampaigns, hasSms }: CampaignListProps) {
       >
         {selectedCampaign && (
           <div className="flex flex-col gap-4">
-            <div className="p-4 rounded-xl border border-zinc-200 bg-zinc-50/50 text-xs flex flex-col gap-2">
+            <div className="flex flex-col gap-2 rounded-xl border border-zinc-200 bg-zinc-50/50 p-4 text-xs">
               <div className="grid grid-cols-2 gap-2 text-zinc-500">
                 {hasSms && (
                   <>
@@ -132,7 +132,7 @@ export function CampaignList({ initialCampaigns, hasSms }: CampaignListProps) {
                   </>
                 )}
                 <span>Target Audience:</span>
-                <span className="font-semibold text-zinc-900 font-medium">
+                <span className="font-medium font-semibold text-zinc-900">
                   {selectedCampaign.mailing_list_name || "Broadcast to All"}
                 </span>
                 <span>Date Dispatched:</span>
@@ -140,30 +140,30 @@ export function CampaignList({ initialCampaigns, hasSms }: CampaignListProps) {
                   {new Date(selectedCampaign.created_at).toLocaleString()}
                 </span>
               </div>
-              <div className="border-t border-zinc-200 pt-2 mt-1">
+              <div className="mt-1 border-zinc-200 border-t pt-2">
                 <span className="text-zinc-550">Message Body:</span>
-                <p className="mt-1 text-zinc-700 italic text-[11px] leading-relaxed whitespace-pre-wrap">
+                <p className="mt-1 whitespace-pre-wrap text-[11px] text-zinc-700 italic leading-relaxed">
                   "{selectedCampaign.content}"
                 </p>
               </div>
             </div>
 
-            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500">
+            <h3 className="font-bold text-xs text-zinc-500 uppercase tracking-wider">
               Subscriber Delivery Receipts
             </h3>
 
             {isLoadingLogs ? (
-              <div className="py-8 text-center text-zinc-500 text-xs">
+              <div className="py-8 text-center text-xs text-zinc-500">
                 Fetching recipient delivery statuses...
               </div>
             ) : deliveryLogs.length === 0 ? (
-              <div className="py-8 text-center text-zinc-550 border border-zinc-200 rounded-xl bg-white text-xs">
+              <div className="rounded-xl border border-zinc-200 bg-white py-8 text-center text-xs text-zinc-550">
                 No individual recipient receipt logs recorded for this dispatch.
               </div>
             ) : (
               <div className="max-h-60 overflow-y-auto rounded-xl border border-zinc-200">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead className="sticky top-0 bg-zinc-50 border-b border-zinc-200 text-zinc-500 uppercase font-semibold">
+                <table className="w-full border-collapse text-left text-xs">
+                  <thead className="sticky top-0 border-zinc-200 border-b bg-zinc-50 font-semibold text-zinc-500 uppercase">
                     <tr>
                       <th className="p-3">Recipients</th>
                       {hasSms && <th className="p-3">Channel</th>}
@@ -174,44 +174,44 @@ export function CampaignList({ initialCampaigns, hasSms }: CampaignListProps) {
                   <tbody className="divide-y divide-zinc-100 bg-white">
                     {deliveryLogs.map((log) => (
                       <tr key={log.id} className="hover:bg-zinc-50/50">
-                        <td className="p-3 font-semibold text-zinc-800 truncate max-w-[200px]">
+                        <td className="max-w-[200px] truncate p-3 font-semibold text-zinc-800">
                           <div className="flex flex-col">
                             <button
                               type="button"
                               onClick={() => {
                                 router.push(`/clients?client=${log.client_id}`);
                               }}
-                              className="font-bold text-zinc-800 hover:text-blue-600 hover:underline transition-colors cursor-pointer text-left truncate"
+                              className="cursor-pointer truncate text-left font-bold text-zinc-800 transition-colors hover:text-blue-600 hover:underline"
                               title="View client profile"
                             >
                               {log.client_name ||
                                 `${log.client_id.substring(0, 8)}...`}
                             </button>
                             {log.client_email && (
-                              <span className="text-[10px] text-zinc-400 truncate mt-0.5">
+                              <span className="mt-0.5 truncate text-[10px] text-zinc-400">
                                 {log.client_email}
                               </span>
                             )}
                           </div>
                         </td>
                         {hasSms && (
-                          <td className="p-3 uppercase text-[10px] tracking-wide text-zinc-500">
+                          <td className="p-3 text-[10px] text-zinc-500 uppercase tracking-wide">
                             {log.channel}
                           </td>
                         )}
                         <td className="p-3">
                           <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            className={`rounded px-2 py-0.5 font-bold text-[10px] ${
                               log.status === "sent"
-                                ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
-                                : "bg-red-50 text-red-700 border border-red-100"
+                                ? "border border-emerald-100 bg-emerald-50 text-emerald-700"
+                                : "border border-red-100 bg-red-50 text-red-700"
                             }`}
                           >
                             {log.status}
                           </span>
                         </td>
                         <td
-                          className="p-3 font-mono text-[10px] text-zinc-400 truncate max-w-[100px]"
+                          className="max-w-[100px] truncate p-3 font-mono text-[10px] text-zinc-400"
                           title={log.aws_message_id}
                         >
                           {log.aws_message_id || "N/A"}

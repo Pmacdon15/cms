@@ -16,7 +16,7 @@ export default function DashboardPage() {
     .then((auth) => auth.has({ feature: "send_sms" }));
 
   return (
-    <main className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8 flex flex-col gap-8">
+    <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 p-6 md:p-8">
       <DashboardHeader />
 
       <Suspense fallback={<AnalyticsSkeleton />}>

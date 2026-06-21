@@ -21,15 +21,15 @@ export default async function DashboardDispatchLogs({
     : campaigns.filter((c) => c.type === "email").slice(0, 5);
 
   return (
-    <section className="rounded-2xl border border-zinc-200 bg-white p-6 flex flex-col gap-4 shadow-sm shadow-zinc-100/55">
-      <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
-        <h2 className="text-md font-bold text-zinc-900 tracking-tight flex items-center gap-2">
-          <Send className="w-4 h-4 text-blue-600" /> Recent Dispatch Logs
+    <section className="flex flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm shadow-zinc-100/55">
+      <div className="flex items-center justify-between border-zinc-100 border-b pb-4">
+        <h2 className="flex items-center gap-2 font-bold text-md text-zinc-900 tracking-tight">
+          <Send className="h-4 w-4 text-blue-600" /> Recent Dispatch Logs
         </h2>
       </div>
 
       {campaignsToShow.length === 0 ? (
-        <div className="py-12 text-center text-zinc-500 text-sm">
+        <div className="py-12 text-center text-sm text-zinc-500">
           No dispatches found. Complete a marketing campaign to see your logs.
         </div>
       ) : (
@@ -37,10 +37,10 @@ export default async function DashboardDispatchLogs({
           {campaignsToShow.map((campaign) => (
             <div
               key={campaign.id}
-              className="flex items-center justify-between p-4 rounded-xl border border-zinc-100 bg-zinc-50/20 hover:border-zinc-200 transition-colors"
+              className="flex items-center justify-between rounded-xl border border-zinc-100 bg-zinc-50/20 p-4 transition-colors hover:border-zinc-200"
             >
               <div className="flex flex-col gap-1">
-                <span className="text-sm font-bold text-zinc-800">
+                <span className="font-bold text-sm text-zinc-800">
                   {campaign.type === "sms" ? "Text Campaign" : campaign.subject}
                 </span>
                 <span className="text-xs text-zinc-500">
@@ -49,13 +49,13 @@ export default async function DashboardDispatchLogs({
                 </span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-xs font-semibold text-zinc-500 bg-zinc-50 px-3 py-1 rounded-full border border-zinc-150">
+                <span className="rounded-full border border-zinc-150 bg-zinc-50 px-3 py-1 font-semibold text-xs text-zinc-500">
                   {campaign.mailing_list_name || "Broadcast to All"}
                 </span>
-                <span className="text-xs font-semibold uppercase tracking-wider text-zinc-650 bg-zinc-100 px-3 py-1 rounded-full border border-zinc-200">
+                <span className="rounded-full border border-zinc-200 bg-zinc-100 px-3 py-1 font-semibold text-xs text-zinc-650 uppercase tracking-wider">
                   {campaign.type === "both" ? "Email & Text" : campaign.type}
                 </span>
-                <span className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full font-bold">
+                <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 font-bold text-emerald-700 text-xs">
                   {campaign.sent_count} Sent
                 </span>
               </div>

@@ -32,12 +32,12 @@ export default function MailingListsPage(props: PageProps<"/mailing-lists">) {
   });
 
   return (
-    <main className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8 flex flex-col gap-6">
+    <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 p-6 md:p-8">
       {/* Title Heading */}
-      <div className="flex flex-col gap-2 border-b border-zinc-100 pb-5">
+      <div className="flex flex-col gap-2 border-zinc-100 border-b pb-5">
         <div className="flex items-center gap-2">
-          <Layers className="w-5 h-5 text-blue-600" />
-          <h1 className="text-2xl font-extrabold text-zinc-900 tracking-tight">
+          <Layers className="h-5 w-5 text-blue-600" />
+          <h1 className="font-extrabold text-2xl text-zinc-900 tracking-tight">
             Mailing Lists Directory
           </h1>
         </div>

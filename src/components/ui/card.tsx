@@ -35,7 +35,7 @@ export function CardTitle({
   return (
     <h3
       className={cn(
-        "text-lg font-semibold leading-none tracking-tight text-zinc-900",
+        "font-semibold text-lg text-zinc-900 leading-none tracking-tight",
         className,
       )}
       {...props}
@@ -64,7 +64,7 @@ export function CardFooter({
   return (
     <div
       className={cn(
-        "flex items-center p-6 pt-0 border-t border-zinc-100 mt-6",
+        "mt-6 flex items-center border-zinc-100 border-t p-6 pt-0",
         className,
       )}
       {...props}

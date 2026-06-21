@@ -37,7 +37,7 @@ export function Dialog({ isOpen, onClose, title, children }: DialogProps) {
       {/* Backdrop overlay */}
       <button
         onClick={onClose}
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm cursor-default border-none w-full h-full"
+        className="absolute inset-0 h-full w-full cursor-default border-none bg-black/40 backdrop-blur-sm"
         type="button"
         aria-label="Close dialog"
       />
@@ -45,18 +45,18 @@ export function Dialog({ isOpen, onClose, title, children }: DialogProps) {
       {/* Modal Box */}
       <div
         className={cn(
-          "relative w-full max-w-lg rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl transition-all duration-300 transform scale-100 opacity-100 flex flex-col z-10 animate-fade-in-scale",
+          "relative z-10 flex w-full max-w-lg scale-100 transform animate-fade-in-scale flex-col rounded-2xl border border-zinc-200 bg-white p-6 opacity-100 shadow-2xl transition-all duration-300",
         )}
         role="dialog"
         aria-modal="true"
       >
-        <div className="flex items-center justify-between border-b border-zinc-100 pb-4 mb-4">
-          <h2 className="text-lg font-bold text-zinc-900 tracking-tight">
+        <div className="mb-4 flex items-center justify-between border-zinc-100 border-b pb-4">
+          <h2 className="font-bold text-lg text-zinc-900 tracking-tight">
             {title}
           </h2>
           <button
             onClick={onClose}
-            className="text-zinc-400 hover:text-zinc-600 transition-colors text-lg cursor-pointer"
+            className="cursor-pointer text-lg text-zinc-400 transition-colors hover:text-zinc-600"
             type="button"
             aria-label="Close"
           >

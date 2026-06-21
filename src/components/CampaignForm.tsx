@@ -62,22 +62,22 @@ export function CampaignForm({
         e.stopPropagation();
         form.handleSubmit();
       }}
-      className="flex flex-col gap-5 bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm"
+      className="flex flex-col gap-5 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm"
     >
       {hasSms && (
         <div className="flex flex-col gap-2">
-          <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+          <span className="font-semibold text-xs text-zinc-500 uppercase tracking-wider">
             Campaign Channel
           </span>
           <form.Field name="type">
             {(field) => (
-              <div className="grid grid-cols-3 gap-2 bg-zinc-100/80 p-1 rounded-xl border border-zinc-200/50">
+              <div className="grid grid-cols-3 gap-2 rounded-xl border border-zinc-200/50 bg-zinc-100/80 p-1">
                 {(["email", "sms", "both"] as const).map((channel) => (
                   <button
                     key={channel}
                     type="button"
                     onClick={() => field.handleChange(channel)}
-                    className={`py-2 px-3 text-xs font-semibold uppercase rounded-lg transition-all duration-200 cursor-pointer ${
+                    className={`cursor-pointer rounded-lg px-3 py-2 font-semibold text-xs uppercase transition-all duration-200 ${
                       field.state.value === channel
                         ? "bg-blue-600 text-white shadow-sm"
                         : "text-zinc-550 hover:text-zinc-900"
@@ -97,7 +97,7 @@ export function CampaignForm({
         <div className="flex flex-col gap-2">
           <label
             htmlFor="mailing-list-select"
-            className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
+            className="font-semibold text-xs text-zinc-500 uppercase tracking-wider"
           >
             Target Audience List
           </label>
@@ -108,7 +108,7 @@ export function CampaignForm({
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.target.value)}
                 onBlur={field.handleBlur}
-                className="flex w-full rounded-xl bg-white border border-zinc-200 px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:outline-none focus-visible:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200"
+                className="flex w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 transition-all duration-200 placeholder:text-zinc-400 focus-visible:border-blue-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <option value="">Broadcast to All Clients</option>
                 {mailingLists.map((list) => (
@@ -155,10 +155,10 @@ export function CampaignForm({
       {/* Message Body */}
       <form.Field name="content">
         {(field) => (
-          <div className="flex flex-col gap-1.5 w-full">
+          <div className="flex w-full flex-col gap-1.5">
             <label
               htmlFor="message-content"
-              className="text-xs font-semibold uppercase tracking-wider text-zinc-500"
+              className="font-semibold text-xs text-zinc-500 uppercase tracking-wider"
             >
               Message Content
             </label>
@@ -173,12 +173,12 @@ export function CampaignForm({
               value={field.state.value}
               onChange={(e) => field.handleChange(e.target.value)}
               onBlur={field.handleBlur}
-              className={`flex w-full rounded-xl bg-white border border-zinc-200 px-4 py-3 text-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:outline-none focus-visible:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 ${
+              className={`flex w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 transition-all duration-200 placeholder:text-zinc-400 focus-visible:border-blue-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 ${
                 field.state.meta.errors ? "border-rose-500" : ""
               }`}
             />
             {field.state.meta.errors && (
-              <span className="text-xs text-rose-500 font-medium">
+              <span className="font-medium text-rose-500 text-xs">
                 {String(field.state.meta.errors)}
               </span>
             )}

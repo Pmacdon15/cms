@@ -143,7 +143,7 @@ export function ClientForm({
       </form.Field>
 
       {/* Submit Button */}
-      <div className="flex justify-end gap-3 mt-4 border-t border-zinc-100 pt-4">
+      <div className="mt-4 flex justify-end gap-3 border-zinc-100 border-t pt-4">
         <Button
           type="submit"
           className="w-full sm:w-auto"

@@ -35,12 +35,12 @@ export default function RootLayout({
       lang="en"
       className={`${outfit.variable} ${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground font-sans antialiased select-none">
+      <body className="flex min-h-full select-none flex-col bg-background font-sans text-foreground antialiased">
         <Providers>
-          <div className="flex flex-col min-h-screen bg-background">
+          <div className="flex min-h-screen flex-col bg-background">
             <Suspense
               fallback={
-                <div className="h-15 border-b border-zinc-200 bg-white" />
+                <div className="h-15 border-zinc-200 border-b bg-white" />
               }
             >
               <Navbar />

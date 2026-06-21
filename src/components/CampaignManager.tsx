@@ -57,13 +57,13 @@ function CampaignSearchBar({
 
   return (
     <div className="relative w-full sm:w-64">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+      <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-zinc-400" />
       <input
         type="text"
         placeholder="Search campaigns..."
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
-        className="w-full h-9 rounded-lg bg-white border border-zinc-200 pl-9 pr-8 py-1.5 text-xs text-zinc-900 placeholder:text-zinc-400 focus-visible:outline-none focus-visible:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-500 transition-all"
+        className="h-9 w-full rounded-lg border border-zinc-200 bg-white py-1.5 pr-8 pl-9 text-xs text-zinc-900 transition-all placeholder:text-zinc-400 focus-visible:border-blue-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
       />
       {inputValue && (
         <button
@@ -83,9 +83,9 @@ function CampaignSearchBar({
               },
             );
           }}
-          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors cursor-pointer"
+          className="absolute top-1/2 right-2.5 -translate-y-1/2 cursor-pointer text-zinc-400 transition-colors hover:text-zinc-600"
         >
-          <X className="w-3.5 h-3.5" />
+          <X className="h-3.5 w-3.5" />
         </button>
       )}
     </div>
@@ -146,19 +146,19 @@ export default function CampaignManager({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-3">
         {/* Form Composer (1/3 width) */}
         <div className="lg:col-span-1">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-550 mb-4">
+          <h2 className="mb-4 font-bold text-sm text-zinc-550 uppercase tracking-wider">
             Compose Marketing Message
           </h2>
           <CampaignForm mailingLists={mailingLists} hasSms={hasSms} />
         </div>
 
         {/* Campaign List logs (2/3 width) */}
-        <div className="lg:col-span-2 flex flex-col gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-550">
+        <div className="flex flex-col gap-4 lg:col-span-2">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+            <h2 className="font-bold text-sm text-zinc-550 uppercase tracking-wider">
               Dispatch History & Logs
             </h2>
             <CampaignSearchBar
