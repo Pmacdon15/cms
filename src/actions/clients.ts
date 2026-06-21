@@ -10,6 +10,7 @@ import {
   dalUpdateClient,
   dalUpdateClientOptIn,
 } from "../dal/clients";
+import { clientInputSchema } from "../types/schemas";
 import type { ClientInput } from "../types/types";
 
 /**
@@ -41,7 +42,11 @@ export async function actionSearchClients(query: string) {
  * Server action to create a client safely
  */
 export async function actionCreateClient(input: ClientInput) {
-  const result = await dalCreateClient(input);
+  const parsed = clientInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, error: parsed.error.issues[0]?.message || "Invalid client input" };
+  }
+  const result = await dalCreateClient(parsed.data);
   return result.match(
     (client) => {
       updateTag(`clients-${client.org_id}`);
@@ -75,7 +80,11 @@ export async function actionUpdateClientOptIn(
  * Server action to update a client's profile details safely
  */
 export async function actionUpdateClient(id: string, input: ClientInput) {
-  const result = await dalUpdateClient(id, input);
+  const parsed = clientInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, error: parsed.error.issues[0]?.message || "Invalid client input" };
+  }
+  const result = await dalUpdateClient(id, parsed.data);
   return result.match(
     (client) => {
       updateTag(`clients-${client.org_id}`);

@@ -6,7 +6,9 @@ import {
   useCreateClientMutation,
   useUpdateClientMutation,
 } from "../mutations/clients";
+import { clientInputSchema } from "../types/schemas";
 import type { Client } from "../types/types";
+import { getFieldError } from "../utils/form";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 
@@ -36,17 +38,8 @@ export function ClientForm({
       phone_number: client?.phone_number ?? "",
     },
     validators: {
-      // onBlur:
-      // onsubmit:
-      // onChange({ value }) {
-      //   if (!value.name.trim()) return { name: "Name is required" };
-      //   if (!value.email.trim()) return { email: "Email is required" };
-      //   if (!value.email.includes("@"))
-      //     return { email: "Invalid email address" };
-      //   if (!value.phone_number.trim())
-      //     return { phone_number: "Phone is required" };
-      //   return undefined;
-      // },
+      onBlur: clientInputSchema,
+      onChange: clientInputSchema,
     },
     onSubmit: async ({ value }) => {
       if (isEditMode && client) {
@@ -101,8 +94,8 @@ export function ClientForm({
             onChange={(e) => field.handleChange(e.target.value)}
             onBlur={field.handleBlur}
             error={
-              field.state.meta.errors && field.state.meta.isTouched
-                ? String(field.state.meta.errors)
+              field.state.meta.isTouched
+                ? getFieldError(field.state.meta.errors)
                 : undefined
             }
           />
@@ -120,8 +113,8 @@ export function ClientForm({
             onChange={(e) => field.handleChange(e.target.value)}
             onBlur={field.handleBlur}
             error={
-              field.state.meta.errors && field.state.meta.isTouched
-                ? String(field.state.meta.errors)
+              field.state.meta.isTouched
+                ? getFieldError(field.state.meta.errors)
                 : undefined
             }
           />
@@ -139,8 +132,8 @@ export function ClientForm({
             onChange={(e) => field.handleChange(e.target.value)}
             onBlur={field.handleBlur}
             error={
-              field.state.meta.errors && field.state.meta.isTouched
-                ? String(field.state.meta.errors)
+              field.state.meta.isTouched
+                ? getFieldError(field.state.meta.errors)
                 : undefined
             }
           />

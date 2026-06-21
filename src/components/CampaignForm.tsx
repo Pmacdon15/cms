@@ -2,7 +2,9 @@
 
 import { useForm } from "@tanstack/react-form";
 import { useCreateCampaignMutation } from "../mutations/campaigns";
+import { campaignFormSchema } from "../types/schemas";
 import type { MailingList } from "../types/types";
+import { getFieldError } from "../utils/form";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 
@@ -31,18 +33,8 @@ export function CampaignForm({
       mailing_list_name: "" as string,
     },
     validators: {
-      onChange({ value }) {
-        if (!value.content.trim()) {
-          return { content: "Message content is required" };
-        }
-        if (
-          (value.type === "email" || value.type === "both" || !hasSms) &&
-          !value.subject.trim()
-        ) {
-          return { subject: "Subject is required for email campaigns" };
-        }
-        return undefined;
-      },
+      onBlur: campaignFormSchema,
+      onChange: campaignFormSchema,
     },
     onSubmit: async ({ value }) => {
       await campaignMutation.mutateAsync({
@@ -141,8 +133,8 @@ export function CampaignForm({
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
                   error={
-                    field.state.meta.errors
-                      ? String(field.state.meta.errors)
+                    field.state.meta.isTouched
+                      ? getFieldError(field.state.meta.errors)
                       : undefined
                   }
                 />
@@ -174,12 +166,12 @@ export function CampaignForm({
               onChange={(e) => field.handleChange(e.target.value)}
               onBlur={field.handleBlur}
               className={`flex w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 transition-all duration-200 placeholder:text-zinc-400 focus-visible:border-blue-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 ${
-                field.state.meta.errors ? "border-rose-500" : ""
+                field.state.meta.errors && field.state.meta.isTouched ? "border-rose-500" : ""
               }`}
             />
-            {field.state.meta.errors && (
+            {field.state.meta.isTouched && getFieldError(field.state.meta.errors) && (
               <span className="font-medium text-rose-500 text-xs">
-                {String(field.state.meta.errors)}
+                {getFieldError(field.state.meta.errors)}
               </span>
             )}
           </div>
