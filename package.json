@@ -10,7 +10,9 @@
     "format": "biome format --write",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "lint:ci": "biome ci",
+    "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
     "@aws-sdk/client-pinpoint": "^3.1058.0",
@@ -32,7 +34,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.2.0",
+    "@biomejs/biome": "2.5.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

@@ -102,11 +102,12 @@ export function CreateMailingListModal({
                     : ""
                 }`}
               />
-              {field.state.meta.isTouched && getFieldError(field.state.meta.errors) && (
-                <span className="font-medium text-rose-500 text-xs">
-                  {getFieldError(field.state.meta.errors)}
-                </span>
-              )}
+              {field.state.meta.isTouched &&
+                getFieldError(field.state.meta.errors) && (
+                  <span className="font-medium text-rose-500 text-xs">
+                    {getFieldError(field.state.meta.errors)}
+                  </span>
+                )}
             </div>
           )}
         </form.Field>
