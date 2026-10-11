@@ -5,10 +5,32 @@ import DashboardAnalytics from "../components/DashboardAnalytics";
 import DashboardDispatchLogs from "../components/DashboardDispatchLogs";
 import DashboardHeader from "../components/DashboardHeader";
 import DispatchLogsSkeleton from "../components/DispatchLogsSkeleton";
+import LandingPage from "../components/LandingPage";
 import { dalGetCampaigns } from "../dal/campaigns";
 import { dalGetClients } from "../dal/clients";
 
-export default function DashboardPage() {
+export default function HomePage() {
+  return (
+    <Suspense>
+      <Home />
+    </Suspense>
+  );
+}
+
+/** Signed-out visitors see the marketing landing page; signed-in users get the dashboard. */
+async function Home() {
+  const hasClerkKeys = !!(
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
+    process.env.CLERK_SECRET_KEY
+  );
+  if (hasClerkKeys) {
+    const { userId } = await auth();
+    if (!userId) return <LandingPage />;
+  }
+  return <Dashboard />;
+}
+
+function Dashboard() {
   const clientsPromise = dalGetClients().then((res) =>
     res.match(
       (value) => ({ ok: true as const, value }),
