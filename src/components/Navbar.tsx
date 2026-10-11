@@ -1,13 +1,7 @@
 "use client";
 
 import { OrganizationSwitcher, UserButton, useAuth } from "@clerk/nextjs";
-import {
-  CreditCard,
-  Layers,
-  LayoutDashboard,
-  Send,
-  Users,
-} from "lucide-react";
+import { CreditCard, Layers, LayoutDashboard, Send, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { ACCESS_FEATURE } from "@/utils/plan";

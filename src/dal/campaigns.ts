@@ -76,13 +76,17 @@ export async function dalCreateCampaign(
 
     const targetListName = input.mailing_list_name || undefined;
 
-    const [limits, sendsThisMonth, targetedClients, isOverMemberShipLimitValue] =
-      await Promise.all([
-        getSessionPlanLimits(),
-        dbGetCampaignsCountThisMonth(orgId),
-        dbGetCampaignRecipients(orgId, targetListName),
-        isOverMemberShipLimit(orgId),
-      ]);
+    const [
+      limits,
+      sendsThisMonth,
+      targetedClients,
+      isOverMemberShipLimitValue,
+    ] = await Promise.all([
+      getSessionPlanLimits(),
+      dbGetCampaignsCountThisMonth(orgId),
+      dbGetCampaignRecipients(orgId, targetListName),
+      isOverMemberShipLimit(orgId),
+    ]);
 
     if (!limits.hasAccess) {
       return err({ reason: NO_PLAN_MESSAGE });

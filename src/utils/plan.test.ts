@@ -23,7 +23,12 @@ describe("plan limits", () => {
         "clients_50",
         "sends_50_month",
       ]),
-    ).toEqual({ hasAccess: true, mailingLists: 1, clients: 50, sendsPerMonth: 50 });
+    ).toEqual({
+      hasAccess: true,
+      mailingLists: 1,
+      clients: 50,
+      sendsPerMonth: 50,
+    });
   });
 
   it("resolves the pro plan, preferring the highest tier", () => {
