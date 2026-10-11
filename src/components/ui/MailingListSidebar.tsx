@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Edit2, Plus, Trash2, X } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
@@ -64,20 +65,34 @@ export function MailingListSidebar({
     setEditingListName(null);
   };
 
+  const listLimit = lists[0]?.mailingListLimit;
+  const atListLimit =
+    typeof listLimit === "number" && lists.length >= listLimit;
+
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm lg:col-span-1">
       <div className="flex items-center justify-between">
         <h2 className="font-bold text-xs text-zinc-500 uppercase tracking-wider">
           AWS SES Lists
         </h2>
-        <button
-          type="button"
-          onClick={() => setIsModalOpen(true)}
-          className="cursor-pointer rounded-lg border border-zinc-200 bg-zinc-50 p-1 text-blue-600 transition-colors hover:bg-zinc-100"
-          title="Create new list on AWS"
-        >
-          <Plus className="h-4 w-4" />
-        </button>
+        {atListLimit ? (
+          <Link
+            href="/pricing"
+            className="rounded-lg border border-amber-200 bg-amber-50 px-2 py-1 font-semibold text-[11px] text-amber-700 hover:bg-amber-100"
+            title={`Your plan allows ${listLimit} mailing list(s)`}
+          >
+            Upgrade for more lists
+          </Link>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="cursor-pointer rounded-lg border border-zinc-200 bg-zinc-50 p-1 text-blue-600 transition-colors hover:bg-zinc-100"
+            title="Create new list on AWS"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       {lists.length === 0 ? (
@@ -88,8 +103,8 @@ export function MailingListSidebar({
         <div className="flex max-h-[400px] flex-col gap-1.5 overflow-y-auto pr-1">
           {lists.map((list) => {
             const isActive = activeList?.name === list.name;
-            const sent = list.campaignsSentThisWeek ?? 0;
-            const limit = list.campaignLimit;
+            const sent = list.sendsThisMonth ?? 0;
+            const limit = list.sendLimit;
             const hasLimit = typeof limit === "number";
             const left = hasLimit ? Math.max(0, limit - sent) : Infinity;
             const percent =
@@ -177,7 +192,7 @@ export function MailingListSidebar({
                       {/* Campaign limits progress bar */}
                       <div className="mt-3 flex w-full flex-col gap-1.5 border-zinc-100 border-t pt-2.5">
                         <div className="flex items-center justify-between font-semibold text-[10px] text-zinc-400">
-                          <span>Campaigns This Week</span>
+                          <span>Sends This Month (all lists)</span>
                           <span>
                             {hasLimit
                               ? `${sent}/${limit} sent (${left} left)`

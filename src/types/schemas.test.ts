@@ -215,8 +215,8 @@ describe("mailingListSchema", () => {
       org_id: "org_1",
       status: "active",
       created_at: new Date(),
-      campaignsSentThisWeek: 2,
-      campaignLimit: 5,
+      sendsThisMonth: 2,
+      sendLimit: 50,
     });
     expect(result.success).toBe(true);
   });

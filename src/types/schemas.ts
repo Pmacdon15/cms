@@ -86,8 +86,9 @@ export const mailingListSchema = z.object({
   org_id: z.string().optional(),
   status: z.enum(["active", "disabled", "deleted"]).optional(),
   created_at: z.union([z.date(), z.string()]).optional(),
-  campaignsSentThisWeek: z.number().int().nonnegative().optional(),
-  campaignLimit: z.number().int().nonnegative().optional(),
+  sendsThisMonth: z.number().int().nonnegative().optional(),
+  sendLimit: z.number().int().nonnegative().optional(),
+  mailingListLimit: z.number().int().nonnegative().optional(),
 });
 
 export const mailingListFormSchema = z.object({

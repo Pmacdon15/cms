@@ -12,6 +12,7 @@ import {
 } from "../db/clients";
 import { dbUpdateSubscriptionStatus } from "../db/mailing_lists";
 import type { AppResult, Client, ClientInput } from "../types/types";
+import { getSessionPlanLimits, NO_PLAN_MESSAGE } from "./plan";
 
 /**
  * Fetch clients with auth protection and filter parameters (search term or specific client)
@@ -99,15 +100,16 @@ export async function dalCreateClient(
       });
     }
 
-    const clientLimit =
-      [100, 60, 30, 15].find((num) =>
-        has({ feature: `${num}_clients_per_list` }),
-      ) || 1;
+    const limits = await getSessionPlanLimits();
+    if (!limits.hasAccess) {
+      return err({ reason: NO_PLAN_MESSAGE });
+    }
+    const clientLimit = limits.clients;
 
     const currentCount = await dbGetClientsCount(orgId);
     if (currentCount >= clientLimit) {
       return err({
-        reason: `Client limit reached. This organization is limited to ${clientLimit} client(s).`,
+        reason: `Client limit reached. Your plan allows ${clientLimit} client(s). Upgrade on the Pricing page for more.`,
       });
     }
 

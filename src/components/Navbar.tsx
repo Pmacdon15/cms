@@ -1,9 +1,16 @@
 "use client";
 
 import { OrganizationSwitcher, UserButton, useAuth } from "@clerk/nextjs";
-import { Layers, LayoutDashboard, Send, Users } from "lucide-react";
+import {
+  CreditCard,
+  Layers,
+  LayoutDashboard,
+  Send,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import { ACCESS_FEATURE } from "@/utils/plan";
 import Logo from "./Logo";
 
 export function Navbar() {
@@ -27,7 +34,12 @@ export function Navbar() {
   const hasSms =
     !hasClerkKeys || (isLoaded && has ? has({ feature: "send_sms" }) : false);
 
-  const navigationItems = [
+  // Whole app is locked until the active org has a plan with cms_access
+  const hasPlan =
+    !hasClerkKeys ||
+    (isLoaded && has ? has({ feature: ACCESS_FEATURE }) : false);
+
+  const appItems = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
     { name: "Clients Directory", href: "/clients", icon: Users },
     { name: "Mailing Lists", href: "/mailing-lists", icon: Layers },
@@ -36,6 +48,10 @@ export function Navbar() {
       href: "/campaigns",
       icon: Send,
     },
+  ];
+  const navigationItems = [
+    ...(hasPlan ? appItems : []),
+    { name: "Pricing", href: "/pricing", icon: CreditCard },
   ];
 
   return (
@@ -126,7 +142,8 @@ export function Navbar() {
             isSignedIn ? (
               <>
                 <OrganizationSwitcher
-                  afterCreateOrganizationUrl="/"
+                  hidePersonal
+                  afterCreateOrganizationUrl="/pricing"
                   afterLeaveOrganizationUrl="/"
                   afterSelectOrganizationUrl="/"
                   appearance={{
