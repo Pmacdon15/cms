@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { err, ok } from "neverthrow";
 import { isOverMemberShipLimit } from "@/db/clerk";
-import { dbGetCampaignsCountThisWeek } from "../db/campaigns";
+import { dbGetCampaignsCountThisMonth } from "../db/campaigns";
 import {
   dbGetClientByEmail,
   dbGetClientById,
@@ -24,7 +24,8 @@ import {
 } from "../db/mailing_lists";
 import { sql } from "../db/neon";
 import type { AppResult, MailingList } from "../types/types";
-import { getOrgFeatures } from "./clerk";
+import { getOrgPlanLimits } from "./clerk";
+import { getSessionPlanLimits, NO_PLAN_MESSAGE } from "./plan";
 
 /**
  * Helper to check if a string is a valid UUID
@@ -41,35 +42,34 @@ function isUuidString(str: string): boolean {
 export async function dalGetMailingLists(): Promise<
   { ok: true; value: MailingList[] } | { ok: false; error: string }
 > {
-  const { orgId, has } = await auth.protect();
+  const { orgId } = await auth.protect();
   try {
     if (!orgId) {
       return { ok: false, error: "Please select or create an organization." };
     }
 
-    const [lists, isOverMemberShipLimitValue] = await Promise.all([
-      dbGetMailingLists(orgId),
-      isOverMemberShipLimit(orgId),
-    ]);
+    const [lists, isOverMemberShipLimitValue, limits, sendsThisMonth] =
+      await Promise.all([
+        dbGetMailingLists(orgId),
+        isOverMemberShipLimit(orgId),
+        getSessionPlanLimits(),
+        dbGetCampaignsCountThisMonth(orgId),
+      ]);
+
+    if (!limits.hasAccess) {
+      return { ok: false, error: NO_PLAN_MESSAGE };
+    }
 
     if (isOverMemberShipLimitValue) {
       return { ok: false, error: `Over organization membership limit.` };
     }
 
-    const campaignLimit =
-      [15, 10, 5].find((num) => has({ feature: `${num}_campaigns_a_week` })) ||
-      1;
-
-    const listsWithUsage = await Promise.all(
-      lists.map(async (list) => {
-        const count = await dbGetCampaignsCountThisWeek(orgId, list.name);
-        return {
-          ...list,
-          campaignsSentThisWeek: count,
-          campaignLimit,
-        };
-      }),
-    );
+    const listsWithUsage = lists.map((list) => ({
+      ...list,
+      sendsThisMonth,
+      sendLimit: limits.sendsPerMonth,
+      mailingListLimit: limits.mailingLists,
+    }));
 
     return { ok: true, value: listsWithUsage };
   } catch (error) {
@@ -101,13 +101,16 @@ export async function dalCreateMailingList(
       return err({ reason: "Mailing list name is required." });
     }
 
-    const mailingListLimit =
-      [15, 10, 5].find((num) => has?.({ feature: `${num}_mailing_list` })) || 1;
+    const limits = await getSessionPlanLimits();
+    if (!limits.hasAccess) {
+      return err({ reason: NO_PLAN_MESSAGE });
+    }
+    const mailingListLimit = limits.mailingLists;
 
     const currentListCount = await dbGetMailingListsCount(orgId);
     if (currentListCount >= mailingListLimit) {
       return err({
-        reason: `Mailing list limit reached. This organization is limited to ${mailingListLimit} mailing list(s).`,
+        reason: `Mailing list limit reached. Your plan allows ${mailingListLimit} mailing list(s). Upgrade on the Pricing page for more.`,
       });
     }
 
@@ -308,23 +311,11 @@ export async function dalUpdateSubscriptionStatus(
     }
 
     if (status === "subscribed") {
-      let clientLimit = 1;
-
-      if (!isPublic && hasCheck) {
-        clientLimit =
-          [100, 60, 30, 15].find(
-            (num) => hasCheck && { feature: `${num}_clients_per_list` },
-          ) || 1;
-      } else {
-        const features = await getOrgFeatures(resolvedOrgId || "");
-        const normalized = features.map((f) =>
-          f.toLowerCase().replace(/-/g, "_"),
-        );
-        clientLimit =
-          [100, 60, 30, 15].find((num) =>
-            normalized.some((f) => f.includes(`${num}_client`)),
-          ) || 1;
-      }
+      const limits =
+        !isPublic && hasCheck
+          ? await getSessionPlanLimits()
+          : await getOrgPlanLimits(resolvedOrgId || "");
+      const clientLimit = limits.clients;
 
       const existingSub = (
         isUuidString(cleanInput)
@@ -357,7 +348,7 @@ export async function dalUpdateSubscriptionStatus(
             );
           }
           return err({
-            reason: `Limit reached. This mailing list is limited to ${clientLimit} active subscribers.`,
+            reason: `Limit reached. Your plan allows ${clientLimit} active subscribers per mailing list.`,
           });
         }
       }
@@ -513,18 +504,7 @@ export async function dalRebalanceListsForOrg(orgId: string): Promise<{
   activated: string[];
   disabled: string[];
 }> {
-  const features = await getOrgFeatures(orgId);
-  let mailingListLimit = 1; // default limit
-
-  if (features.includes("15_mailing_list")) {
-    mailingListLimit = 15;
-  } else if (features.includes("10_mailing_list")) {
-    mailingListLimit = 10;
-  } else if (features.includes("5_mailing_list")) {
-    mailingListLimit = 5;
-  } else {
-    mailingListLimit = 1;
-  }
+  const { mailingLists: mailingListLimit } = await getOrgPlanLimits(orgId);
 
   const result = await dbRebalanceListsForOrg(orgId, mailingListLimit);
   return {
@@ -541,32 +521,7 @@ export async function dalRebalanceSubscribersForOrg(orgId: string): Promise<{
   clientLimit: number;
   listsProcessed: Array<{ listName: string; unsubscribedCount: number }>;
 }> {
-  const features = await getOrgFeatures(orgId);
-  let clientLimit = 1; // default limit
-
-  if (
-    features.includes("100_clients_per_list") ||
-    features.includes("100_clients_pre_list")
-  ) {
-    clientLimit = 100;
-  } else if (
-    features.includes("60_clients_per_list") ||
-    features.includes("60_clients_pre_list")
-  ) {
-    clientLimit = 60;
-  } else if (
-    features.includes("30_clients_per_list") ||
-    features.includes("30_clients_pre_list")
-  ) {
-    clientLimit = 30;
-  } else if (
-    features.includes("15_clients_per_list") ||
-    features.includes("15_clients_pre_list")
-  ) {
-    clientLimit = 15;
-  } else {
-    clientLimit = 1;
-  }
+  const { clients: clientLimit } = await getOrgPlanLimits(orgId);
 
   const lists = await dbGetMailingLists(orgId);
   const listsProcessed: Array<{ listName: string; unsubscribedCount: number }> =

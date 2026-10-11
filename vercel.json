@@ -5,7 +5,7 @@
       "schedule": "0 */4 * * *"
     },
     {
-      "path": "/api/cron/rebalance-subcribers",
+      "path": "/api/cron/rebalance-subscribers",
       "schedule": "0 1-23/4 * * *"
     }
   ]

@@ -7,18 +7,17 @@ import { logCampaignWorkflow } from "@/workflows/log-campaign";
 import {
   dbCreateCampaign,
   dbGetCampaigns,
-  dbGetCampaignsCountAllListsThisWeek,
-  dbGetCampaignsCountThisWeek,
+  dbGetCampaignsCountThisMonth,
   dbGetSentMessages,
 } from "../db/campaigns";
 import { dbGetCampaignRecipients } from "../db/clients";
-import { dbGetMailingListsCount } from "../db/mailing_lists";
 import type {
   AppResult,
   Campaign,
   CampaignInput,
   SentMessage,
 } from "../types/types";
+import { getSessionPlanLimits, NO_PLAN_MESSAGE } from "./plan";
 
 /**
  * Fetch campaign history
@@ -75,39 +74,27 @@ export async function dalCreateCampaign(
       });
     }
 
-    const campaignLimit =
-      [15, 10, 5].find((num) => has({ feature: `${num}_campaigns_a_week` })) ||
-      1;
-
     const targetListName = input.mailing_list_name || undefined;
 
     const [
-      activeListsCount,
-      totalCampaignsCount,
+      limits,
+      sendsThisMonth,
       targetedClients,
-      currentWeekCount,
       isOverMemberShipLimitValue,
     ] = await Promise.all([
-      dbGetMailingListsCount(orgId),
-      dbGetCampaignsCountAllListsThisWeek(orgId),
+      getSessionPlanLimits(),
+      dbGetCampaignsCountThisMonth(orgId),
       dbGetCampaignRecipients(orgId, targetListName),
-      dbGetCampaignsCountThisWeek(orgId, targetListName),
       isOverMemberShipLimit(orgId),
     ]);
 
-    if (currentWeekCount >= campaignLimit) {
-      const listLabel = targetListName
-        ? `for the "${targetListName}" mailing list`
-        : "for broadcast campaigns";
-      return err({
-        reason: `Campaign limit reached. This organization is limited to ${campaignLimit} campaign(s) per week ${listLabel}.`,
-      });
+    if (!limits.hasAccess) {
+      return err({ reason: NO_PLAN_MESSAGE });
     }
 
-    const globalLimit = activeListsCount * campaignLimit;
-    if (totalCampaignsCount >= globalLimit) {
+    if (sendsThisMonth >= limits.sendsPerMonth) {
       return err({
-        reason: `Global campaign limit reached. This organization is limited to ${globalLimit} campaign(s) per week total across all lists (based on ${activeListsCount} mailing list(s) allowed).`,
+        reason: `Monthly send limit reached. Your plan allows ${limits.sendsPerMonth} mailing list send(s) per month. Upgrade on the Pricing page for more.`,
       });
     }
 

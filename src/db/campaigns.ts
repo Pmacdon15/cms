@@ -166,6 +166,25 @@ export async function dbGetCampaignsCountThisWeek(
 }
 
 /**
+ * Total mailing list sends (campaigns) by an organization this calendar month,
+ * across all lists including deleted/disabled ones. Used for the
+ * sends_*_month plan limit.
+ */
+export async function dbGetCampaignsCountThisMonth(
+  orgId: string,
+): Promise<number> {
+  "use cache";
+  cacheTag(`campaigns-${orgId}`);
+  const rows = (await sql`
+    SELECT COUNT(*)::integer as count
+    FROM campaigns
+    WHERE org_id = ${orgId}
+      AND created_at >= date_trunc('month', now())
+  `) as Array<{ count: number }>;
+  return rows[0]?.count || 0;
+}
+
+/**
  * Get the total count of campaigns dispatched by an organization this week (starting Monday) across all lists (including deleted/disabled lists)
  */
 export async function dbGetCampaignsCountAllListsThisWeek(

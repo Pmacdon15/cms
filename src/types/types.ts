@@ -40,8 +40,9 @@ export interface MailingList {
   org_id?: string;
   status?: "active" | "disabled" | "deleted";
   created_at?: Date | string;
-  campaignsSentThisWeek?: number;
-  campaignLimit?: number;
+  sendsThisMonth?: number;
+  sendLimit?: number;
+  mailingListLimit?: number;
 }
 
 export interface MailingListSubscription {

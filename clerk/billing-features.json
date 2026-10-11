@@ -1,0 +1,13 @@
+{
+  "billing": {
+    "features": [
+      { "slug": "cms_access", "name": "CMS Access" },
+      { "slug": "mailing_lists_1", "name": "1 Mailing List" },
+      { "slug": "mailing_lists_10", "name": "10 Mailing Lists" },
+      { "slug": "clients_50", "name": "50 Clients" },
+      { "slug": "clients_100", "name": "100 Clients" },
+      { "slug": "sends_50_month", "name": "50 Mailing List Sends / Month" },
+      { "slug": "sends_100_month", "name": "100 Mailing List Sends / Month" }
+    ]
+  }
+}

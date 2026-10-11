@@ -39,9 +39,15 @@ export async function POST(req: NextRequest) {
         //   break;
         // }
 
-        case "subscriptionItem.active": {
-          const data = evt.data;
-          const orgId = data.id;
+        case "subscriptionItem.active":
+        case "subscriptionItem.ended":
+        case "subscriptionItem.canceled": {
+          const data = evt.data as {
+            status?: string;
+            payer?: { organization_id?: string | null };
+          };
+          // The subscription item id is not the org id; the paying org is on payer.
+          const orgId = data.payer?.organization_id;
           const status = data.status;
 
           console.log(
