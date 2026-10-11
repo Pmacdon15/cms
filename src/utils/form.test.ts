@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { getFieldError } from "./form";
 
 describe("getFieldError", () => {
@@ -18,8 +18,8 @@ describe("getFieldError", () => {
   });
 
   it("handles mixed error shapes", () => {
-    expect(
-      getFieldError([{ message: "Zod error" }, "string error", 42]),
-    ).toBe("Zod error, string error, 42");
+    expect(getFieldError([{ message: "Zod error" }, "string error", 42])).toBe(
+      "Zod error, string error, 42",
+    );
   });
 });

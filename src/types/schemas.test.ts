@@ -1,12 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
+  campaignFormSchema,
+  campaignInputSchema,
+  campaignSchema,
   clientInputSchema,
   clientSchema,
-  campaignInputSchema,
-  campaignFormSchema,
-  campaignSchema,
-  mailingListSchema,
   mailingListFormSchema,
+  mailingListSchema,
   mailingListSubscriptionSchema,
   sentMessageSchema,
 } from "./schemas";

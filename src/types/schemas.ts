@@ -4,8 +4,15 @@ import { z } from "zod";
 
 export const clientInputSchema = z.object({
   name: z.string().min(1, "Name is required").max(255, "Name is too long"),
-  email: z.string().min(1, "Email is required").email("Invalid email address").max(255, "Email is too long"),
-  phone_number: z.string().min(1, "Phone is required").max(50, "Phone number is too long"),
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Invalid email address")
+    .max(255, "Email is too long"),
+  phone_number: z
+    .string()
+    .min(1, "Phone is required")
+    .max(50, "Phone number is too long"),
 });
 
 export const clientSchema = clientInputSchema.extend({
@@ -18,43 +25,47 @@ export const clientSchema = clientInputSchema.extend({
 
 // --- CAMPAIGN SCHEMAS ---
 
-export const campaignInputSchema = z.object({
-  type: z.enum(["email", "sms", "both"]),
-  subject: z.string().max(255, "Subject is too long").optional(),
-  content: z.string().min(1, "Message content is required"),
-  mailing_list_name: z.string().optional(),
-}).refine(
-  (data) => {
-    // If it's an email/both campaign, subject is required
-    if (data.type === "email" || data.type === "both") {
-      return !!data.subject?.trim();
-    }
-    return true;
-  },
-  {
-    message: "Subject is required for email campaigns",
-    path: ["subject"],
-  }
-);
+export const campaignInputSchema = z
+  .object({
+    type: z.enum(["email", "sms", "both"]),
+    subject: z.string().max(255, "Subject is too long").optional(),
+    content: z.string().min(1, "Message content is required"),
+    mailing_list_name: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      // If it's an email/both campaign, subject is required
+      if (data.type === "email" || data.type === "both") {
+        return !!data.subject?.trim();
+      }
+      return true;
+    },
+    {
+      message: "Subject is required for email campaigns",
+      path: ["subject"],
+    },
+  );
 
-export const campaignFormSchema = z.object({
-  type: z.enum(["email", "sms", "both"]),
-  subject: z.string().max(255, "Subject is too long"),
-  content: z.string().min(1, "Message content is required"),
-  mailing_list_name: z.string(),
-}).refine(
-  (data) => {
-    // If it's an email/both campaign, subject is required
-    if (data.type === "email" || data.type === "both") {
-      return !!data.subject.trim();
-    }
-    return true;
-  },
-  {
-    message: "Subject is required for email campaigns",
-    path: ["subject"],
-  }
-);
+export const campaignFormSchema = z
+  .object({
+    type: z.enum(["email", "sms", "both"]),
+    subject: z.string().max(255, "Subject is too long"),
+    content: z.string().min(1, "Message content is required"),
+    mailing_list_name: z.string(),
+  })
+  .refine(
+    (data) => {
+      // If it's an email/both campaign, subject is required
+      if (data.type === "email" || data.type === "both") {
+        return !!data.subject.trim();
+      }
+      return true;
+    },
+    {
+      message: "Subject is required for email campaigns",
+      path: ["subject"],
+    },
+  );
 
 export const campaignSchema = z.object({
   id: z.string().uuid(),
@@ -80,8 +91,14 @@ export const mailingListSchema = z.object({
 });
 
 export const mailingListFormSchema = z.object({
-  name: z.string().min(1, "List name is required").max(255, "List name is too long"),
-  description: z.string().min(1, "Description name is required").max(255, "List description is too long"),
+  name: z
+    .string()
+    .min(1, "List name is required")
+    .max(255, "List name is too long"),
+  description: z
+    .string()
+    .min(1, "Description name is required")
+    .max(255, "List description is too long"),
 });
 
 export const mailingListSubscriptionSchema = z.object({
