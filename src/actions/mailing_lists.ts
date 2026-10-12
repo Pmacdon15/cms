@@ -5,7 +5,6 @@ import {
   dalCreateMailingList,
   dalDeleteMailingList,
   dalEditMailingList,
-  dalGetClientSubscriptionsByEmail,
   dalGetClientSubscriptionsById,
   dalGetMailingListSubscribers,
   dalGetMailingLists,
@@ -53,13 +52,6 @@ export async function actionCreateMailingList(
  */
 export async function actionGetMailingListSubscribers(listName: string) {
   return await dalGetMailingListSubscribers(listName);
-}
-
-/**
- * Public server action to fetch subscription preferences by subscriber email
- */
-export async function actionGetClientSubscriptionsByEmail(email: string) {
-  return await dalGetClientSubscriptionsByEmail(email);
 }
 
 /**

@@ -2,16 +2,11 @@ import { auth } from "@clerk/nextjs/server";
 import { err, ok } from "neverthrow";
 import { isOverMemberShipLimit } from "@/db/clerk";
 import { dbGetCampaignsCountThisMonth } from "../db/campaigns";
-import {
-  dbGetClientByEmail,
-  dbGetClientById,
-  dbUpdateClientOptIn,
-} from "../db/clients";
+import { dbGetClientById, dbUpdateClientOptIn } from "../db/clients";
 import {
   dbCreateMailingList,
   dbDeleteMailingList,
   dbEditMailingList,
-  dbGetClientSubscriptionsByEmail,
   dbGetClientSubscriptionsById,
   dbGetMailingListSubscribers,
   dbGetMailingListSubscribersCount,
@@ -35,6 +30,9 @@ function isUuidString(str: string): boolean {
     str,
   );
 }
+
+export const PUBLIC_IDENTIFIER_REQUIRED =
+  "Valid subscriber reference (UUID) is required.";
 
 /**
  * Fetch all mailing lists from the database (Admin authenticated)
@@ -166,54 +164,6 @@ export async function dalGetMailingListSubscribers(listName: string): Promise<
 }
 
 /**
- * Public resolver to retrieve dynamic mailing list preferences by email
- */
-export async function dalGetClientSubscriptionsByEmail(email: string): Promise<
-  | {
-      ok: true;
-      value: {
-        client: { id: string; name: string; email: string } | null;
-        globalOptIn: boolean;
-        subscriptions: Array<{
-          listName: string;
-          description: string;
-          status: "subscribed" | "unsubscribed";
-        }>;
-      };
-    }
-  | { ok: false; error: string }
-> {
-  try {
-    const cleanEmail = email.trim().toLowerCase();
-    if (!cleanEmail) {
-      return { ok: false, error: "Email address is required." };
-    }
-
-    const res = await dbGetClientSubscriptionsByEmail(cleanEmail);
-    if (!res) {
-      return {
-        ok: false,
-        error: `Subscriber with email ${cleanEmail} not found.`,
-      };
-    }
-
-    const normalized = {
-      ...res,
-      client: res.client ? { ...res.client, id: String(res.client.id) } : null,
-    };
-
-    return { ok: true, value: normalized };
-  } catch (error) {
-    console.error("dalGetClientSubscriptionsByEmail exception:", error);
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to retrieve subscription preferences.";
-    return { ok: false, error: message };
-  }
-}
-
-/**
  * Public resolver to retrieve dynamic mailing list preferences securely by client UUID
  */
 export async function dalGetClientSubscriptionsById(id: string): Promise<
@@ -291,6 +241,12 @@ export async function dalUpdateSubscriptionStatus(
     const cleanInput = clientIdOrEmail.trim();
     if (!cleanInput) {
       return err({ reason: "Subscriber identifier is required." });
+    }
+
+    // Unauthenticated callers may only act on the unguessable client UUID
+    // from their unsubscribe link, never on a guessable email address.
+    if (isPublic && !isUuidString(cleanInput)) {
+      return err({ reason: PUBLIC_IDENTIFIER_REQUIRED });
     }
 
     if (!resolvedOrgId) {
@@ -400,10 +356,12 @@ export async function dalUpdateGlobalOptIn(
       return err({ reason: "Subscriber identifier is required." });
     }
 
-    const isUuid = isUuidString(cleanInput);
-    const client = isUuid
-      ? await dbGetClientById(cleanInput)
-      : await dbGetClientByEmail(cleanInput.toLowerCase());
+    // Public endpoint: only the unguessable client UUID is accepted.
+    if (!isUuidString(cleanInput)) {
+      return err({ reason: PUBLIC_IDENTIFIER_REQUIRED });
+    }
+
+    const client = await dbGetClientById(cleanInput);
 
     if (!client) {
       return err({ reason: "Subscriber profile not found." });
