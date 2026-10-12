@@ -31,7 +31,9 @@ jobs:
       # TODO: switch back to --frozen-lockfile once bun.lock is regenerated
       - run: bun install
       - name: Type check
-        run: bun run typecheck
+        run: |
+          set -o pipefail
+          bun run typecheck 2>&1 | tee tc.log || { head -c 60000 tc.log | sed 's/%/%25/g' | awk '{print "::error::" $0}'; exit 1; }
 
   test:
     runs-on: ubuntu-latest
