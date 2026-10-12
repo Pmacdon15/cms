@@ -355,12 +355,15 @@ export async function dalUpdateSubscriptionStatus(
     }
 
     if (isUuidString(cleanInput)) {
-      await dbUpdateSubscriptionStatus(
+      const success = await dbUpdateSubscriptionStatus(
         cleanInput,
         listName,
         status,
         resolvedOrgId,
       );
+      if (!success) {
+        return err({ reason: "Subscriber not found in this organization." });
+      }
     } else {
       const success = await dbUpdateSubscriptionStatusByEmail(
         cleanInput.toLowerCase(),
