@@ -75,6 +75,7 @@ describe("public subscription preference updates", () => {
 
   it("still allows the public path with the client UUID", async () => {
     mocks.sql.mockResolvedValue([{ org_id: "org_a" }]);
+    mocks.dbUpdateSubscriptionStatus.mockResolvedValue(true);
 
     const result = await dalUpdateSubscriptionStatus(
       CLIENT_ID,
@@ -84,6 +85,31 @@ describe("public subscription preference updates", () => {
     );
 
     expect(result.isOk()).toBe(true);
+    expect(mocks.dbUpdateSubscriptionStatus).toHaveBeenCalledWith(
+      CLIENT_ID,
+      "Newsletter",
+      "unsubscribed",
+      "org_a",
+    );
+  });
+
+  it("errors when the client is not in the admin's org", async () => {
+    mocks.protect.mockResolvedValue({
+      orgId: "org_a",
+      has: () => true,
+    });
+    mocks.dbUpdateSubscriptionStatus.mockResolvedValue(false);
+
+    const result = await dalUpdateSubscriptionStatus(
+      CLIENT_ID,
+      "Newsletter",
+      "unsubscribed",
+    );
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr().reason).toBe(
+      "Subscriber not found in this organization.",
+    );
     expect(mocks.dbUpdateSubscriptionStatus).toHaveBeenCalledWith(
       CLIENT_ID,
       "Newsletter",

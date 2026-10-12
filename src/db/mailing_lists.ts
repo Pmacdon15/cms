@@ -81,30 +81,21 @@ export async function dbUpdateSubscriptionStatus(
   status: "subscribed" | "unsubscribed",
   orgId?: string,
 ): Promise<boolean> {
-  const resolvedOrgId = orgId;
-  if (!resolvedOrgId) {
-    (await sql`
-      SELECT id, name, email, opt_in_newsletter, org_id
-      FROM clients
-      WHERE id = ${clientId}
-    `) as {
-      id: number;
-      name: string;
-      email: string;
-      opt_in_newsletter: boolean;
-      org_id: number;
-    }[];
-  }
+  if (!orgId) return false;
 
-  if (!resolvedOrgId) return false;
-
-  await sql`
+  // Only write when the client belongs to the caller's org, and never let the
+  // upsert overwrite a subscription row owned by a different org.
+  const rows = (await sql`
     INSERT INTO mailing_list_subscriptions (client_id, mailing_list_name, status, org_id)
-    VALUES (${clientId}, ${listName}, ${status}, ${resolvedOrgId})
+    SELECT c.id, ${listName}, ${status}, c.org_id
+    FROM clients c
+    WHERE c.id = ${clientId} AND c.org_id = ${orgId}
     ON CONFLICT (client_id, mailing_list_name)
     DO UPDATE SET status = EXCLUDED.status
-  `;
-  return true;
+    WHERE mailing_list_subscriptions.org_id = EXCLUDED.org_id
+    RETURNING client_id
+  `) as Array<{ client_id: string }>;
+  return rows.length > 0;
 }
 
 /**
