@@ -1,4 +1,3 @@
-import { Sparkles } from "lucide-react";
 import Link from "next/link";
 
 export default function DashboardHeader() {
@@ -6,9 +5,6 @@ export default function DashboardHeader() {
     <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm shadow-zinc-100/50 md:p-8">
       <div className="relative z-10 flex flex-col justify-between gap-6 md:flex-row md:items-center">
         <div>
-          <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 font-semibold text-blue-600 text-xs tracking-wide">
-            <Sparkles className="h-3.5 w-3.5" /> Next-Gen CMS Portal
-          </div>
           <h1 className="mb-2 font-display font-extrabold text-3xl text-zinc-900 tracking-tight">
             Welcome to CMS Pro Dashboard
           </h1>
