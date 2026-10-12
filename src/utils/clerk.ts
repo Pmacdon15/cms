@@ -26,11 +26,15 @@ export async function dispatchCampaignChannels(
       : null,
   ]);
 
+  const failedEmailIds = new Set(emailResult?.failedIds ?? []);
+  const emailSent = (clientId: string) =>
+    !!emailResult?.success && !failedEmailIds.has(clientId);
+
   const emailLogs = emailResult
     ? emailRecipients.map((client) => ({
         clientId: client.id,
         channel: "email" as const,
-        status: emailResult.success ? ("sent" as const) : ("failed" as const),
+        status: emailSent(client.id) ? ("sent" as const) : ("failed" as const),
         msgId: emailResult.messageId,
       }))
     : [];
@@ -45,7 +49,7 @@ export async function dispatchCampaignChannels(
     : [];
 
   const successCount =
-    (emailResult?.success ? emailRecipients.length : 0) +
+    emailRecipients.filter((client) => emailSent(client.id)).length +
     (smsResult?.success ? smsRecipients.length : 0);
 
   return {

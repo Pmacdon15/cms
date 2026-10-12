@@ -530,7 +530,7 @@ export async function sendEmailNewsletter(
   content: string,
   recipients: Array<{ id: string; email: string }>,
   mailingListName?: string,
-): Promise<{ success: boolean; messageId?: string }> {
+): Promise<{ success: boolean; messageId?: string; failedIds?: string[] }> {
   if (recipients.length === 0) {
     return { success: true, messageId: "no-recipients" };
   }
@@ -590,14 +590,31 @@ export async function sendEmailNewsletter(
       return response.MessageId;
     });
 
-    const results = await Promise.all(sendPromises);
-    const lastMessageId =
-      results[results.length - 1] || `mock-ses-msg-${Date.now()}`;
+    // One rejected send must not mark the whole batch as failed: the other
+    // emails were delivered, and reporting them as failed invites a resend.
+    const results = await Promise.allSettled(sendPromises);
+    const failedIds: string[] = [];
+    let lastMessageId: string | undefined;
+    results.forEach((result, index) => {
+      if (result.status === "fulfilled") {
+        lastMessageId = result.value || lastMessageId;
+      } else {
+        failedIds.push(recipients[index].id);
+        console.error(
+          `AWS SES send error for recipient ${recipients[index].id}:`,
+          result.reason,
+        );
+      }
+    });
 
-    return { success: true, messageId: lastMessageId };
+    return {
+      success: failedIds.length < recipients.length,
+      messageId: lastMessageId || `mock-ses-msg-${Date.now()}`,
+      failedIds,
+    };
   } catch (error) {
     console.error("AWS SES bulk send error:", error);
-    return { success: false };
+    return { success: false, failedIds: recipients.map((r) => r.id) };
   }
 }
 
